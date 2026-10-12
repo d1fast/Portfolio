@@ -1,28 +1,37 @@
 ---
-// Первый экран. Финальный вид лежит в HTML сразу; вступление («бриф печатается и
-// превращается в страницу») идёт поверх скриптом hero.ts и зависит от выбранного направления.
+// Первый экран. Финальный вид лежит в HTML сразу; вступление идёт поверх скриптом hero.ts.
 import { t, type Lang } from '../i18n';
 import { site } from '../config';
+import Sheet from './Sheet.astro';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const d = t(lang);
 const [first, last] = d.hero.name.split(' ');
+const dimLabel = lang === 'ru' ? 'ширина заголовка' : 'headline width';
 ---
-<section class="hero" id="top" data-theme="lime" data-hero>
-  <div class="hero__brief brief-box" aria-hidden="true" data-brief-file={d.hero.fileName}>
+<section class="hero section--sheet" id="top" data-theme="black" data-hero>
+  <Sheet n={1} of={6} name={lang === 'ru' ? 'Савелий Лопатин, сайт' : 'Saveliy Lopatin, site'} lang={lang} class="sheet--hero" />
+  <div class="hero__grid" aria-hidden="true"></div>
+  <div class="hero__brief brief-box" aria-hidden="true">
     <div class="hero__brief-title">{d.hero.fileName}</div>
     <div class="brief-lines" data-lines></div>
   </div>
   <div class="container hero__final hero-final">
-    <h1 class="hero__name" data-target="name"><span class="hero__w">{first}</span> <span class="hero__w">{last}</span></h1>
+    <h1 class="hero__name" data-target="name"><span class="hero__w" data-chars>{first}</span> <span class="hero__w" data-chars>{last}</span></h1>
+    <div class="dim dim--h hero__dim-h" aria-hidden="true" data-dim-h><i></i><b><span data-dim-w>0</span> px</b></div>
+    <div class="dim dim--v hero__dim-v" aria-hidden="true" data-dim-v><i></i><b><span data-dim-hgt>0</span> px</b></div>
     <p class="hero__tag" data-target="do">{d.hero.tagline}</p>
-    <p class="hero__meta" data-target="who">{d.about.facts[0]}</p>
+    <p class="hero__meta" data-target="who"><span class="hero__meta-dot"></span>{d.about.facts[0]} · {d.about.facts[2]}</p>
+    <div class="hero__object" data-hero-object aria-hidden="true">
+      <canvas class="hero__canvas" data-hero-canvas></canvas>
+      <span class="hero__object-label"><span data-object-label>{lang === 'ru' ? 'объект: d1fast · каркас' : 'object: d1fast · wireframe'}</span></span>
+    </div>
     <div class="hero__cta">
       <a class="btn btn--primary" href={site.telegramUrl} target="_blank" rel="noopener" data-target="contact" data-magnetic>{d.hero.ctaTelegram}</a>
       <a class="btn btn--ghost" href="#works" data-target="main" data-magnetic="0.2">{d.hero.ctaWorks}</a>
     </div>
-    <div class="hero__nick" aria-hidden="true"><span>{d.hero.nick}</span></div>
   </div>
+  <div class="hero__scroll" aria-hidden="true"><span>{d.hero.scrollHint}</span><i></i></div>
   <button class="hero__skip" type="button" data-skip hidden>{d.hero.skip}</button>
-  <script type="application/json" data-brief set:html={JSON.stringify({ brief: d.hero.brief, typo: d.hero.typo })} />
+  <script type="application/json" data-brief set:html={JSON.stringify({ brief: d.hero.brief, typo: d.hero.typo, dimLabel })} />
 </section>

@@ -51,6 +51,11 @@ function play(el: HTMLElement) {
     gsap.fromTo(kids, { y: 28, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: 'expo.out', stagger: 0.06, delay, clearProps: 'all' });
     return;
   }
+  if (type === 'stamp') {
+    el.classList.add('is-in');
+    gsap.fromTo(el, { scale: 1.8, opacity: 0, rotation: -14 }, { scale: 1, opacity: 1, rotation: -8, duration: 0.55, ease: 'back.out(2.2)', delay: delay + 0.35, clearProps: 'scale,opacity' });
+    return;
+  }
   if (type === 'scale') {
     el.classList.add('is-in');
     gsap.fromTo(el, { scale: 0.94, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.9, ease: 'expo.out', delay, clearProps: 'all' });

@@ -11,9 +11,9 @@ const isPhone = () => innerWidth < 760;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /**
- * Первый экран: бриф печатается, потом его строки становятся элементами страницы.
- * Финальный контент есть в HTML с самого начала, вступление идёт поверх.
- * Повторно в той же сессии и при prefers-reduced-motion сразу финал.
+ * Первый экран. Первый визит в сессии: бриф печатается и его строки становятся элементами.
+ * Повторный визит: короткий выход листа (рамка, заголовок по буквам, размеры), без печати.
+ * ?intro в адресе или клик по логотипу запускают полную версию заново.
  */
 export function initHero(onDone?: (hero: HTMLElement) => void) {
   const hero = document.querySelector<HTMLElement>('[data-hero]');
@@ -21,30 +21,102 @@ export function initHero(onDone?: (hero: HTMLElement) => void) {
   hero.classList.add('is-bound');
   let seen = false;
   try { seen = !!sessionStorage.getItem('intro-seen'); } catch {}
-  if (seen || reduced() || !hero.querySelector('[data-brief]')) { finish(hero); onDone?.(hero); return; }
+  const force = new URLSearchParams(location.search).has('intro');
+  const data = JSON.parse(hero.querySelector('[data-brief]')?.textContent || 'null') as Brief | null;
 
-  const data = JSON.parse(hero.querySelector('[data-brief]')!.textContent || '{}') as Brief;
+  const logo = document.querySelector<HTMLElement>('[data-logo]');
+  logo?.addEventListener('click', (e) => {
+    if (!location.pathname.replace(/\/en\/?$/, '/').endsWith('/') || hero.classList.contains('is-intro')) return;
+    if (scrollY > 10) return; // с середины страницы логотип просто ведёт наверх
+    e.preventDefault();
+    try { sessionStorage.removeItem('intro-seen'); } catch {}
+    resetHero(hero);
+    runFull(hero, data!, onDone);
+  });
+
+  if (reduced() || !data) { finish(hero); onDone?.(hero); return; }
+  if (seen && !force) { runShort(hero, onDone); return; }
+  runFull(hero, data, onDone);
+}
+
+function resetHero(hero: HTMLElement) {
+  hero.classList.remove('is-done');
+  gsap.set(hero.querySelectorAll('.hero-final, .hero-final *, .hero__object, .hero__scroll'), { clearProps: 'all' });
+  hero.querySelectorAll('.dim, .sheet').forEach((el) => el.classList.remove('is-in'));
+}
+
+function measureDims(hero: HTMLElement) {
+  const name = hero.querySelector('.hero__name') as HTMLElement;
+  const final = hero.querySelector('.hero__final') as HTMLElement;
+  const dh = hero.querySelector<HTMLElement>('[data-dim-h]'); const dv = hero.querySelector<HTMLElement>('[data-dim-v]');
+  if (!name || !final || !dh || !dv) return { w: 0, h: 0 };
+  const r = name.getBoundingClientRect(); const fr = final.getBoundingClientRect();
+  dh.style.left = r.left - fr.left + 'px'; dh.style.width = r.width + 'px'; dh.style.top = r.top - fr.top - 24 + 'px';
+  dv.style.top = r.top - fr.top + 'px'; dv.style.height = r.height + 'px'; dv.style.left = r.right - fr.left + 16 + 'px';
+  return { w: Math.round(r.width), h: Math.round(r.height) };
+}
+
+function countDims(hero: HTMLElement, tl: gsap.core.Timeline, at: number) {
+  const { w, h } = measureDims(hero);
+  const fmt = (n: number) => Math.round(n).toLocaleString('ru-RU');
+  const cw = hero.querySelector<HTMLElement>('[data-dim-w]'); const ch = hero.querySelector<HTMLElement>('[data-dim-hgt]');
+  const o = { w: 0, h: 0 };
+  tl.call(() => { hero.querySelector('[data-dim-h]')?.classList.add('is-in'); hero.querySelector('[data-dim-v]')?.classList.add('is-in'); }, [], at);
+  tl.to(o, { w, h, duration: 0.9, ease: 'power2.out', onUpdate: () => { if (cw) cw.textContent = fmt(o.w); if (ch) ch.textContent = fmt(o.h); } }, at + 0.1);
+  addEventListener('resize', () => { const m = measureDims(hero); if (cw) cw.textContent = fmt(m.w); if (ch) ch.textContent = fmt(m.h); }, { passive: true });
+}
+
+function finish(hero: HTMLElement) {
+  hero.classList.remove('is-intro', 'is-morphing', 'is-fresh');
+  hero.classList.add('is-done');
+  hero.querySelector('[data-sheet]')?.classList.add('is-in');
+  gsap.set(hero.querySelectorAll('.hero-final, .hero-final *, .hero__object, .hero__scroll'), { clearProps: 'all' });
+  const m = measureDims(hero);
+  const cw = hero.querySelector<HTMLElement>('[data-dim-w]'); const ch = hero.querySelector<HTMLElement>('[data-dim-hgt]');
+  if (cw) cw.textContent = m.w.toLocaleString('ru-RU'); if (ch) ch.textContent = m.h.toLocaleString('ru-RU');
+  hero.querySelectorAll('.dim').forEach((el) => el.classList.add('is-in'));
+  try { sessionStorage.setItem('intro-seen', '1'); } catch {}
+  hero.dispatchEvent(new CustomEvent('hero:done'));
+}
+
+/* Короткая версия: лист рисуется, имя выходит по буквам, остальное проявляется. */
+function runShort(hero: HTMLElement, onDone?: (hero: HTMLElement) => void) {
+  hero.classList.add('is-fresh');
+  const sheet = hero.querySelector('[data-sheet]');
+  const tl = gsap.timeline({ defaults: { ease: 'expo.out' }, onComplete: () => { finish(hero); onDone?.(hero); } });
+  document.fonts.ready.then(() => {
+    tl.call(() => sheet?.classList.add('is-in'), [], 0);
+    const words = hero.querySelectorAll<HTMLElement>('[data-chars]');
+    const chars: HTMLElement[] = [];
+    words.forEach((w) => { const s = new SplitText(w, { type: 'chars', charsClass: 'char' }); chars.push(...(s.chars as HTMLElement[])); });
+    tl.set(hero.querySelector('.hero__name')!, { opacity: 1 }, 0.1);
+    tl.fromTo(chars, { yPercent: 110, rotateX: -40, opacity: 0 }, { yPercent: 0, rotateX: 0, opacity: 1, duration: 0.9, stagger: 0.03 }, 0.15);
+    countDims(hero, tl, 0.7);
+    const rest = hero.querySelectorAll('.hero__tag, .hero__meta, .hero__cta > *, .hero__object, .hero__scroll');
+    tl.fromTo(rest, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.7, stagger: 0.06, clearProps: 'transform' }, 0.6);
+    tl.call(() => hero.classList.remove('is-fresh'), [], 0.6);
+  });
+}
+
+/* Полная версия: бриф печатается, строки превращаются в элементы. */
+function runFull(hero: HTMLElement, data: Brief, onDone?: (hero: HTMLElement) => void) {
   const lines = isPhone() ? data.brief.filter((l) => l.id !== 'who') : data.brief;
   const linesRoot = hero.querySelector<HTMLElement>('[data-lines]')!;
   const skip = hero.querySelector<HTMLButtonElement>('[data-skip]');
   const sig = { stop: false };
-  hero.classList.add('is-intro');
-  if (skip) { skip.hidden = false; skip.addEventListener('click', () => { sig.stop = true; tl?.kill(); finish(hero); onDone?.(hero); }); }
   let tl: gsap.core.Timeline | null = null;
+  hero.classList.add('is-intro');
+  hero.classList.remove('is-done');
+  if (skip) { skip.hidden = false; skip.onclick = () => { sig.stop = true; tl?.kill(); finish(hero); onDone?.(hero); }; }
 
   document.fonts.ready.then(async () => {
     if (sig.stop) return;
+    hero.querySelector('[data-sheet]')?.classList.add('is-in');
+    await sleep(350);
     const els = await typeLines(linesRoot, lines, data.typo, isPhone() ? 110 : 95, sig);
     if (sig.stop) return;
     tl = morph(hero, els, () => { finish(hero); onDone?.(hero); });
   });
-}
-
-function finish(hero: HTMLElement) {
-  hero.classList.remove('is-intro', 'is-morphing');
-  hero.classList.add('is-done');
-  gsap.set(hero.querySelectorAll('.hero-final, .hero-final *'), { clearProps: 'all' });
-  try { sessionStorage.setItem('intro-seen', '1'); } catch {}
 }
 
 async function typeLines(root: HTMLElement, lines: Line[], typo: Brief['typo'], cps: number, sig: { stop: boolean }) {
@@ -66,8 +138,13 @@ async function typeLines(root: HTMLElement, lines: Line[], typo: Brief['typo'], 
     const target = lines[i].text;
     if (typo.line === i && target.startsWith(typo.right)) {
       for (const ch of typo.wrong) { if (sig.stop) return els; txt.textContent += ch; await sleep(delay()); }
-      await sleep(200);
-      while (txt.textContent!.length) { if (sig.stop) return els; txt.textContent = txt.textContent!.slice(0, -1); await sleep(16); }
+      await sleep(240);
+      // ошибка подчёркивается красным и стирается
+      txt.innerHTML = `<span class="brief-err">${txt.textContent}</span>`;
+      await sleep(260);
+      const err = txt.querySelector('.brief-err') as HTMLElement;
+      while (err.textContent!.length) { if (sig.stop) return els; err.textContent = err.textContent!.slice(0, -1); await sleep(14); }
+      txt.textContent = '';
     }
     for (const ch of target) { if (sig.stop) return els; txt.textContent += ch; await sleep(ch === ' ' ? delay() * 0.5 : delay()); }
     await sleep(90);
@@ -99,11 +176,21 @@ function morph(hero: HTMLElement, lineEls: HTMLElement[], onComplete: () => void
     const scale = Math.min(3.2, Math.max(1, tr.height / mr.height));
     tl.to(mover, { x: tr.left - mr.left, y: tr.top - mr.top, scale, duration: 0.8 }, at);
     tl.to(mover, { opacity: 0, duration: 0.22, ease: 'power1.in' }, at + 0.55);
-    tl.fromTo(target, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out', clearProps: 'transform' }, at + 0.42);
+    if (id === 'name') {
+      // имя собирается по буквам, навстречу летящей строке
+      const words = target.querySelectorAll<HTMLElement>('[data-chars]');
+      const chars: HTMLElement[] = [];
+      words.forEach((w) => { const s = new SplitText(w, { type: 'chars', charsClass: 'char' }); chars.push(...(s.chars as HTMLElement[])); });
+      tl.set(target, { opacity: 1 }, at + 0.35);
+      tl.fromTo(chars, { yPercent: 110, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.8, stagger: 0.025, ease: 'expo.out' }, at + 0.4);
+    } else {
+      tl.fromTo(target, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out', clearProps: 'transform' }, at + 0.42);
+    }
     k++;
   }
-  const rest = [...hero.querySelectorAll<HTMLElement>('.hero-final > *:not([data-target]), .hero-final .hero__cta > *:not([data-target])')];
-  tl.fromTo(rest, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.05, ease: 'power3.out', clearProps: 'transform' }, 0.7);
+  countDims(hero, tl, 1.1);
+  const rest = [...hero.querySelectorAll<HTMLElement>('.hero-final > *:not([data-target]):not(.dim), .hero__cta > *:not([data-target]), .hero__object, .hero__scroll')];
+  tl.fromTo(rest, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.05, ease: 'power3.out', clearProps: 'transform' }, 0.9);
   hero.dispatchEvent(new CustomEvent('hero:morph', { detail: { tl } }));
   return tl;
 }

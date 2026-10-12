@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import { t, langPrefix, type Lang } from '../i18n';
+import Sheet from './Sheet.astro';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const d = t(lang);
@@ -9,7 +10,8 @@ const all = await getCollection('work', (e) => e.id.endsWith(`/${lang}`) && !e.d
 const works = all.sort((a, b) => a.data.order - b.data.order || b.data.year - a.data.year);
 const slugOf = (id: string) => id.split('/')[0];
 ---
-<section class="works section" id="works" data-theme="dark">
+<section class="works section section--sheet" id="works" data-theme="black">
+  <Sheet n={4} of={6} name={d.works.title} lang={lang} />
   <div class="container">
     <h2 class="section__title" data-reveal="lines">{d.works.title}</h2>
     <ul class="works__list" data-reveal="stagger">
@@ -19,7 +21,7 @@ const slugOf = (id: string) => id.split('/')[0];
         return (
           <li class="works__item">
             <a class="work-card" href={href} data-preview-mp4={w.data.video ? base + w.data.video.mp4 : undefined} data-preview-webm={w.data.video ? base + w.data.video.webm : undefined}>
-              <div class="work-card__media" transition:name={`work-${slug}`}>
+              <div class="work-card__media" transition:name={`work-${slug}`} data-tilt="4">
                 {w.data.video ? (
                   <video class="work-card__video" muted playsinline loop preload="none" poster={base + w.data.video.poster} aria-label={d.a11y.videoPreview} data-inline-preview>
                     <source src={base + w.data.video.webm} type="video/webm" />

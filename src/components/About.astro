@@ -1,16 +1,19 @@
 ---
 import { t, type Lang } from '../i18n';
+import Sheet from './Sheet.astro';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const d = t(lang);
 ---
-<section class="about section" id="about" data-theme="ink">
+<section class="about section section--sheet" id="about" data-theme="black">
+  <Sheet n={2} of={6} name={d.about.title} lang={lang} />
   <div class="container about__grid">
     <h2 class="section__title about__title" data-reveal="lines">{d.about.title}</h2>
     <figure class="about__photo" data-reveal="scale">
       <div class="about__photo-ph" role="img" aria-label={d.about.photoAlt}>
         <span>{d.about.photoSoon}</span>
       </div>
+      <span class="about__stamp" data-reveal="stamp" aria-hidden="true">{lang === 'ru' ? 'Москва · 18 лет' : 'Moscow · 18 y.o.'}</span>
     </figure>
     <div class="about__text">
       <p class="about__name" data-reveal="lines"><span class="about__fullname">{d.hero.name}</span> <span class="about__nick">{d.hero.nick}</span></p>

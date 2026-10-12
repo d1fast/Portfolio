@@ -1,4 +1,4 @@
-/* Токены. Значения цвета и шрифтов задаются после выбора направления первого экрана. */
+/* Токены. Мир: чертёжный лист. Три вида листа: чёрный (экран), лаймовый (маркер), белый (бумага). */
 :root {
   --font-display: 'Unbounded', system-ui, sans-serif;
   --font-body: 'Golos Text', system-ui, sans-serif;
@@ -9,11 +9,12 @@
   --text-sm: 14px;
   --text-xs: 12px;
 
-  --container: 1440px;
+  --container: 1480px;
   --gutter: clamp(16px, 3vw, 40px);
-  --section-y: clamp(72px, 12vh, 160px);
-  --radius: 16px;
-  --radius-sm: 8px;
+  --sheet: clamp(10px, 1.2vw, 18px);          /* отступ рамки листа от края */
+  --section-y: clamp(80px, 12vh, 160px);
+  --radius: 4px;
+  --radius-sm: 3px;
   --radius-pill: 999px;
 
   --ease-out: cubic-bezier(.23, 1, .32, 1);
@@ -22,20 +23,25 @@
   --dur-fast: 140ms;
   --dur-base: 240ms;
   --dur-slow: 400ms;
-  --dur-theme: 600ms;
+  --dur-theme: 550ms;
 
-  /* Схема по умолчанию: совпадает с первым разделом. */
-  --bg: #D9FF3D;
-  --fg: #101418;
-  --muted: color-mix(in oklab, var(--fg) 65%, var(--bg));
-  --line: color-mix(in oklab, var(--fg) 45%, transparent);
-  --accent: #4B2BFF;
-  --accent-fg: #ffffff;
+  --lime: #D7FF00;
+  --black: #050505;
+  --white: #F4F6F0;
+  --red: #FF4D2E;
+
+  /* чёрный лист по умолчанию */
+  --bg: var(--black);
+  --fg: var(--white);
+  --accent: var(--lime);
+  --accent-fg: var(--black);
+  --line: color-mix(in oklab, var(--fg) 22%, transparent);
+  --line-strong: color-mix(in oklab, var(--fg) 55%, transparent);
+  --muted: color-mix(in oklab, var(--fg) 62%, var(--bg));
+  --dim: var(--lime);                         /* цвет размерных линий */
 }
 
-/* Схемы разделов. Переключаются по триггеру скриптом theme.ts через data-theme на <html>. */
-:root[data-theme="lime"] { --bg: #D9FF3D; --fg: #101418; --accent: #4B2BFF; --accent-fg: #ffffff; }
-:root[data-theme="ink"] { --bg: #101418; --fg: #F2F4EA; --accent: #D9FF3D; --accent-fg: #101418; }
-:root[data-theme="dark"] { --bg: #0B0D12; --fg: #ECEFF4; --accent: #D9FF3D; --accent-fg: #101418; }
-:root[data-theme="violet"] { --bg: #4B2BFF; --fg: #F4F2FF; --accent: #D9FF3D; --accent-fg: #101418; }
-:root[data-theme="paper"] { --bg: #F4F4F0; --fg: #101418; --accent: #4B2BFF; --accent-fg: #ffffff; }
+:root[data-theme="black"] { --bg: var(--black); --fg: var(--white); --accent: var(--lime); --accent-fg: var(--black); --dim: var(--lime); }
+:root[data-theme="lime"]  { --bg: var(--lime);  --fg: var(--black); --accent: var(--black); --accent-fg: var(--lime); --dim: var(--black); }
+:root[data-theme="white"] { --bg: var(--white); --fg: var(--black); --accent: var(--lime); --accent-fg: var(--black); --dim: var(--black); }
+:root[data-theme="paper"] { --bg: var(--white); --fg: var(--black); --accent: var(--lime); --accent-fg: var(--black); --dim: var(--black); }

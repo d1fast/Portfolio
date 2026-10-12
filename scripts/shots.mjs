@@ -13,6 +13,7 @@ const viewports = {
 const wait = Number(process.env.SHOT_WAIT || 6000);
 const full = process.env.SHOT_FULL === '1';
 const reduced = process.env.SHOT_REDUCED === '1';
+const scrollTo = process.env.SHOT_SCROLL || '';
 fs.mkdirSync('shots', { recursive: true });
 
 const exe = ['/opt/pw-browsers/chromium', '/opt/pw-browsers/chromium-1194/chrome-linux/chrome'].find((p) => fs.existsSync(p));
@@ -34,7 +35,8 @@ for (const p of list) {
       await page.evaluate(() => scrollTo(0, 0));
       await page.waitForTimeout(900);
     }
-    const safe = (p.replace(/^\//, '') || 'index').replace(/[^a-z0-9]+/gi, '-');
+    if (scrollTo) { await page.evaluate((sel) => document.querySelector(sel)?.scrollIntoView({ block: 'start' }), scrollTo); await page.waitForTimeout(1800); }
+    const safe = ((p.replace(/^\//, '') || 'index') + (scrollTo ? scrollTo : '')).replace(/[^a-z0-9]+/gi, '-');
     const file = `shots/${safe}-${name}.png`;
     await page.screenshot({ path: file, fullPage: full });
     console.log(file, errors.length ? `ERRORS: ${errors.join(' | ')}` : 'ok');

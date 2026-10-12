@@ -1,10 +1,12 @@
 ---
 import { t, type Lang } from '../i18n';
+import Sheet from './Sheet.astro';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const d = t(lang);
 ---
-<section class="process section" id="process" data-theme="violet">
+<section class="process section section--sheet" id="process" data-theme="white">
+  <Sheet n={5} of={6} name={d.process.title} lang={lang} />
   <div class="container">
     <h2 class="section__title" data-reveal="lines">{d.process.title}</h2>
     <ol class="process__list" data-active-list data-reveal="stagger">

@@ -40,21 +40,25 @@ html.js [data-reveal].is-in { opacity: 1; }
 html.js .split-line { display: block; overflow: clip; }
 html.js .split-line > .split-inner { display: block; will-change: transform; }
 
-/* Свой курсор только для мыши */
+/* Свой курсор только для мыши: перекрестие с координатами */
 .cursor { display: none; }
 @media (hover: hover) and (pointer: fine) {
-  html.has-cursor { cursor: none; }
-  html.has-cursor a, html.has-cursor button, html.has-cursor label, html.has-cursor input, html.has-cursor textarea { cursor: none; }
-  .cursor { display: block; position: fixed; left: 0; top: 0; z-index: 9999; pointer-events: none; will-change: transform; }
-  .cursor__dot { position: absolute; left: -4px; top: -4px; width: 8px; height: 8px; border-radius: 50%; background: var(--fg); transition: transform .18s var(--ease-out), background-color .2s; mix-blend-mode: difference; }
-  .cursor__ring { position: absolute; left: -18px; top: -18px; width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--fg); opacity: .6; transition: transform .22s var(--ease-out), opacity .2s; mix-blend-mode: difference; }
-  .cursor.is-link .cursor__ring { transform: scale(1.6); opacity: .9; }
-  .cursor.is-link .cursor__dot { transform: scale(.5); }
+  html.has-cursor, html.has-cursor a, html.has-cursor button, html.has-cursor label, html.has-cursor input, html.has-cursor textarea, html.has-cursor select { cursor: none; }
+  .cursor { display: block; position: fixed; left: 0; top: 0; z-index: 9999; pointer-events: none; will-change: transform; color: var(--lime); mix-blend-mode: difference; }
+  .cursor__h, .cursor__v { position: absolute; background: currentColor; transition: transform .25s var(--ease-out), opacity .2s; }
+  .cursor__h { left: -14px; top: 0; width: 28px; height: 1px; }
+  .cursor__v { left: 0; top: -14px; width: 1px; height: 28px; }
+  .cursor__ring { position: absolute; left: -16px; top: -16px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid currentColor; opacity: 0; transform: scale(.4); transition: transform .3s var(--ease-out), opacity .2s; }
+  .cursor__xy { position: absolute; left: 12px; top: 10px; font: 500 10px/1 var(--font-mono); letter-spacing: .04em; white-space: nowrap; opacity: .9; transition: opacity .2s; }
+  .cursor.is-link .cursor__h, .cursor.is-link .cursor__v { transform: scale(0); }
+  .cursor.is-link .cursor__ring { opacity: 1; transform: scale(1); }
+  .cursor.is-link .cursor__xy { opacity: 0; }
+  .cursor.is-text .cursor__ring { transform: scale(.5); }
   .cursor.is-down .cursor__ring { transform: scale(.8); }
   .cursor.is-hidden { opacity: 0; }
-  .cursor__video { position: absolute; left: 24px; top: 24px; width: 280px; aspect-ratio: 16 / 9; border-radius: 12px; overflow: clip; background: #000; transform: scale(.6) translateY(10px); opacity: 0; transform-origin: 0 0; transition: transform .3s var(--ease-out), opacity .25s; box-shadow: 0 20px 50px -20px rgba(0,0,0,.6); }
+  .cursor__video { position: absolute; left: 24px; top: 24px; width: 300px; aspect-ratio: 16 / 9; overflow: clip; background: #000; border: 1px solid var(--lime); transform: scale(.6) translateY(10px); opacity: 0; transform-origin: 0 0; transition: transform .35s var(--ease-out), opacity .25s; mix-blend-mode: normal; }
   .cursor.is-preview .cursor__video { transform: scale(1) translateY(0); opacity: 1; }
-  .cursor.is-preview .cursor__ring, .cursor.is-preview .cursor__dot { opacity: 0; }
+  .cursor.is-preview .cursor__ring, .cursor.is-preview .cursor__h, .cursor.is-preview .cursor__v, .cursor.is-preview .cursor__xy { opacity: 0; }
   .cursor__video video { width: 100%; height: 100%; object-fit: cover; }
 }
 

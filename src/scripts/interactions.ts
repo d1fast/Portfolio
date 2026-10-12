@@ -90,3 +90,42 @@ export function initCopy(root: ParentNode = document) {
     });
   }
 }
+
+/** Рамки листов рисуются, когда раздел появляется на экране. */
+export function initSheets(root: ParentNode = document) {
+  const sheets = [...root.querySelectorAll<HTMLElement>('[data-sheet]:not(.is-bound)')];
+  if (!sheets.length) return;
+  sheets.forEach((s) => s.classList.add('is-bound'));
+  if (reduced()) { sheets.forEach((s) => s.classList.add('is-in')); return; }
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) { (e.target as HTMLElement).classList.add('is-in'); io.unobserve(e.target); }
+  }, { rootMargin: '0px 0px -10% 0px', threshold: 0.01 });
+  // лист первого экрана включает скрипт вступления
+  sheets.filter((s) => !s.closest('[data-hero]')).forEach((s) => io.observe(s));
+}
+
+/** Дата в штампе: сегодняшняя, как на живом чертеже. */
+export function initStampDates(root: ParentNode = document) {
+  const d = new Date();
+  const txt = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
+  root.querySelectorAll<HTMLElement>('[data-stamp-date]').forEach((el) => { el.textContent = txt; });
+}
+
+/** Лёгкий наклон карточек за курсором. Только мышь, только transform. */
+export function initTilt(root: ParentNode = document) {
+  if (!fine() || reduced()) return;
+  for (const el of root.querySelectorAll<HTMLElement>('[data-tilt]:not(.is-bound)')) {
+    el.classList.add('is-bound');
+    const max = Number(el.dataset.tilt || 6);
+    const rx = gsap.quickTo(el, 'rotationX', { duration: 0.5, ease: 'power3.out' });
+    const ry = gsap.quickTo(el, 'rotationY', { duration: 0.5, ease: 'power3.out' });
+    gsap.set(el, { transformPerspective: 900, transformStyle: 'preserve-3d' });
+    el.addEventListener('pointermove', (e) => {
+      const r = el.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width - 0.5;
+      const py = (e.clientY - r.top) / r.height - 0.5;
+      rx(-py * max); ry(px * max);
+    });
+    el.addEventListener('pointerleave', () => { rx(0); ry(0); });
+  }
+}

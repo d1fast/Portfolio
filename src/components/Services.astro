@@ -1,10 +1,20 @@
 ---
 import { t, type Lang } from '../i18n';
+import Sheet from './Sheet.astro';
+import sites from '../icons/sites.svg?raw';
+import apps from '../icons/apps.svg?raw';
+import bots from '../icons/bots.svg?raw';
+import threed from '../icons/threed.svg?raw';
+import games from '../icons/games.svg?raw';
+import ui from '../icons/ui.svg?raw';
+import spec from '../icons/spec.svg?raw';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const d = t(lang);
+const icons = [sites, apps, bots, threed, games, ui, spec];
 ---
-<section class="services section" id="services" data-theme="lime">
+<section class="services section section--sheet" id="services" data-theme="lime">
+  <Sheet n={3} of={6} name={d.services.title} lang={lang} />
   <div class="container">
     <h2 class="section__title" data-reveal="lines">{d.services.title}</h2>
     <ul class="services__list" data-active-list data-reveal="stagger">
@@ -12,7 +22,8 @@ const d = t(lang);
         <li class="services__item" tabindex="0">
           <span class="services__num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
           <h3 class="services__name">{item.title}</h3>
-          <p class="services__text">{item.text}</p>
+          <p class="services__text"><span>{item.text}</span></p>
+          <span class="services__icon" aria-hidden="true" data-draw set:html={icons[i]} />
         </li>
       ))}
     </ul>
