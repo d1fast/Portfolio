@@ -14,14 +14,17 @@ function startScene() {
   sceneStarted = true;
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const modelUrl = canvas.dataset.model || undefined;
+  const conn = (navigator as any).connection;
+  if (conn && conn.saveData) return;
   import('./scene').then((m) => m.initHeroScene(canvas, { reduced, modelUrl })).catch(() => {});
 }
 
 function init() {
   sceneStarted = false;
-  initHero(() => startScene());
-  // если вступление длинное, 3D всё равно стартует заранее, чтобы к концу уже крутился
-  setTimeout(startScene, 900);
+  // 3D подгружается, когда главный поток свободен: после вступления или в простое
+  const idle = (cb: () => void) => ('requestIdleCallback' in window ? (window as any).requestIdleCallback(cb, { timeout: 2500 }) : setTimeout(cb, 300));
+  initHero(() => idle(startScene));
+  setTimeout(() => idle(startScene), 1800);
   initSheets();
   initStampDates();
   initReveal();

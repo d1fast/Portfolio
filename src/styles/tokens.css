@@ -23,7 +23,7 @@
   --dur-fast: 140ms;
   --dur-base: 240ms;
   --dur-slow: 400ms;
-  --dur-theme: 550ms;
+  --dur-theme: 420ms;
 
   --lime: #D7FF00;
   --black: #050505;
@@ -39,9 +39,11 @@
   --line-strong: color-mix(in oklab, var(--fg) 55%, transparent);
   --muted: color-mix(in oklab, var(--fg) 62%, var(--bg));
   --dim: var(--lime);                         /* цвет размерных линий */
+  --focus: var(--lime);
+  --error: var(--red);
 }
 
-:root[data-theme="black"] { --bg: var(--black); --fg: var(--white); --accent: var(--lime); --accent-fg: var(--black); --dim: var(--lime); }
-:root[data-theme="lime"]  { --bg: var(--lime);  --fg: var(--black); --accent: var(--black); --accent-fg: var(--lime); --dim: var(--black); }
-:root[data-theme="white"] { --bg: var(--white); --fg: var(--black); --accent: var(--lime); --accent-fg: var(--black); --dim: var(--black); }
-:root[data-theme="paper"] { --bg: var(--white); --fg: var(--black); --accent: var(--lime); --accent-fg: var(--black); --dim: var(--black); }
+:root[data-theme="black"] { --bg: var(--black); --fg: var(--white); --accent: var(--lime); --accent-fg: var(--black); --dim: var(--lime); --focus: var(--lime); --error: var(--red); }
+:root[data-theme="lime"]  { --bg: var(--lime);  --fg: var(--black); --accent: var(--black); --accent-fg: var(--lime); --dim: var(--black); --focus: var(--black); --error: #8A1400; }
+:root[data-theme="white"] { --bg: var(--white); --fg: var(--black); --accent: var(--lime); --accent-fg: var(--black); --dim: var(--black); --focus: var(--black); --error: #B3230D; }
+:root[data-theme="paper"] { --bg: var(--white); --fg: var(--black); --accent: var(--lime); --accent-fg: var(--black); --dim: var(--black); --focus: var(--black); --error: #B3230D; }

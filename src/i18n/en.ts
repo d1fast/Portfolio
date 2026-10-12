@@ -42,10 +42,10 @@ export const en: Dict = {
     title: 'About',
     photoAlt: 'Photo of Saveliy Lopatin',
     photoSoon: 'Photo coming soon',
-    p1: 'I’m Saveliy, d1fast online. A young developer from Moscow. I build digital products end to end: websites, web apps, Telegram bots, 3D scenes, small games and the interfaces around them.',
+    p1: 'I’m Saveliy, better known online as d1fast. I’m a young developer based in Moscow. I build digital products end to end: websites, web apps, Telegram bots, 3D scenes, small games and the interfaces around them.',
     p2: 'First I work out how the client’s business runs and what the product has to do for it. Then I think everything through up front and write a detailed spec. I build it and keep polishing until I like the result myself.',
     p3: 'AI writes part of my code, which speeds up the routine work. What to build, how it should behave and when it’s done is my call.',
-    facts: ['Moscow, working remotely', 'Web, backend, 3D, games', 'Replies on Telegram the same day'],
+    facts: ['Moscow, working remotely', 'Web, backend, 3D, games', 'I reply on Telegram the same day'],
   },
   services: {
     title: 'What I do',
@@ -61,7 +61,7 @@ export const en: Dict = {
   },
   works: {
     title: 'Work',
-    open: 'Open case',
+    open: 'View project',
     year: 'Year',
     stack: 'Stack',
   },
@@ -69,9 +69,9 @@ export const en: Dict = {
     title: 'How I work',
     steps: [
       { title: 'Understand', text: 'I ask what the business needs this for and who will use it. The task often changes after that conversation, and that’s fine.' },
-      { title: 'Think it through and write it down', text: 'I write a spec: screens, flows, where the data comes from. We agree on the result up front instead of arguing at the end.' },
+      { title: 'Think it through and write it down', text: 'I write a spec: screens, flows, where the data comes from. That way we agree on the result up front.' },
       { title: 'Build', text: 'I show a working version early. Changes on a live product are clearer than on mockups.' },
-      { title: 'Finish', text: 'I polish until I like it myself. Then I test on a phone, on a slow connection and in the awkward cases.' },
+      { title: 'Finish', text: 'I polish until I like it myself. Then I test it on a phone, on a slow connection and in the edge cases.' },
     ],
   },
   contacts: {
@@ -90,7 +90,7 @@ export const en: Dict = {
     consentLink: 'privacy policy',
     submit: 'Send',
     submitTelegram: 'Send via Telegram',
-    telegramHint: 'Telegram will open with the message ready, you just press send.',
+    telegramHint: 'Telegram will open with the message ready. You just press send.',
     sending: 'Sending',
     success: 'Sent. I’ll reply on Telegram or by email.',
     error: 'That didn’t go through. Write to me directly:',
@@ -103,7 +103,7 @@ export const en: Dict = {
   },
   notFound: {
     title: 'No such page',
-    text: 'The home page and the work are still here.',
+    text: 'Try the home page or my work instead.',
     home: 'Home',
     works: 'See work',
   },
@@ -132,7 +132,7 @@ export const en: Dict = {
     title: 'brief.txt',
     lines: [
       'a portfolio site for myself. saveliy lopatin, d1fast',
-      'goal: people write to me. clients and employers',
+      'goal: get people to write to me. clients and employers',
       'first screen: text turns into the site. 3-4 seconds, skippable',
       'then: about, what i do, work, how i work, contact',
       'mood: bright and bold, unusual colours and grid. text always readable',

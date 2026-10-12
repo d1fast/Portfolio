@@ -12,8 +12,8 @@ const labels = lang === 'ru'
   <i class="sheet__c sheet__c--tl"></i><i class="sheet__c sheet__c--tr"></i><i class="sheet__c sheet__c--bl"></i><i class="sheet__c sheet__c--br"></i>
   <div class="stamp" data-stamp>
     <span class="stamp__cell"><b>{labels.name}</b>{name}</span>
-    <span class="stamp__cell"><b>{labels.dev}</b>{labels.who}</span>
-    <span class="stamp__cell"><b>{labels.sheet}</b>{n}<em>/</em>{of}</span>
+    <span class="stamp__cell stamp__cell--dev"><b>{labels.dev}</b>{labels.who}</span>
+    <span class="stamp__cell"><b>{labels.sheet}</b>{n}<span class="stamp__slash">/</span>{of}</span>
     <span class="stamp__cell stamp__cell--date"><b>{labels.date}</b><span data-stamp-date>10.2026</span></span>
   </div>
 </div>

@@ -47,7 +47,7 @@ const hasEndpoint = Boolean(site.formEndpoint);
         <button class="btn btn--primary" type="submit" data-magnetic>{hasEndpoint ? d.contacts.submit : d.contacts.submitTelegram}</button>
         {!hasEndpoint && <p class="contact-form__hint">{d.contacts.telegramHint}</p>}
       </div>
-      <p class="contact-form__status" data-form-status role="status" aria-live="polite"></p>
+      <p class="contact-form__status" id="cf-status" data-form-status role="status" aria-live="polite"></p>
       <p class="contact-form__fallback" data-form-fallback hidden>
         <a href={site.telegramUrl} target="_blank" rel="noopener">@{site.telegramUser}</a>
         <a href={`mailto:${site.email}`}>{site.email}</a>

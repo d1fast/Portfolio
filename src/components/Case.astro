@@ -2,12 +2,14 @@
 import { render } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import { t, langPrefix, type Lang } from '../i18n';
+import fs from 'node:fs';
 interface Props { lang: Lang; entry: CollectionEntry<'work'>; slug: string }
 const { lang, entry, slug } = Astro.props;
 const d = t(lang);
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const { Content } = await render(entry);
 const w = entry.data;
+const small = (src: string) => { const s = src.replace(/\.webp$/, '-800.webp'); return s !== src && fs.existsSync('public' + s) ? s : null; };
 ---
 <article class="case">
   <header class="case__head container">
@@ -41,7 +43,7 @@ const w = entry.data;
           {m.kind === 'video' ? (
             <video muted playsinline loop autoplay preload="metadata"><source src={base + m.src} /></video>
           ) : (
-            <img src={base + m.src} alt={m.alt} loading="lazy" decoding="async" />
+            <img src={base + m.src} srcset={small(m.src) ? `${base}${small(m.src)} 800w, ${base}${m.src} 1600w` : undefined} sizes={small(m.src) ? '(max-width: 900px) 100vw, 55vw' : undefined} alt={m.alt} loading="lazy" decoding="async" width={m.portrait ? 780 : 1600} height={m.portrait ? 1688 : 900} />
           )}
           {m.caption && <figcaption>{m.caption}</figcaption>}
         </figure>

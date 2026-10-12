@@ -24,6 +24,7 @@ function corsHeaders(origin) {
 
 function limited(ip) {
   const now = Date.now();
+  if (hits.size > 5000) hits.clear();
   const list = (hits.get(ip) || []).filter((t) => now - t < RATE_LIMIT.windowMs);
   if (list.length >= RATE_LIMIT.max) return true;
   list.push(now);
@@ -42,7 +43,8 @@ module.exports.handler = async function (event) {
 
   if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: base, body: '' };
   if (event.httpMethod !== 'POST') return reply(405, { ok: false, error: 'method' });
-  if (process.env.ALLOWED_ORIGIN && origin !== process.env.ALLOWED_ORIGIN) return reply(403, { ok: false, error: 'origin' });
+  if (!process.env.ALLOWED_ORIGIN) return reply(500, { ok: false, error: 'config' });
+  if (origin !== process.env.ALLOWED_ORIGIN) return reply(403, { ok: false, error: 'origin' });
 
   let data;
   try {
@@ -50,6 +52,7 @@ module.exports.handler = async function (event) {
   } catch {
     return reply(400, { ok: false, error: 'json' });
   }
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return reply(400, { ok: false, error: 'json' });
 
   // Honeypot: поле, которое человек не видит и не заполняет.
   if (data.website) return reply(200, { ok: true });
@@ -60,8 +63,11 @@ module.exports.handler = async function (event) {
   if (!message || message.length < 3) return reply(400, { ok: false, error: 'empty' });
   if (data.consent !== true) return reply(400, { ok: false, error: 'consent' });
 
-  const ip = headers['X-Forwarded-For'] || headers['x-forwarded-for'] || (event.requestContext && event.requestContext.identity && event.requestContext.identity.sourceIp) || 'unknown';
-  if (limited(String(ip).split(',')[0].trim())) return reply(429, { ok: false, error: 'rate' });
+  // Доверяем адресу от платформы; заголовок X-Forwarded-For берём только как запасной вариант и с конца цепочки.
+  const ctxIp = event.requestContext && event.requestContext.identity && event.requestContext.identity.sourceIp;
+  const xff = String(headers['X-Forwarded-For'] || headers['x-forwarded-for'] || '');
+  const ip = ctxIp || xff.split(',').pop().trim() || 'unknown';
+  if (limited(ip)) return reply(429, { ok: false, error: 'rate' });
 
   const token = process.env.BOT_TOKEN;
   const chatId = process.env.CHAT_ID;

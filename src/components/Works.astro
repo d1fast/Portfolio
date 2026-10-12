@@ -23,7 +23,7 @@ const slugOf = (id: string) => id.split('/')[0];
             <a class="work-card" href={href} data-preview-mp4={w.data.video ? base + w.data.video.mp4 : undefined} data-preview-webm={w.data.video ? base + w.data.video.webm : undefined}>
               <div class="work-card__media" transition:name={`work-${slug}`} data-tilt="4">
                 {w.data.video ? (
-                  <video class="work-card__video" muted playsinline loop preload="none" poster={base + w.data.video.poster} aria-label={d.a11y.videoPreview} data-inline-preview>
+                  <video class="work-card__video" muted playsinline loop preload="none" data-poster={base + w.data.video.poster} aria-label={d.a11y.videoPreview} data-inline-preview width="1280" height="720">
                     <source src={base + w.data.video.webm} type="video/webm" />
                     <source src={base + w.data.video.mp4} type="video/mp4" />
                   </video>

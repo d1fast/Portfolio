@@ -11,9 +11,9 @@ const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
  * [data-reveal="up"] поднимает элемент целиком, [data-reveal="stagger"] детей по очереди.
  */
 export function initReveal(root: ParentNode = document) {
-  const items = [...root.querySelectorAll<HTMLElement>('[data-reveal]:not(.is-bound)')];
+  const items = [...root.querySelectorAll<HTMLElement>('[data-reveal]:not(.is-reveal-bound)')];
   if (!items.length) return;
-  if (reduced()) { items.forEach((el) => { el.classList.add('is-in', 'is-bound'); }); return; }
+  if (reduced()) { items.forEach((el) => { el.classList.add('is-in', 'is-reveal-bound'); }); return; }
 
   const io = new IntersectionObserver((entries) => {
     for (const e of entries) {
@@ -23,7 +23,7 @@ export function initReveal(root: ParentNode = document) {
     }
   }, { rootMargin: '0px 0px -12% 0px', threshold: 0.05 });
 
-  for (const el of items) { el.classList.add('is-bound'); io.observe(el); }
+  for (const el of items) { el.classList.add('is-reveal-bound'); io.observe(el); }
 }
 
 function play(el: HTMLElement) {
@@ -39,7 +39,8 @@ function play(el: HTMLElement) {
       });
       const inners = self.lines.map((l) => l.firstElementChild);
       el.classList.add('is-in');
-      return gsap.fromTo(inners, { yPercent: 110 }, { yPercent: 0, duration: 0.9, ease: 'expo.out', stagger: 0.07, delay, clearProps: 'transform',
+      const n = inners.length;
+      return gsap.fromTo(inners, { yPercent: 110 }, { yPercent: 0, duration: 0.85, ease: 'expo.out', stagger: Math.min(0.07, 0.3 / Math.max(1, n - 1)), delay, clearProps: 'transform',
         onComplete: () => { split.revert(); } });
     } });
     return;
@@ -48,7 +49,7 @@ function play(el: HTMLElement) {
     const kids = [...el.children] as HTMLElement[];
     el.classList.add('is-in');
     if (!kids.length) return;
-    gsap.fromTo(kids, { y: 28, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: 'expo.out', stagger: 0.06, delay, clearProps: 'all' });
+    gsap.fromTo(kids, { y: 28, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: 'expo.out', stagger: Math.min(0.06, 0.35 / Math.max(1, kids.length - 1)), delay, clearProps: 'all' });
     return;
   }
   if (type === 'stamp') {

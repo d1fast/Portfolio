@@ -20,7 +20,6 @@ export default defineConfig({
   integrations: [
     sitemap({
       i18n: { defaultLocale: 'ru', locales: { ru: 'ru-RU', en: 'en' } },
-      filter: (page) => !page.includes('/proto'),
     }),
   ],
   devToolbar: { enabled: false },

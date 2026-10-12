@@ -51,8 +51,9 @@ function measureDims(hero: HTMLElement) {
   const dh = hero.querySelector<HTMLElement>('[data-dim-h]'); const dv = hero.querySelector<HTMLElement>('[data-dim-v]');
   if (!name || !final || !dh || !dv) return { w: 0, h: 0 };
   const r = name.getBoundingClientRect(); const fr = final.getBoundingClientRect();
-  dh.style.left = r.left - fr.left + 'px'; dh.style.width = r.width + 'px'; dh.style.top = r.top - fr.top - 24 + 'px';
-  dv.style.top = r.top - fr.top + 'px'; dv.style.height = r.height + 'px'; dv.style.left = r.right - fr.left + 16 + 'px';
+  const over = parseFloat(getComputedStyle(name).fontSize) * 0.13; // выносной элемент буквы Й выше строки
+  dh.style.left = r.left - fr.left + 'px'; dh.style.width = r.width + 'px'; dh.style.top = r.top - fr.top - 24 - over + 'px';
+  dv.style.top = r.top - fr.top - over + 'px'; dv.style.height = r.height + over + 'px'; dv.style.left = r.right - fr.left + 16 + 'px';
   return { w: Math.round(r.width), h: Math.round(r.height) };
 }
 
@@ -67,6 +68,7 @@ function countDims(hero: HTMLElement, tl: gsap.core.Timeline, at: number) {
 }
 
 function finish(hero: HTMLElement) {
+  document.documentElement.classList.remove('intro-pending');
   hero.classList.remove('is-intro', 'is-morphing', 'is-fresh');
   hero.classList.add('is-done');
   hero.querySelector('[data-sheet]')?.classList.add('is-in');
@@ -82,6 +84,7 @@ function finish(hero: HTMLElement) {
 /* Короткая версия: лист рисуется, имя выходит по буквам, остальное проявляется. */
 function runShort(hero: HTMLElement, onDone?: (hero: HTMLElement) => void) {
   hero.classList.add('is-fresh');
+  document.documentElement.classList.remove('intro-pending');
   const sheet = hero.querySelector('[data-sheet]');
   const tl = gsap.timeline({ defaults: { ease: 'expo.out' }, onComplete: () => { finish(hero); onDone?.(hero); } });
   document.fonts.ready.then(() => {
@@ -90,11 +93,11 @@ function runShort(hero: HTMLElement, onDone?: (hero: HTMLElement) => void) {
     const chars: HTMLElement[] = [];
     words.forEach((w) => { const s = new SplitText(w, { type: 'chars', charsClass: 'char' }); chars.push(...(s.chars as HTMLElement[])); });
     tl.set(hero.querySelector('.hero__name')!, { opacity: 1 }, 0.1);
-    tl.fromTo(chars, { yPercent: 110, rotateX: -40, opacity: 0 }, { yPercent: 0, rotateX: 0, opacity: 1, duration: 0.9, stagger: 0.03 }, 0.15);
-    countDims(hero, tl, 0.7);
+    tl.fromTo(chars, { yPercent: 110, rotateX: -40, opacity: 0 }, { yPercent: 0, rotateX: 0, opacity: 1, duration: 0.7, stagger: 0.02 }, 0.1);
+    countDims(hero, tl, 0.35);
     const rest = hero.querySelectorAll('.hero__tag, .hero__meta, .hero__cta > *, .hero__object, .hero__scroll');
-    tl.fromTo(rest, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.7, stagger: 0.06, clearProps: 'transform' }, 0.6);
-    tl.call(() => hero.classList.remove('is-fresh'), [], 0.6);
+    tl.fromTo(rest, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.05, clearProps: 'transform' }, 0.4);
+    tl.call(() => hero.classList.remove('is-fresh'), [], 0.4);
   });
 }
 
@@ -107,6 +110,7 @@ function runFull(hero: HTMLElement, data: Brief, onDone?: (hero: HTMLElement) =>
   let tl: gsap.core.Timeline | null = null;
   hero.classList.add('is-intro');
   hero.classList.remove('is-done');
+  document.documentElement.classList.remove('intro-pending');
   if (skip) { skip.hidden = false; skip.onclick = () => { sig.stop = true; tl?.kill(); finish(hero); onDone?.(hero); }; }
 
   document.fonts.ready.then(async () => {

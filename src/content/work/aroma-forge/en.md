@@ -5,12 +5,12 @@ year: 2026
 order: 1
 role: Interface concept, 3D scene, front end
 stack: [Three.js, GLSL, Vite, Playwright]
-cover: /work/aroma-forge/poster.jpg
+cover: /work/aroma-forge/poster.webp
 coverAlt: The Sun and three rings of note planets in Aroma Forge
 video:
   mp4: /work/aroma-forge/preview.mp4
   webm: /work/aroma-forge/preview.webm
-  poster: /work/aroma-forge/poster.jpg
+  poster: /work/aroma-forge/poster.webp
 media:
   - src: /work/aroma-forge/desktop-start.webp
     alt: Start screen with the Sun, three orbits and the "Your fragrance" panel
@@ -36,7 +36,7 @@ media:
 
 ## The task
 
-Build the main screen of a fragrance builder. The user composes a perfume from notes, and it had to feel like an object you want to touch, not a form with checkboxes. It also had to open on a phone and stay smooth.
+Build the main screen of a fragrance builder. The user composes a perfume from notes, and it had to feel like an object you want to touch. It also had to open on a phone and stay smooth.
 
 ## What I did
 

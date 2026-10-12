@@ -35,6 +35,7 @@ export function initEaster() {
     box.hidden = false;
     requestAnimationFrame(() => box.classList.add('is-open'));
     document.body.style.overflow = 'hidden';
+    document.querySelectorAll('header, main, footer').forEach((el) => el.setAttribute('inert', ''));
     closeBtn.focus();
     typeAll();
   };
@@ -43,6 +44,7 @@ export function initEaster() {
     open = false; stop = true;
     box.classList.remove('is-open');
     document.body.style.overflow = '';
+    document.querySelectorAll('header, main, footer').forEach((el) => el.removeAttribute('inert'));
     setTimeout(() => { box.hidden = true; }, 300);
     lastFocus?.focus();
   };
@@ -53,7 +55,7 @@ export function initEaster() {
     if (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable) return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     if (e.key === 'Escape' && open) { hide(); return; }
-    if (e.key === 't' || e.key === 'T' || e.key === 'е' || e.key === 'Е') open ? hide() : show();
+    if ((e.key === 't' || e.key === 'T' || e.key === 'е' || e.key === 'Е') && (open || document.activeElement === document.body)) open ? hide() : show();
   });
   // долгое нажатие на ник в шапке
   for (const el of document.querySelectorAll<HTMLElement>('[data-logo]')) {

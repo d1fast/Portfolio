@@ -23,7 +23,8 @@ input, textarea { font: inherit; color: inherit; }
 h1, h2, h3, p, ul, figure { margin: 0; }
 ul { padding: 0; list-style: none; }
 ::selection { background: var(--fg); color: var(--bg); }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 2px; }
+[hidden] { display: none !important; }
 ::-webkit-scrollbar { width: 10px; }
 ::-webkit-scrollbar-thumb { background: color-mix(in oklab, var(--fg) 35%, transparent); border-radius: 999px; border: 2px solid var(--bg); }
 @supports (scrollbar-color: red blue) { html { scrollbar-color: color-mix(in oklab, var(--fg) 35%, transparent) transparent; } }
@@ -37,6 +38,8 @@ ul { padding: 0; list-style: none; }
 /* Появление при входе блока на экран. До срабатывания элемент видим без JS. */
 html.js [data-reveal] { opacity: 0; }
 html.js [data-reveal].is-in { opacity: 1; }
+/* до запуска скрипта первого экрана финальные элементы скрыты, чтобы не было вспышки перед вступлением */
+html.js.intro-pending .hero:not(.is-done) .hero-final > *, html.js.intro-pending .hero:not(.is-done) .hero__cta > *, html.js.intro-pending .hero:not(.is-done) .hero__scroll, html.js.intro-pending .hero:not(.is-done) .hero__object { opacity: 0; }
 html.js .split-line { display: block; overflow: clip; }
 html.js .split-line > .split-inner { display: block; will-change: transform; }
 
@@ -63,6 +66,6 @@ html.js .split-line > .split-inner { display: block; will-change: transform; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; transition-delay: 0s !important; scroll-behavior: auto !important; }
   html.js [data-reveal] { opacity: 1; }
 }

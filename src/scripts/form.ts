@@ -4,9 +4,9 @@
  * При ошибке показывает Telegram и почту.
  */
 export function initForm(root: ParentNode = document) {
-  const form = root.querySelector<HTMLFormElement>('form[data-contact-form]:not(.is-bound)');
+  const form = root.querySelector<HTMLFormElement>('form[data-contact-form]:not(.is-form-bound)');
   if (!form) return;
-  form.classList.add('is-bound');
+  form.classList.add('is-form-bound');
   const endpoint = form.dataset.endpoint || '';
   const tgUser = form.dataset.tgUser || '';
   const lang = form.dataset.lang || 'ru';
@@ -16,10 +16,14 @@ export function initForm(root: ParentNode = document) {
   const fallback = form.querySelector<HTMLElement>('[data-form-fallback]');
   const last = { t: 0 };
 
-  const show = (text: string, kind: 'ok' | 'err' | '') => {
+  const msgField = form.querySelector<HTMLElement>('[name="message"]')!;
+  const consentBox = form.querySelector<HTMLElement>('[name="consent"]')!;
+  const show = (text: string, kind: 'ok' | 'err' | '', field?: HTMLElement) => {
     status.textContent = text;
     status.dataset.kind = kind;
     if (fallback) fallback.hidden = kind !== 'err';
+    for (const el of [msgField, consentBox]) { el.removeAttribute('aria-invalid'); el.removeAttribute('aria-describedby'); }
+    if (kind === 'err' && field) { field.setAttribute('aria-invalid', 'true'); field.setAttribute('aria-describedby', status.id); field.focus(); }
   };
 
   form.addEventListener('submit', async (e) => {
@@ -30,8 +34,8 @@ export function initForm(root: ParentNode = document) {
     const consent = data.get('consent') === 'on';
     const website = String(data.get('website') || '');
     if (website) return; // ловушка для ботов
-    if (!message || message.length < 3) { show(labels.errorEmpty, 'err'); (form.querySelector('[name="message"]') as HTMLElement).focus(); if (fallback) fallback.hidden = true; return; }
-    if (!consent) { show(labels.errorConsent, 'err'); if (fallback) fallback.hidden = true; return; }
+    if (!message || message.length < 3) { show(labels.errorEmpty, 'err', msgField); if (fallback) fallback.hidden = true; return; }
+    if (!consent) { show(labels.errorConsent, 'err', consentBox); if (fallback) fallback.hidden = true; return; }
     if (Date.now() - last.t < 15000) return; // не чаще раза в 15 секунд
 
     if (!endpoint) {

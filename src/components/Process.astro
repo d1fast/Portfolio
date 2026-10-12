@@ -11,7 +11,7 @@ const d = t(lang);
     <h2 class="section__title" data-reveal="lines">{d.process.title}</h2>
     <ol class="process__list" data-active-list data-reveal="stagger">
       {d.process.steps.map((s, i) => (
-        <li class="process__step" tabindex="0">
+        <li class="process__step">
           <span class="process__num" aria-hidden="true">{i + 1}</span>
           <h3 class="process__name">{s.title}</h3>
           <p class="process__text">{s.text}</p>

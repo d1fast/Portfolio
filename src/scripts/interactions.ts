@@ -10,8 +10,8 @@ const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 /** Магнитные кнопки: тянутся к курсору в радиусе, возвращаются пружиной. Только мышь. */
 export function initMagnetic(root: ParentNode = document) {
   if (!fine() || reduced()) return;
-  for (const el of root.querySelectorAll<HTMLElement>('[data-magnetic]:not(.is-bound)')) {
-    el.classList.add('is-bound');
+  for (const el of root.querySelectorAll<HTMLElement>('[data-magnetic]:not(.is-magnet-bound)')) {
+    el.classList.add('is-magnet-bound');
     const strength = Number(el.dataset.magnetic || 0.35);
     const xTo = gsap.quickTo(el, 'x', { duration: 0.5, ease: 'power3.out' });
     const yTo = gsap.quickTo(el, 'y', { duration: 0.5, ease: 'power3.out' });
@@ -29,8 +29,8 @@ export function initMagnetic(root: ParentNode = document) {
 /** Скрэмбл текста ссылок при наведении. Текст не меняет ширину: символы из того же набора. */
 export function initScramble(root: ParentNode = document) {
   if (!fine() || reduced()) return;
-  for (const el of root.querySelectorAll<HTMLElement>('[data-scramble]:not(.is-bound)')) {
-    el.classList.add('is-bound');
+  for (const el of root.querySelectorAll<HTMLElement>('[data-scramble]:not(.is-scramble-bound)')) {
+    el.classList.add('is-scramble-bound');
     const text = el.textContent || '';
     const cyr = /[а-яё]/i.test(text);
     let tween: gsap.core.Tween | null = null;
@@ -46,9 +46,9 @@ export function initScramble(root: ParentNode = document) {
  * Ставит класс is-active на один пункт за раз.
  */
 export function initActiveItems(root: ParentNode = document) {
-  const lists = root.querySelectorAll<HTMLElement>('[data-active-list]:not(.is-bound)');
+  const lists = root.querySelectorAll<HTMLElement>('[data-active-list]:not(.is-active-bound)');
   for (const list of lists) {
-    list.classList.add('is-bound');
+    list.classList.add('is-active-bound');
     const items = [...list.children] as HTMLElement[];
     let current: HTMLElement | null = null;
     const set = (el: HTMLElement | null) => {
@@ -78,18 +78,18 @@ export function initActiveItems(root: ParentNode = document) {
 
 /** Бегущая строка: двигается через CSS, а здесь только ставится на паузу вне экрана. */
 export function initMarquee(root: ParentNode = document) {
-  const els = root.querySelectorAll<HTMLElement>('[data-marquee]:not(.is-bound)');
+  const els = root.querySelectorAll<HTMLElement>('[data-marquee]:not(.is-marquee-bound)');
   if (!els.length) return;
   const io = new IntersectionObserver((entries) => {
     for (const e of entries) (e.target as HTMLElement).classList.toggle('is-paused', !e.isIntersecting);
   });
-  els.forEach((el) => { el.classList.add('is-bound'); io.observe(el); });
+  els.forEach((el) => { el.classList.add('is-marquee-bound'); io.observe(el); });
 }
 
 /** Почта копируется по клику. */
 export function initCopy(root: ParentNode = document) {
-  for (const btn of root.querySelectorAll<HTMLElement>('[data-copy]:not(.is-bound)')) {
-    btn.classList.add('is-bound');
+  for (const btn of root.querySelectorAll<HTMLElement>('[data-copy]:not(.is-copy-bound)')) {
+    btn.classList.add('is-copy-bound');
     const label = btn.querySelector<HTMLElement>('[data-copy-label]');
     const original = label?.textContent || '';
     btn.addEventListener('click', async () => {
@@ -103,9 +103,9 @@ export function initCopy(root: ParentNode = document) {
 
 /** Рамки листов рисуются, когда раздел появляется на экране. */
 export function initSheets(root: ParentNode = document) {
-  const sheets = [...root.querySelectorAll<HTMLElement>('[data-sheet]:not(.is-bound)')];
+  const sheets = [...root.querySelectorAll<HTMLElement>('[data-sheet]:not(.is-sheet-bound)')];
   if (!sheets.length) return;
-  sheets.forEach((s) => s.classList.add('is-bound'));
+  sheets.forEach((s) => s.classList.add('is-sheet-bound'));
   if (reduced()) { sheets.forEach((s) => s.classList.add('is-in')); return; }
   const io = new IntersectionObserver((entries) => {
     for (const e of entries) if (e.isIntersecting) { (e.target as HTMLElement).classList.add('is-in'); io.unobserve(e.target); }
@@ -124,8 +124,8 @@ export function initStampDates(root: ParentNode = document) {
 /** Лёгкий наклон карточек за курсором. Только мышь, только transform. */
 export function initTilt(root: ParentNode = document) {
   if (!fine() || reduced()) return;
-  for (const el of root.querySelectorAll<HTMLElement>('[data-tilt]:not(.is-bound)')) {
-    el.classList.add('is-bound');
+  for (const el of root.querySelectorAll<HTMLElement>('[data-tilt]:not(.is-tilt-bound)')) {
+    el.classList.add('is-tilt-bound');
     const max = Number(el.dataset.tilt || 6);
     const rx = gsap.quickTo(el, 'rotationX', { duration: 0.5, ease: 'power3.out' });
     const ry = gsap.quickTo(el, 'rotationY', { duration: 0.5, ease: 'power3.out' });
