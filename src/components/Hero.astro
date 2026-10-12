@@ -3,11 +3,15 @@
 import { t, type Lang } from '../i18n';
 import { site } from '../config';
 import Sheet from './Sheet.astro';
+import fs from 'node:fs';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const d = t(lang);
 const [first, last] = d.hero.name.split(' ');
 const dimLabel = lang === 'ru' ? 'ширина заголовка' : 'headline width';
+// Модель из Meshy: положите GLB в public/models/me.glb, и каркасная фигура заменится на неё.
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const modelUrl = fs.existsSync('public/models/me.glb') ? `${base}/models/me.glb` : undefined;
 ---
 <section class="hero section--sheet" id="top" data-theme="black" data-hero>
   <Sheet n={1} of={6} name={lang === 'ru' ? 'Савелий Лопатин, сайт' : 'Saveliy Lopatin, site'} lang={lang} class="sheet--hero" />
@@ -23,8 +27,8 @@ const dimLabel = lang === 'ru' ? 'ширина заголовка' : 'headline w
     <p class="hero__tag" data-target="do">{d.hero.tagline}</p>
     <p class="hero__meta" data-target="who"><span class="hero__meta-dot"></span>{d.about.facts[0]} · {d.about.facts[2]}</p>
     <div class="hero__object" data-hero-object aria-hidden="true">
-      <canvas class="hero__canvas" data-hero-canvas></canvas>
-      <span class="hero__object-label"><span data-object-label>{lang === 'ru' ? 'объект: d1fast · каркас' : 'object: d1fast · wireframe'}</span></span>
+      <canvas class="hero__canvas" data-hero-canvas data-model={modelUrl}></canvas>
+      <span class="hero__object-label"><span data-object-label>{modelUrl ? (lang === 'ru' ? 'объект: Савелий · каркас' : 'object: Saveliy · wireframe') : (lang === 'ru' ? 'объект: d1fast · каркас' : 'object: d1fast · wireframe')}</span></span>
     </div>
     <div class="hero__cta">
       <a class="btn btn--primary" href={site.telegramUrl} target="_blank" rel="noopener" data-target="contact" data-magnetic>{d.hero.ctaTelegram}</a>
