@@ -1,7 +1,8 @@
 import { gsap } from 'gsap';
 import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
+import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
 
-gsap.registerPlugin(ScrambleTextPlugin);
+gsap.registerPlugin(ScrambleTextPlugin, DrawSVGPlugin);
 
 const fine = () => matchMedia('(hover: hover) and (pointer: fine)').matches;
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -49,7 +50,16 @@ export function initActiveItems(root: ParentNode = document) {
   for (const list of lists) {
     list.classList.add('is-bound');
     const items = [...list.children] as HTMLElement[];
-    const set = (el: HTMLElement | null) => items.forEach((i) => i.classList.toggle('is-active', i === el));
+    let current: HTMLElement | null = null;
+    const set = (el: HTMLElement | null) => {
+      items.forEach((i) => i.classList.toggle('is-active', i === el));
+      if (el && el !== current && !reduced()) {
+        // иконка пункта рисуется штрихом, как на чертеже
+        const strokes = el.querySelectorAll('[data-draw] svg *');
+        if (strokes.length) gsap.fromTo(strokes, { drawSVG: '0%' }, { drawSVG: '100%', duration: 0.7, ease: 'power2.out', stagger: 0.035, overwrite: true });
+      }
+      current = el;
+    };
     if (fine()) {
       items.forEach((i) => {
         i.addEventListener('pointerenter', () => set(i));
