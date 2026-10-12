@@ -34,4 +34,5 @@ export interface Dict {
   notFound: { title: string; text: string; home: string; works: string };
   policy: { title: string; updated: string; body: string[]; back: string };
   a11y: { close: string; openMenu: string; closeMenu: string; videoPreview: string };
+  easter: { title: string; lines: string[]; close: string };
 }

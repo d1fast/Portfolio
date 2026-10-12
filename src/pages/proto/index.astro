@@ -190,7 +190,7 @@ const nav = [d.nav.about, d.nav.services, d.nav.works, d.nav.process, d.nav.cont
             const split = new SplitText(txt, { type: 'words' });
             const w = split.words.find((x) => /показ/i.test(x.textContent || '')) as HTMLElement;
             mover = w || line;
-            gsap.to(split.words.filter((x) => x !== mover), { opacity: 0, duration: 0.3 }, 0.1);
+            tl.to(split.words.filter((x) => x !== mover), { opacity: 0, duration: 0.3 }, 0.1);
           }
           const at = 0.1 + k * 0.07;
           // строка летит к месту элемента и равномерно растёт, элемент проявляется ей навстречу

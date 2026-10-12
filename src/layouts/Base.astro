@@ -84,6 +84,12 @@ const other = lang === 'ru' ? 'en' : 'ru';
       <slot />
     </main>
     <Footer lang={lang} />
+    <div class="easter" data-easter data-lines={JSON.stringify(d.easter.lines)} hidden role="dialog" aria-modal="true" aria-label={d.easter.title}>
+      <div class="easter__sheet">
+        <div class="easter__head"><span class="easter__file">{d.easter.title}</span><button class="easter__close" type="button" data-easter-close>{d.easter.close}</button></div>
+        <div class="brief-lines" data-easter-lines></div>
+      </div>
+    </div>
     <script src="../scripts/main.ts"></script>
   </body>
 </html>

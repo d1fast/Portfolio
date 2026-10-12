@@ -90,7 +90,7 @@ function morph(hero: HTMLElement, lineEls: HTMLElement[], onComplete: () => void
       const split = new SplitText(txt, { type: 'words' });
       const w = split.words.find((x) => /показ|show/i.test(x.textContent || '')) as HTMLElement | undefined;
       mover = w || line;
-      gsap.to(split.words.filter((x) => x !== mover), { opacity: 0, duration: 0.3 }, 0.1);
+      tl.to(split.words.filter((x) => x !== mover), { opacity: 0, duration: 0.3 }, 0.1);
     }
     const at = 0.1 + k * 0.07;
     gsap.set(mover, { x: 0, y: 0, scale: 1, transformOrigin: '0 0', willChange: 'transform' });

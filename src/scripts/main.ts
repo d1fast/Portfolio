@@ -4,6 +4,8 @@ import { initCursor } from './cursor';
 import { initMagnetic, initScramble, initActiveItems, initMarquee, initCopy } from './interactions';
 import { initForm } from './form';
 import { initHero } from './hero';
+import { initEaster } from './easter';
+import { initWorksPreview } from './works-preview';
 
 function init() {
   initHero();
@@ -15,6 +17,8 @@ function init() {
   initMarquee();
   initCopy();
   initForm();
+  initEaster();
+  initWorksPreview();
 }
 
 initCursor();

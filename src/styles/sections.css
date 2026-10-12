@@ -165,3 +165,12 @@ html.js .hero.is-intro .hero-final > *, html.js .hero.is-intro .hero__cta > * { 
 .policy__date { font: 500 13px/1.4 var(--font-mono); opacity: .7; }
 .policy__body { display: grid; gap: 14px; font-size: var(--text-base); line-height: 1.6; }
 .policy__back { font: 500 14px/1 var(--font-mono); width: max-content; margin-top: 16px; }
+
+/* Пасхалка: бриф сайта */
+.easter { position: fixed; inset: 0; z-index: 90; background: color-mix(in oklab, var(--bg) 92%, transparent); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); display: grid; place-items: start center; overflow: auto; padding: clamp(16px, 6vh, 80px) var(--gutter); opacity: 0; transition: opacity .3s var(--ease-out); }
+.easter.is-open { opacity: 1; }
+.easter__sheet { width: min(760px, 100%); font: 400 clamp(13px, 1.1vw, 16px)/1.5 var(--font-mono); }
+.easter__head { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 16px; font-size: .85em; }
+.easter__file { opacity: .6; letter-spacing: .06em; }
+.easter__close { border: 1px solid currentColor; border-radius: var(--radius-pill); padding: 8px 12px; font-size: 12px; }
+.easter .brief-line { padding-left: 1.4em; }

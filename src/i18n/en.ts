@@ -128,4 +128,22 @@ export const en: Dict = {
     closeMenu: 'Close menu',
     videoPreview: 'Project preview',
   },
+  easter: {
+    title: 'brief.txt',
+    lines: [
+      'a portfolio site for myself. saveliy lopatin, d1fast',
+      'goal: people write to me. clients and employers',
+      'first screen: text turns into the site. 3-4 seconds, skippable',
+      'then: about, what i do, work, how i work, contact',
+      'mood: bright and bold, unusual colours and grid. text always readable',
+      'normal scroll, nothing tied to scroll position',
+      'phone matters more than desktop: the link gets opened from telegram',
+      'cases: one text file + media, each with its own link',
+      'languages: ru and en. real english, not a word-for-word translation',
+      'one line about ai: it writes code, i think and finish',
+      '404, favicon and a telegram preview image in the site style',
+      'done when i like it myself',
+    ],
+    close: 'Close',
+  },
 };
