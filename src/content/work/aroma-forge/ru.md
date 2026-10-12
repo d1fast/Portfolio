@@ -12,23 +12,23 @@ video:
   webm: /work/aroma-forge/preview.webm
   poster: /work/aroma-forge/poster.jpg
 media:
-  - src: /work/aroma-forge/desktop-start.png
+  - src: /work/aroma-forge/desktop-start.webp
     alt: "Стартовый экран: Солнце, три орбиты и панель «Твой аромат»"
     caption: "Стартовый экран. Три кольца вокруг Солнца: верхние, сердечные и базовые ноты."
-  - src: /work/aroma-forge/planet-rose.png
+  - src: /work/aroma-forge/planet-rose.webp
     alt: Планета Роза крупным планом с карточкой ноты
     caption: "Тап по планете: камера подлетает, открывается карточка ноты."
-  - src: /work/aroma-forge/results.png
+  - src: /work/aroma-forge/results.webp
     alt: Окно «Похожие ароматы» со списком совпадений
     caption: Подбор похожих ароматов по выбранным нотам с процентом совпадения.
-  - src: /work/aroma-forge/side.png
+  - src: /work/aroma-forge/side.webp
     alt: Вид на систему почти по плоскости колец
     caption: "Вид сбоку: пояс астероидов, подписи ярусов и свечение Солнца."
-  - src: /work/aroma-forge/mobile-start.png
+  - src: /work/aroma-forge/mobile-start.webp
     alt: Стартовый экран на телефоне
     caption: На телефоне та же сцена, таббар внизу и панель аромата над ним.
     portrait: true
-  - src: /work/aroma-forge/mobile-planet-rose.png
+  - src: /work/aroma-forge/mobile-planet-rose.webp
     alt: Карточка ноты на телефоне
     caption: Карточка ноты на телефоне.
     portrait: true

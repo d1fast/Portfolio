@@ -12,23 +12,23 @@ video:
   webm: /work/aroma-forge/preview.webm
   poster: /work/aroma-forge/poster.jpg
 media:
-  - src: /work/aroma-forge/desktop-start.png
+  - src: /work/aroma-forge/desktop-start.webp
     alt: Start screen with the Sun, three orbits and the "Your fragrance" panel
     caption: Start screen. Three rings around the Sun for top, heart and base notes.
-  - src: /work/aroma-forge/planet-rose.png
+  - src: /work/aroma-forge/planet-rose.webp
     alt: The Rose planet up close with its note card
     caption: Tap a planet and the camera flies in while the note card opens.
-  - src: /work/aroma-forge/results.png
+  - src: /work/aroma-forge/results.webp
     alt: The "Similar fragrances" window with match percentages
     caption: Similar fragrances matched against the chosen notes, with a match percentage.
-  - src: /work/aroma-forge/side.png
+  - src: /work/aroma-forge/side.webp
     alt: The system seen almost edge-on
     caption: Edge-on view with the asteroid belt, tier labels and the Sun's glow.
-  - src: /work/aroma-forge/mobile-start.png
+  - src: /work/aroma-forge/mobile-start.webp
     alt: Start screen on a phone
     caption: The same scene on a phone, with a tab bar and the fragrance panel above it.
     portrait: true
-  - src: /work/aroma-forge/mobile-planet-rose.png
+  - src: /work/aroma-forge/mobile-planet-rose.webp
     alt: A note card on a phone
     caption: A note card on a phone.
     portrait: true
