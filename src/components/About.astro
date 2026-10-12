@@ -1,0 +1,23 @@
+---
+import { t, type Lang } from '../i18n';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const d = t(lang);
+---
+<section class="about section" id="about" data-theme="ink">
+  <div class="container about__grid">
+    <h2 class="section__title about__title" data-reveal="lines">{d.about.title}</h2>
+    <figure class="about__photo" data-reveal="scale">
+      <div class="about__photo-ph" role="img" aria-label={d.about.photoAlt}>
+        <span>{d.about.photoSoon}</span>
+      </div>
+    </figure>
+    <div class="about__text">
+      <p class="about__name" data-reveal="lines"><span class="about__fullname">{d.hero.name}</span> <span class="about__nick">{d.hero.nick}</span></p>
+      <p class="about__p about__lead" data-reveal="lines">{d.about.p1}</p>
+      <p class="about__p" data-reveal="lines">{d.about.p2}</p>
+      <p class="about__p about__ai" data-reveal="lines">{d.about.p3}</p>
+      <ul class="about__facts" data-reveal="stagger">{d.about.facts.map((f) => <li>{f}</li>)}</ul>
+    </div>
+  </div>
+</section>

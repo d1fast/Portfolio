@@ -1,0 +1,44 @@
+---
+import { getCollection } from 'astro:content';
+import { t, langPrefix, type Lang } from '../i18n';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const d = t(lang);
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const all = await getCollection('work', (e) => e.id.endsWith(`/${lang}`) && !e.data.draft);
+const works = all.sort((a, b) => a.data.order - b.data.order || b.data.year - a.data.year);
+const slugOf = (id: string) => id.split('/')[0];
+---
+<section class="works section" id="works" data-theme="dark">
+  <div class="container">
+    <h2 class="section__title" data-reveal="lines">{d.works.title}</h2>
+    <ul class="works__list" data-reveal="stagger">
+      {works.map((w) => {
+        const slug = slugOf(w.id);
+        const href = `${base}${langPrefix(lang)}/work/${slug}/`;
+        return (
+          <li class="works__item">
+            <a class="work-card" href={href} data-preview-mp4={w.data.video ? base + w.data.video.mp4 : undefined} data-preview-webm={w.data.video ? base + w.data.video.webm : undefined}>
+              <div class="work-card__media" transition:name={`work-${slug}`}>
+                {w.data.video ? (
+                  <video class="work-card__video" muted playsinline loop preload="none" poster={base + w.data.video.poster} aria-label={d.a11y.videoPreview} data-inline-preview>
+                    <source src={base + w.data.video.webm} type="video/webm" />
+                    <source src={base + w.data.video.mp4} type="video/mp4" />
+                  </video>
+                ) : (
+                  <img src={base + w.data.cover} alt={w.data.coverAlt} loading="lazy" width="1280" height="720" />
+                )}
+              </div>
+              <div class="work-card__body">
+                <h3 class="work-card__title">{w.data.title}</h3>
+                <p class="work-card__sub">{w.data.subtitle}</p>
+                <p class="work-card__meta"><span>{w.data.year}</span><span>{w.data.stack.join(' · ')}</span></p>
+                <span class="work-card__open">{d.works.open}</span>
+              </div>
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+  </div>
+</section>

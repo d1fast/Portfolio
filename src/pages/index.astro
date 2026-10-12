@@ -1,21 +1,17 @@
 ---
-// Временная заглушка главной. Заменится настоящей главной после выбора первого экрана.
-import '../styles/fonts.generated.css';
-const base = import.meta.env.BASE_URL;
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import About from '../components/About.astro';
+import Services from '../components/Services.astro';
+import Works from '../components/Works.astro';
+import Process from '../components/Process.astro';
+import Contacts from '../components/Contacts.astro';
 ---
-<!doctype html>
-<html lang="ru">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="robots" content="noindex" />
-    <title>d1fast: сайт в работе</title>
-    <style>
-      body{margin:0;min-height:100dvh;display:grid;place-items:center;background:#101418;color:#D9FF3D;font:500 18px/1.5 'Golos Text',system-ui,sans-serif;padding:24px;text-align:center}
-      a{color:inherit;border-bottom:2px solid currentColor;padding-bottom:2px}
-    </style>
-  </head>
-  <body>
-    <p>Сайт в работе.<br /><a href={`${base}proto/`}>Прототипы первого экрана</a></p>
-  </body>
-</html>
+<Base lang="ru" path="/">
+  <Hero lang="ru" />
+  <About lang="ru" />
+  <Services lang="ru" />
+  <Works lang="ru" />
+  <Process lang="ru" />
+  <Contacts lang="ru" />
+</Base>

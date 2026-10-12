@@ -1,0 +1,51 @@
+---
+import { render } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+import { t, langPrefix, type Lang } from '../i18n';
+interface Props { lang: Lang; entry: CollectionEntry<'work'>; slug: string }
+const { lang, entry, slug } = Astro.props;
+const d = t(lang);
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const { Content } = await render(entry);
+const w = entry.data;
+---
+<article class="case">
+  <header class="case__head container">
+    <a class="case__back" href={`${base}${langPrefix(lang)}/#works`}>← {d.nav.works}</a>
+    <h1 class="case__title" data-reveal="lines">{w.title}</h1>
+    <p class="case__sub" data-reveal="lines">{w.subtitle}</p>
+    <dl class="case__meta" data-reveal="stagger">
+      <div><dt>{d.works.year}</dt><dd>{w.year}</dd></div>
+      <div><dt>{lang === 'ru' ? 'Роль' : 'Role'}</dt><dd>{w.role}</dd></div>
+      <div><dt>{d.works.stack}</dt><dd>{w.stack.join(', ')}</dd></div>
+      {w.link && <div><dt>{lang === 'ru' ? 'Ссылка' : 'Link'}</dt><dd><a href={w.link} target="_blank" rel="noopener">{new URL(w.link).host}</a></dd></div>}
+    </dl>
+  </header>
+  <div class="case__cover container" transition:name={`work-${slug}`}>
+    {w.video ? (
+      <video class="case__video" autoplay muted playsinline loop preload="metadata" poster={base + w.video.poster}>
+        <source src={base + w.video.webm} type="video/webm" />
+        <source src={base + w.video.mp4} type="video/mp4" />
+      </video>
+    ) : (
+      <img src={base + w.cover} alt={w.coverAlt} width="1280" height="720" />
+    )}
+  </div>
+  <div class="case__body container">
+    <div class="case__text prose" data-reveal="up">
+      <Content />
+    </div>
+    <div class="case__gallery">
+      {w.media.map((m) => (
+        <figure class={`case__fig${m.portrait ? ' case__fig--portrait' : ''}`} data-reveal="up">
+          {m.kind === 'video' ? (
+            <video muted playsinline loop autoplay preload="metadata"><source src={base + m.src} /></video>
+          ) : (
+            <img src={base + m.src} alt={m.alt} loading="lazy" decoding="async" />
+          )}
+          {m.caption && <figcaption>{m.caption}</figcaption>}
+        </figure>
+      ))}
+    </div>
+  </div>
+</article>

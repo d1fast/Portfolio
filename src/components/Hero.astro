@@ -1,0 +1,28 @@
+---
+// Первый экран. Финальный вид лежит в HTML сразу; вступление («бриф печатается и
+// превращается в страницу») идёт поверх скриптом hero.ts и зависит от выбранного направления.
+import { t, type Lang } from '../i18n';
+import { site } from '../config';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const d = t(lang);
+const [first, last] = d.hero.name.split(' ');
+---
+<section class="hero" id="top" data-theme="lime" data-hero>
+  <div class="hero__brief brief-box" aria-hidden="true" data-brief-file={d.hero.fileName}>
+    <div class="hero__brief-title">{d.hero.fileName}</div>
+    <div class="brief-lines" data-lines></div>
+  </div>
+  <div class="container hero__final hero-final">
+    <h1 class="hero__name" data-target="name"><span class="hero__w">{first}</span> <span class="hero__w">{last}</span></h1>
+    <p class="hero__tag" data-target="do">{d.hero.tagline}</p>
+    <p class="hero__meta" data-target="who">{d.about.facts[0]}</p>
+    <div class="hero__cta">
+      <a class="btn btn--primary" href={site.telegramUrl} target="_blank" rel="noopener" data-target="contact" data-magnetic>{d.hero.ctaTelegram}</a>
+      <a class="btn btn--ghost" href="#works" data-target="main" data-magnetic="0.2">{d.hero.ctaWorks}</a>
+    </div>
+    <div class="hero__nick" aria-hidden="true"><span>{d.hero.nick}</span></div>
+  </div>
+  <button class="hero__skip" type="button" data-skip hidden>{d.hero.skip}</button>
+  <script type="application/json" data-brief set:html={JSON.stringify({ brief: d.hero.brief, typo: d.hero.typo })} />
+</section>

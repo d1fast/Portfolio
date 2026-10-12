@@ -1,0 +1,55 @@
+---
+import { t, langPrefix, type Lang } from '../i18n';
+import { site } from '../config';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const d = t(lang);
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const policyHref = `${base}${langPrefix(lang)}/policy/`;
+const hasEndpoint = Boolean(site.formEndpoint);
+---
+<section class="contacts section" id="contacts" data-theme="lime">
+  <div class="container contacts__grid">
+    <div class="contacts__head">
+      <h2 class="section__title" data-reveal="lines">{d.contacts.title}</h2>
+      <p class="contacts__lead" data-reveal="lines">{d.contacts.lead}</p>
+      <div class="contacts__links" data-reveal="stagger">
+        <a class="btn btn--primary" href={site.telegramUrl} target="_blank" rel="noopener" data-magnetic>{d.contacts.telegram}</a>
+        <button class="btn btn--ghost contacts__email" type="button" data-copy={site.email} data-copied={d.contacts.copied} data-magnetic="0.2">
+          <span class="contacts__email-addr">{site.email}</span>
+          <span class="contacts__email-action" data-copy-label>{d.contacts.copy}</span>
+        </button>
+      </div>
+    </div>
+    <form class="contact-form" data-contact-form data-endpoint={site.formEndpoint} data-tg-user={site.telegramUser} data-lang={lang}
+      data-sending={d.contacts.sending} data-success={d.contacts.success} data-error={d.contacts.error}
+      data-error-consent={d.contacts.errorConsent} data-error-empty={d.contacts.errorEmpty} novalidate data-reveal="up">
+      <h3 class="contact-form__title">{d.contacts.formTitle}</h3>
+      <div class="field">
+        <label class="field__label" for="cf-name">{d.contacts.nameLabel}</label>
+        <input class="field__input" id="cf-name" name="name" type="text" autocomplete="name" maxlength="120" placeholder={d.contacts.namePlaceholder} />
+      </div>
+      <div class="field">
+        <label class="field__label" for="cf-message">{d.contacts.messageLabel}</label>
+        <textarea class="field__input field__textarea" id="cf-message" name="message" rows="4" maxlength="2000" required placeholder={d.contacts.messagePlaceholder}></textarea>
+      </div>
+      <div class="field field--hp" aria-hidden="true">
+        <label for="cf-website">Website</label>
+        <input id="cf-website" name="website" type="text" tabindex="-1" autocomplete="off" />
+      </div>
+      <label class="consent">
+        <input class="consent__box" type="checkbox" name="consent" required />
+        <span class="consent__text">{d.contacts.consent} <a href={policyHref}>{d.contacts.consentLink}</a></span>
+      </label>
+      <div class="contact-form__actions">
+        <button class="btn btn--primary" type="submit" data-magnetic>{hasEndpoint ? d.contacts.submit : d.contacts.submitTelegram}</button>
+        {!hasEndpoint && <p class="contact-form__hint">{d.contacts.telegramHint}</p>}
+      </div>
+      <p class="contact-form__status" data-form-status role="status" aria-live="polite"></p>
+      <p class="contact-form__fallback" data-form-fallback hidden>
+        <a href={site.telegramUrl} target="_blank" rel="noopener">@{site.telegramUser}</a>
+        <a href={`mailto:${site.email}`}>{site.email}</a>
+      </p>
+    </form>
+  </div>
+</section>

@@ -1,0 +1,20 @@
+---
+import { t, type Lang } from '../i18n';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const d = t(lang);
+---
+<section class="services section" id="services" data-theme="lime">
+  <div class="container">
+    <h2 class="section__title" data-reveal="lines">{d.services.title}</h2>
+    <ul class="services__list" data-active-list data-reveal="stagger">
+      {d.services.items.map((item, i) => (
+        <li class="services__item" tabindex="0">
+          <span class="services__num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+          <h3 class="services__name">{item.title}</h3>
+          <p class="services__text">{item.text}</p>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>

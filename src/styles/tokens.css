@@ -1,0 +1,41 @@
+/* Токены. Значения цвета и шрифтов задаются после выбора направления первого экрана. */
+:root {
+  --font-display: 'Unbounded', system-ui, sans-serif;
+  --font-body: 'Golos Text', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --text-base: clamp(16px, 1.05vw, 18px);
+  --text-lg: clamp(18px, 1.5vw, 22px);
+  --text-sm: 14px;
+  --text-xs: 12px;
+
+  --container: 1440px;
+  --gutter: clamp(16px, 3vw, 40px);
+  --section-y: clamp(72px, 12vh, 160px);
+  --radius: 16px;
+  --radius-sm: 8px;
+  --radius-pill: 999px;
+
+  --ease-out: cubic-bezier(.23, 1, .32, 1);
+  --ease-in: cubic-bezier(.32, 0, .67, 0);
+  --ease-in-out: cubic-bezier(.65, 0, .35, 1);
+  --dur-fast: 140ms;
+  --dur-base: 240ms;
+  --dur-slow: 400ms;
+  --dur-theme: 600ms;
+
+  /* Схема по умолчанию: совпадает с первым разделом. */
+  --bg: #D9FF3D;
+  --fg: #101418;
+  --muted: color-mix(in oklab, var(--fg) 65%, var(--bg));
+  --line: color-mix(in oklab, var(--fg) 45%, transparent);
+  --accent: #4B2BFF;
+  --accent-fg: #ffffff;
+}
+
+/* Схемы разделов. Переключаются по триггеру скриптом theme.ts через data-theme на <html>. */
+:root[data-theme="lime"] { --bg: #D9FF3D; --fg: #101418; --accent: #4B2BFF; --accent-fg: #ffffff; }
+:root[data-theme="ink"] { --bg: #101418; --fg: #F2F4EA; --accent: #D9FF3D; --accent-fg: #101418; }
+:root[data-theme="dark"] { --bg: #0B0D12; --fg: #ECEFF4; --accent: #D9FF3D; --accent-fg: #101418; }
+:root[data-theme="violet"] { --bg: #4B2BFF; --fg: #F4F2FF; --accent: #D9FF3D; --accent-fg: #101418; }
+:root[data-theme="paper"] { --bg: #F4F4F0; --fg: #101418; --accent: #4B2BFF; --accent-fg: #ffffff; }

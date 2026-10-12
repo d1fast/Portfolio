@@ -26,6 +26,14 @@ for (const p of list) {
     page.on('pageerror', (e) => errors.push(String(e)));
     await page.goto(base + p, { waitUntil: 'networkidle' });
     await page.waitForTimeout(wait);
+    if (full) {
+      // Прокручиваем страницу до низа и обратно, чтобы сработали появления блоков.
+      const h = await page.evaluate(() => document.documentElement.scrollHeight);
+      for (let y = 0; y < h; y += vp.height * 0.6) { await page.evaluate((y) => scrollTo(0, y), y); await page.waitForTimeout(250); }
+      await page.waitForTimeout(1200);
+      await page.evaluate(() => scrollTo(0, 0));
+      await page.waitForTimeout(900);
+    }
     const safe = (p.replace(/^\//, '') || 'index').replace(/[^a-z0-9]+/gi, '-');
     const file = `shots/${safe}-${name}.png`;
     await page.screenshot({ path: file, fullPage: full });
