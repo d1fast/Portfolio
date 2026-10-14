@@ -2,7 +2,6 @@
 // Первый экран. Финальный вид лежит в HTML сразу; вступление идёт поверх скриптом hero.ts.
 import { t, type Lang } from '../i18n';
 import { site } from '../config';
-import Sheet from './Sheet.astro';
 import fs from 'node:fs';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
@@ -13,8 +12,7 @@ const dimLabel = lang === 'ru' ? 'ширина заголовка' : 'headline w
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const modelUrl = fs.existsSync('public/models/me.glb') ? `${base}/models/me.glb` : undefined;
 ---
-<section class="hero section--sheet" id="top" data-theme="black" data-hero>
-  <Sheet n={1} of={6} name={lang === 'ru' ? 'Савелий Лопатин, сайт' : 'Saveliy Lopatin, site'} lang={lang} class="sheet--hero" />
+<section class="block hero" id="top" data-theme="hero" data-block="hero" data-hero>
   <div class="hero__grid" aria-hidden="true"></div>
   <div class="hero__brief brief-box" aria-hidden="true">
     <div class="hero__brief-title">{d.hero.fileName}</div>

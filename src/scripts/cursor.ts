@@ -4,7 +4,6 @@
  */
 export function initCursor() {
   if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return;
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const html = document.documentElement;
   let el = document.querySelector<HTMLElement>('.cursor');
   if (!el) {

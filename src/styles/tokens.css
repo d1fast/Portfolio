@@ -1,4 +1,5 @@
-/* Токены. Мир: чертёжный лист. Три вида листа: чёрный (экран), лаймовый (маркер), белый (бумага). */
+/* Токены. У каждого блока своя пара цветов. Тема блока задаётся через data-theme на самом блоке,
+   а data-theme на <html> повторяет тему текущего блока для шапки, курсора и навигации по точкам. */
 :root {
   --font-display: 'Unbounded', system-ui, sans-serif;
   --font-body: 'Golos Text', system-ui, sans-serif;
@@ -11,39 +12,43 @@
 
   --container: 1480px;
   --gutter: clamp(16px, 3vw, 40px);
-  --sheet: clamp(10px, 1.2vw, 18px);          /* отступ рамки листа от края */
-  --section-y: clamp(80px, 12vh, 160px);
-  --radius: 4px;
-  --radius-sm: 3px;
+  --header-h: 56px;
+  --radius: 6px;
+  --radius-sm: 4px;
   --radius-pill: 999px;
 
   --ease-out: cubic-bezier(.23, 1, .32, 1);
   --ease-in: cubic-bezier(.32, 0, .67, 0);
-  --ease-in-out: cubic-bezier(.65, 0, .35, 1);
+  --ease-in-out: cubic-bezier(.77, 0, .175, 1);
   --dur-fast: 140ms;
   --dur-base: 240ms;
   --dur-slow: 400ms;
-  --dur-theme: 420ms;
+  --dur-theme: 500ms;
 
-  --lime: #D7FF00;
-  --black: #050505;
-  --white: #F4F6F0;
-  --red: #FF4D2E;
+  /* Пары цветов блоков */
+  --wine: #3F1521;      --powder: #9DB3D3;
+  --forest: #013E37;    --butter: #FFEFB3;
+  --cherry: #5C0E2B;    --matcha: #C6DBA2;
+  --charcoal: #21262B;  --chalk: #F1F1F1;  --steel: #A9B4C0;  --slate: #5F7389;
+  --concrete: #EEF0F2;
 
-  /* чёрный лист по умолчанию */
-  --bg: var(--black);
-  --fg: var(--white);
-  --accent: var(--lime);
-  --accent-fg: var(--black);
+  /* значения по умолчанию = первый экран */
+  --bg: var(--wine);
+  --fg: var(--powder);
+  --accent: #E7EEF7;
+  --accent-fg: var(--wine);
+  --muted: color-mix(in oklab, var(--fg) 70%, var(--bg));
   --line: color-mix(in oklab, var(--fg) 22%, transparent);
   --line-strong: color-mix(in oklab, var(--fg) 55%, transparent);
-  --muted: color-mix(in oklab, var(--fg) 62%, var(--bg));
-  --dim: var(--lime);                         /* цвет размерных линий */
-  --focus: var(--lime);
-  --error: var(--red);
+  --focus: var(--fg);
+  --error: #FFB4A8;
 }
 
-:root[data-theme="black"] { --bg: var(--black); --fg: var(--white); --accent: var(--lime); --accent-fg: var(--black); --dim: var(--lime); --focus: var(--lime); --error: var(--red); }
-:root[data-theme="lime"]  { --bg: var(--lime);  --fg: var(--black); --accent: var(--black); --accent-fg: var(--lime); --dim: var(--black); --focus: var(--black); --error: #8A1400; }
-:root[data-theme="white"] { --bg: var(--white); --fg: var(--black); --accent: var(--lime); --accent-fg: var(--black); --dim: var(--black); --focus: var(--black); --error: #B3230D; }
-:root[data-theme="paper"] { --bg: var(--white); --fg: var(--black); --accent: var(--lime); --accent-fg: var(--black); --dim: var(--black); --focus: var(--black); --error: #B3230D; }
+/* Темы. Селектор без :root, чтобы работал и на <html>, и на самом блоке. */
+[data-theme="hero"]     { --bg: var(--wine);     --fg: var(--powder);   --accent: #E7EEF7;        --accent-fg: var(--wine);     --focus: var(--powder);  --error: #FFB4A8; }
+[data-theme="about"]    { --bg: var(--butter);   --fg: var(--forest);   --accent: var(--forest);  --accent-fg: var(--butter);   --focus: var(--forest);  --error: #8A1400; }
+[data-theme="services"] { --bg: var(--cherry);   --fg: var(--matcha);   --accent: #EAF5D6;        --accent-fg: var(--cherry);   --focus: var(--matcha);  --error: #FFB4A8; }
+[data-theme="works"]    { --bg: var(--charcoal); --fg: var(--chalk);    --accent: var(--steel);   --accent-fg: var(--charcoal); --focus: var(--chalk);   --error: #FFB4A8; }
+[data-theme="process"]  { --bg: var(--concrete); --fg: var(--charcoal); --accent: var(--slate);   --accent-fg: var(--concrete); --focus: var(--charcoal);--error: #B3230D; }
+[data-theme="contacts"] { --bg: var(--powder);   --fg: var(--wine);     --accent: var(--wine);    --accent-fg: var(--powder);   --focus: var(--wine);    --error: #8A1400; }
+[data-theme] { --muted: color-mix(in oklab, var(--fg) 70%, var(--bg)); --line: color-mix(in oklab, var(--fg) 22%, transparent); --line-strong: color-mix(in oklab, var(--fg) 55%, transparent); }

@@ -1,14 +1,13 @@
 ---
-import { t, type Lang } from '../i18n';
-import Sheet from './Sheet.astro';
+import './about.css';
+import { t, type Lang } from '../../i18n';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const d = t(lang);
 ---
-<section class="about section section--sheet" id="about" data-theme="black">
-  <Sheet n={2} of={6} name={d.about.title} lang={lang} />
-  <div class="container about__grid">
-    <h2 class="section__title about__title" data-reveal="lines">{d.about.title}</h2>
+<section class="block block--about about" id="about" data-theme="about" data-block="about">
+  <div class="block__inner container about__grid">
+    <h2 class="block__title about__title" data-reveal="lines">{d.about.title}</h2>
     <figure class="about__photo" data-reveal="scale">
       <div class="about__photo-ph" role="img" aria-label={d.about.photoAlt}>
         <span>{d.about.photoSoon}</span>

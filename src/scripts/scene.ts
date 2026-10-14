@@ -3,7 +3,7 @@
  * позже сюда встанет модель Савелия из Meshy (GLB) с тем же каркасным материалом.
  * Загружается лениво, рендерит только когда виден, плотность пикселей не выше 1.5.
  */
-export async function initHeroScene(canvas: HTMLCanvasElement, opts: { reduced: boolean; modelUrl?: string }) {
+export async function initHeroScene(canvas: HTMLCanvasElement, opts: { modelUrl?: string }) {
   const THREE = await import('three');
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'low-power' });
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
@@ -82,8 +82,8 @@ export async function initHeroScene(canvas: HTMLCanvasElement, opts: { reduced: 
   resize();
   addEventListener('resize', resize, { passive: true });
 
-  const assemble = { t: opts.reduced ? 1 : 0 };
-  group.scale.setScalar(opts.reduced ? 1 : 0.001);
+  const assemble = { t: 0 };
+  group.scale.setScalar(0.001);
 
   function tick(now: number) {
     raf = 0;
@@ -94,7 +94,7 @@ export async function initHeroScene(canvas: HTMLCanvasElement, opts: { reduced: 
     group.rotation.z += (target.x * 0.25 - group.rotation.z) * 0.06;
     group.children.forEach((c: any) => { if (c.userData.spin) c.rotation.y += dt * 0.25 * c.userData.spin; });
     renderer.render(scene, camera);
-    if (visible && !opts.reduced) raf = requestAnimationFrame(tick);
+    if (visible) raf = requestAnimationFrame(tick);
   }
   raf = requestAnimationFrame(tick);
   return { renderer, scene, group };

@@ -1,14 +1,13 @@
 ---
-import { t, type Lang } from '../i18n';
-import Sheet from './Sheet.astro';
+import './process.css';
+import { t, type Lang } from '../../i18n';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const d = t(lang);
 ---
-<section class="process section section--sheet" id="process" data-theme="white">
-  <Sheet n={5} of={6} name={d.process.title} lang={lang} />
-  <div class="container">
-    <h2 class="section__title" data-reveal="lines">{d.process.title}</h2>
+<section class="block block--process process" id="process" data-theme="process" data-block="process">
+  <div class="block__inner container">
+    <h2 class="block__title" data-reveal="lines">{d.process.title}</h2>
     <ol class="process__list" data-active-list data-reveal="stagger">
       {d.process.steps.map((s, i) => (
         <li class="process__step">

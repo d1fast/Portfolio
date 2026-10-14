@@ -3,8 +3,6 @@ import { SplitText } from 'gsap/SplitText';
 
 gsap.registerPlugin(SplitText);
 
-const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-
 /**
  * Появление блоков при входе на экран. Срабатывает один раз, доигрывает само,
  * от скорости прокрутки не зависит. [data-reveal="lines"] режет текст на строки,
@@ -13,7 +11,6 @@ const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 export function initReveal(root: ParentNode = document) {
   const items = [...root.querySelectorAll<HTMLElement>('[data-reveal]:not(.is-reveal-bound)')];
   if (!items.length) return;
-  if (reduced()) { items.forEach((el) => { el.classList.add('is-in', 'is-reveal-bound'); }); return; }
 
   const io = new IntersectionObserver((entries) => {
     for (const e of entries) {

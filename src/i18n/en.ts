@@ -21,7 +21,7 @@ export const en: Dict = {
     skipToContent: 'Skip to content',
   },
   hero: {
-    fileName: 'brief.txt',
+    fileName: 'notes.txt',
     brief: [
       { id: 'name', text: 'a site for myself. saveliy lopatin, d1fast' },
       { id: 'do', text: 'i make websites, 3d, small games, interfaces' },
@@ -96,10 +96,7 @@ export const en: Dict = {
     error: 'That didn’t go through. Write to me directly:',
     errorConsent: 'Please agree to the data processing first.',
     errorEmpty: 'Write at least a couple of words.',
-    footerNote: 'Made by me, from the brief to the code.',
     policy: 'Privacy policy',
-    easterHint: 'Press T to see the brief for this site',
-    easterHintMobile: 'Press and hold the nickname to see the brief for this site',
   },
   notFound: {
     title: 'No such page',
@@ -127,23 +124,5 @@ export const en: Dict = {
     openMenu: 'Open menu',
     closeMenu: 'Close menu',
     videoPreview: 'Project preview',
-  },
-  easter: {
-    title: 'brief.txt',
-    lines: [
-      'a portfolio site for myself. saveliy lopatin, d1fast',
-      'goal: get people to write to me. clients and employers',
-      'first screen: text turns into the site. 3-4 seconds, skippable',
-      'then: about, what i do, work, how i work, contact',
-      'mood: bright and bold, unusual colours and grid. text always readable',
-      'normal scroll, nothing tied to scroll position',
-      'phone matters more than desktop: the link gets opened from telegram',
-      'cases: one text file + media, each with its own link',
-      'languages: ru and en. real english, not a word-for-word translation',
-      'one line about ai: it writes code, i think and finish',
-      '404, favicon and a telegram preview image in the site style',
-      'done when i like it myself',
-    ],
-    close: 'Close',
   },
 };

@@ -29,10 +29,9 @@ export interface Dict {
     formTitle: string; nameLabel: string; namePlaceholder: string; messageLabel: string; messagePlaceholder: string;
     consent: string; consentLink: string; submit: string; submitTelegram: string; telegramHint: string;
     sending: string; success: string; error: string; errorConsent: string; errorEmpty: string;
-    footerNote: string; policy: string; easterHint: string; easterHintMobile: string;
+    policy: string;
   };
   notFound: { title: string; text: string; home: string; works: string };
   policy: { title: string; updated: string; body: string[]; back: string };
   a11y: { close: string; openMenu: string; closeMenu: string; videoPreview: string };
-  easter: { title: string; lines: string[]; close: string };
 }

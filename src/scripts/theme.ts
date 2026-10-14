@@ -1,30 +1,29 @@
 /**
- * Разделы меняют цветовую схему, когда до них доходишь: не плавно за скроллом,
- * а по триггеру. Раздел с data-theme становится активным, когда его верх
- * пересекает линию на 55% высоты экрана; тема ставится на <html>.
+ * Тема шапки, курсора и точек следует за блоком, который сейчас на экране.
+ * Переключение по триггеру: активен блок, занимающий середину экрана.
  */
 export function initSectionThemes() {
-  const sections = [...document.querySelectorAll<HTMLElement>('[data-theme]')];
-  if (!sections.length) return;
+  const blocks = [...document.querySelectorAll<HTMLElement>('[data-block][data-theme]')];
+  if (!blocks.length) return;
   const html = document.documentElement;
+  const dots = [...document.querySelectorAll<HTMLElement>('[data-dot]')];
   let current = '';
-  const apply = (name: string) => {
-    if (name === current) return;
-    current = name;
-    html.setAttribute('data-theme', name);
+  const apply = (block: HTMLElement) => {
+    const name = block.dataset.theme!;
+    if (name !== current) { current = name; html.setAttribute('data-theme', name); }
+    dots.forEach((d) => d.classList.toggle('is-active', d.dataset.dot === block.id));
   };
   const pick = () => {
-    const line = innerHeight * 0.55;
-    let best = sections[0];
-    for (const s of sections) {
-      const r = s.getBoundingClientRect();
-      if (r.top <= line) best = s; else break;
+    const line = innerHeight * 0.5;
+    let best = blocks[0];
+    for (const b of blocks) {
+      const r = b.getBoundingClientRect();
+      if (r.top <= line) best = b; else break;
     }
-    apply(best.dataset.theme!);
+    apply(best);
   };
-  // Наблюдаем пересечение линии, а не скроллим в каждом кадре.
-  const io = new IntersectionObserver(() => pick(), { rootMargin: '-55% 0px -45% 0px', threshold: [0, 1] });
-  sections.forEach((s) => io.observe(s));
+  const io = new IntersectionObserver(() => pick(), { rootMargin: '-50% 0px -50% 0px', threshold: [0, 1] });
+  blocks.forEach((b) => io.observe(b));
   pick();
   addEventListener('resize', pick, { passive: true });
 }

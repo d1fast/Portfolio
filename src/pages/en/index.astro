@@ -1,16 +1,14 @@
 ---
 import Base from '../../layouts/Base.astro';
 import Hero from '../../components/Hero.astro';
-import Marquee from '../../components/Marquee.astro';
-import About from '../../components/About.astro';
-import Services from '../../components/Services.astro';
-import Works from '../../components/Works.astro';
-import Process from '../../components/Process.astro';
-import Contacts from '../../components/Contacts.astro';
+import About from '../../blocks/about/About.astro';
+import Services from '../../blocks/services/Services.astro';
+import Works from '../../blocks/works/Works.astro';
+import Process from '../../blocks/process/Process.astro';
+import Contacts from '../../blocks/contacts/Contacts.astro';
 ---
-<Base lang="en" path="/">
+<Base lang="en" path="/" footer={false} snap>
   <Hero lang="en" />
-  <Marquee lang="en" />
   <About lang="en" />
   <Services lang="en" />
   <Works lang="en" />

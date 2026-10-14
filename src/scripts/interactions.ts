@@ -5,11 +5,10 @@ import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
 gsap.registerPlugin(ScrambleTextPlugin, DrawSVGPlugin);
 
 const fine = () => matchMedia('(hover: hover) and (pointer: fine)').matches;
-const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /** Магнитные кнопки: тянутся к курсору в радиусе, возвращаются пружиной. Только мышь. */
 export function initMagnetic(root: ParentNode = document) {
-  if (!fine() || reduced()) return;
+  if (!fine()) return;
   for (const el of root.querySelectorAll<HTMLElement>('[data-magnetic]:not(.is-magnet-bound)')) {
     el.classList.add('is-magnet-bound');
     const strength = Number(el.dataset.magnetic || 0.35);
@@ -28,7 +27,7 @@ export function initMagnetic(root: ParentNode = document) {
 
 /** Скрэмбл текста ссылок при наведении. Текст не меняет ширину: символы из того же набора. */
 export function initScramble(root: ParentNode = document) {
-  if (!fine() || reduced()) return;
+  if (!fine()) return;
   for (const el of root.querySelectorAll<HTMLElement>('[data-scramble]:not(.is-scramble-bound)')) {
     el.classList.add('is-scramble-bound');
     const text = el.textContent || '';
@@ -53,7 +52,7 @@ export function initActiveItems(root: ParentNode = document) {
     let current: HTMLElement | null = null;
     const set = (el: HTMLElement | null) => {
       items.forEach((i) => i.classList.toggle('is-active', i === el));
-      if (el && el !== current && !reduced()) {
+      if (el && el !== current) {
         // иконка пункта рисуется штрихом, как на чертеже
         const strokes = el.querySelectorAll('[data-draw] svg *');
         if (strokes.length) gsap.fromTo(strokes, { drawSVG: '0%' }, { drawSVG: '100%', duration: 0.7, ease: 'power2.out', stagger: 0.035, overwrite: true });
@@ -101,29 +100,9 @@ export function initCopy(root: ParentNode = document) {
   }
 }
 
-/** Рамки листов рисуются, когда раздел появляется на экране. */
-export function initSheets(root: ParentNode = document) {
-  const sheets = [...root.querySelectorAll<HTMLElement>('[data-sheet]:not(.is-sheet-bound)')];
-  if (!sheets.length) return;
-  sheets.forEach((s) => s.classList.add('is-sheet-bound'));
-  if (reduced()) { sheets.forEach((s) => s.classList.add('is-in')); return; }
-  const io = new IntersectionObserver((entries) => {
-    for (const e of entries) if (e.isIntersecting) { (e.target as HTMLElement).classList.add('is-in'); io.unobserve(e.target); }
-  }, { rootMargin: '0px 0px -10% 0px', threshold: 0.01 });
-  // лист первого экрана включает скрипт вступления
-  sheets.filter((s) => !s.closest('[data-hero]')).forEach((s) => io.observe(s));
-}
-
-/** Дата в штампе: сегодняшняя, как на живом чертеже. */
-export function initStampDates(root: ParentNode = document) {
-  const d = new Date();
-  const txt = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
-  root.querySelectorAll<HTMLElement>('[data-stamp-date]').forEach((el) => { el.textContent = txt; });
-}
-
 /** Лёгкий наклон карточек за курсором. Только мышь, только transform. */
 export function initTilt(root: ParentNode = document) {
-  if (!fine() || reduced()) return;
+  if (!fine()) return;
   for (const el of root.querySelectorAll<HTMLElement>('[data-tilt]:not(.is-tilt-bound)')) {
     el.classList.add('is-tilt-bound');
     const max = Number(el.dataset.tilt || 6);

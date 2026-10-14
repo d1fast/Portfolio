@@ -1,22 +1,21 @@
 ---
-import { t, type Lang } from '../i18n';
-import Sheet from './Sheet.astro';
-import sites from '../icons/sites.svg?raw';
-import apps from '../icons/apps.svg?raw';
-import bots from '../icons/bots.svg?raw';
-import threed from '../icons/threed.svg?raw';
-import games from '../icons/games.svg?raw';
-import ui from '../icons/ui.svg?raw';
-import spec from '../icons/spec.svg?raw';
+import './services.css';
+import { t, type Lang } from '../../i18n';
+import sites from '../../icons/sites.svg?raw';
+import apps from '../../icons/apps.svg?raw';
+import bots from '../../icons/bots.svg?raw';
+import threed from '../../icons/threed.svg?raw';
+import games from '../../icons/games.svg?raw';
+import ui from '../../icons/ui.svg?raw';
+import spec from '../../icons/spec.svg?raw';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const d = t(lang);
 const icons = [sites, apps, bots, threed, games, ui, spec];
 ---
-<section class="services section section--sheet" id="services" data-theme="lime">
-  <Sheet n={3} of={6} name={d.services.title} lang={lang} />
-  <div class="container">
-    <h2 class="section__title" data-reveal="lines">{d.services.title}</h2>
+<section class="block block--services services" id="services" data-theme="services" data-block="services">
+  <div class="block__inner container">
+    <h2 class="block__title" data-reveal="lines">{d.services.title}</h2>
     <ul class="services__list" data-active-list data-reveal="stagger">
       {d.services.items.map((item, i) => (
         <li class="services__item">

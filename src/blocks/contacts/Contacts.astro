@@ -1,7 +1,8 @@
 ---
-import { t, langPrefix, type Lang } from '../i18n';
-import { site } from '../config';
-import Sheet from './Sheet.astro';
+import './contacts.css';
+import { t, langPrefix, type Lang } from '../../i18n';
+import { site } from '../../config';
+import Footer from '../../components/Footer.astro';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const d = t(lang);
@@ -9,11 +10,10 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const policyHref = `${base}${langPrefix(lang)}/policy/`;
 const hasEndpoint = Boolean(site.formEndpoint);
 ---
-<section class="contacts section section--sheet" id="contacts" data-theme="lime">
-  <Sheet n={6} of={6} name={d.contacts.title} lang={lang} />
-  <div class="container contacts__grid">
+<section class="block block--contacts contacts" id="contacts" data-theme="contacts" data-block="contacts">
+  <div class="block__inner container contacts__grid">
     <div class="contacts__head">
-      <h2 class="section__title" data-reveal="lines">{d.contacts.title}</h2>
+      <h2 class="block__title" data-reveal="lines">{d.contacts.title}</h2>
       <p class="contacts__lead" data-reveal="lines">{d.contacts.lead}</p>
       <div class="contacts__links" data-reveal="stagger">
         <a class="btn btn--primary" href={site.telegramUrl} target="_blank" rel="noopener" data-magnetic>{d.contacts.telegram}</a>
@@ -54,4 +54,5 @@ const hasEndpoint = Boolean(site.formEndpoint);
       </p>
     </form>
   </div>
+  <Footer lang={lang} />
 </section>

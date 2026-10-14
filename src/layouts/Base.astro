@@ -18,9 +18,14 @@ interface Props {
   ogImage?: string;
   noindex?: boolean;
   theme?: string;
+  /** Главная рисует подвал внутри последнего блока. */
+  footer?: boolean;
+  /** Посекционный скролл на главной. */
+  snap?: boolean;
 }
-const { lang, path, noindex = false, theme = 'black' } = Astro.props;
+const { lang, path, noindex = false, theme = 'hero', footer = true, snap = false } = Astro.props;
 const d = t(lang);
+const blocks: [string, string][] = [['top', lang === 'ru' ? 'Начало' : 'Start'], ['about', d.nav.about], ['services', d.nav.services], ['works', d.nav.works], ['process', d.nav.process], ['contacts', d.nav.contacts]];
 const title = Astro.props.title ?? d.meta.title;
 const description = Astro.props.description ?? d.meta.description;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -31,7 +36,7 @@ const ogImage = `${origin}${base}${Astro.props.ogImage ?? (lang === 'en' ? '/og-
 const other = lang === 'ru' ? 'en' : 'ru';
 ---
 <!doctype html>
-<html lang={d.htmlLang} data-theme={theme}>
+<html lang={d.htmlLang} data-theme={theme} class:list={[{ snap }]}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -52,7 +57,7 @@ const other = lang === 'ru' ? 'en' : 'ru';
     <meta property="og:locale" content={lang === 'ru' ? 'ru_RU' : 'en_US'} />
     <meta property="og:locale:alternate" content={other === 'ru' ? 'ru_RU' : 'en_US'} />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="theme-color" content="#050505" />
+    <meta name="theme-color" content="#3F1521" />
     <link rel="icon" href={`${base}/favicon.svg`} type="image/svg+xml" />
     <link rel="icon" href={`${base}/favicon-32.png`} sizes="32x32" type="image/png" />
     <link rel="apple-touch-icon" href={`${base}/apple-touch-icon.png`} />
@@ -62,11 +67,7 @@ const other = lang === 'ru' ? 'en' : 'ru';
     <link rel="preload" href={`${base}/fonts/golos-cyr.woff2`} as="font" type="font/woff2" crossorigin />
     <script is:inline>
       document.documentElement.classList.add('js');
-      try {
-        var seen = sessionStorage.getItem('intro-seen');
-        if (seen) document.documentElement.classList.add('intro-seen');
-        else if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('intro-pending');
-      } catch (e) {}
+      if (document.querySelector('[data-hero]') || location.pathname.replace(/\/en\/?$/, '/').endsWith('/')) document.documentElement.classList.add('intro-pending');
     </script>
     <script type="application/ld+json" set:html={JSON.stringify({
       '@context': 'https://schema.org',
@@ -87,13 +88,12 @@ const other = lang === 'ru' ? 'en' : 'ru';
     <main id="main">
       <slot />
     </main>
-    <Footer lang={lang} />
-    <div class="easter" data-easter data-lines={JSON.stringify(d.easter.lines)} hidden role="dialog" aria-modal="true" aria-label={d.easter.title}>
-      <div class="easter__sheet">
-        <div class="easter__head"><span class="easter__file">{d.easter.title}</span><button class="easter__close" type="button" data-easter-close>{d.easter.close}</button></div>
-        <div class="brief-lines" data-easter-lines></div>
-      </div>
-    </div>
+    {footer && <Footer lang={lang} />}
+    {snap && (
+      <nav class="dots" aria-label={lang === 'ru' ? 'Блоки страницы' : 'Page blocks'} data-dots>
+        {blocks.map(([id, label]) => <a href={`#${id}`} data-dot={id}><span class="dots__label">{label}</span><span class="visually-hidden">{label}</span></a>)}
+      </nav>
+    )}
     <script src="../scripts/main.ts"></script>
   </body>
 </html>

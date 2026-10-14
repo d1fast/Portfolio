@@ -1,7 +1,7 @@
 ---
+import './works.css';
 import { getCollection } from 'astro:content';
-import { t, langPrefix, type Lang } from '../i18n';
-import Sheet from './Sheet.astro';
+import { t, langPrefix, type Lang } from '../../i18n';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const d = t(lang);
@@ -10,10 +10,9 @@ const all = await getCollection('work', (e) => e.id.endsWith(`/${lang}`) && !e.d
 const works = all.sort((a, b) => a.data.order - b.data.order || b.data.year - a.data.year);
 const slugOf = (id: string) => id.split('/')[0];
 ---
-<section class="works section section--sheet" id="works" data-theme="black">
-  <Sheet n={4} of={6} name={d.works.title} lang={lang} />
-  <div class="container">
-    <h2 class="section__title" data-reveal="lines">{d.works.title}</h2>
+<section class="block block--works works" id="works" data-theme="works" data-block="works">
+  <div class="block__inner container">
+    <h2 class="block__title" data-reveal="lines">{d.works.title}</h2>
     <ul class="works__list" data-reveal="stagger">
       {works.map((w) => {
         const slug = slugOf(w.id);

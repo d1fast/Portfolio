@@ -6,7 +6,6 @@ gsap.registerPlugin(SplitText);
 type Line = { id: string; text: string };
 type Brief = { brief: Line[]; typo: { line: number; wrong: string; right: string } };
 
-const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const isPhone = () => innerWidth < 760;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -19,9 +18,6 @@ export function initHero(onDone?: (hero: HTMLElement) => void) {
   const hero = document.querySelector<HTMLElement>('[data-hero]');
   if (!hero || hero.classList.contains('is-bound')) return;
   hero.classList.add('is-bound');
-  let seen = false;
-  try { seen = !!sessionStorage.getItem('intro-seen'); } catch {}
-  const force = new URLSearchParams(location.search).has('intro');
   const data = JSON.parse(hero.querySelector('[data-brief]')?.textContent || 'null') as Brief | null;
 
   const logo = document.querySelector<HTMLElement>('[data-logo]');
@@ -29,13 +25,11 @@ export function initHero(onDone?: (hero: HTMLElement) => void) {
     if (!location.pathname.replace(/\/en\/?$/, '/').endsWith('/') || hero.classList.contains('is-intro')) return;
     if (scrollY > 10) return; // с середины страницы логотип просто ведёт наверх
     e.preventDefault();
-    try { sessionStorage.removeItem('intro-seen'); } catch {}
     resetHero(hero);
     runFull(hero, data!, onDone);
   });
 
-  if (reduced() || !data) { finish(hero); onDone?.(hero); return; }
-  if (seen && !force) { runShort(hero, onDone); return; }
+  if (!data) { finish(hero); onDone?.(hero); return; }
   runFull(hero, data, onDone);
 }
 
@@ -69,7 +63,7 @@ function countDims(hero: HTMLElement, tl: gsap.core.Timeline, at: number) {
 
 function finish(hero: HTMLElement) {
   document.documentElement.classList.remove('intro-pending');
-  hero.classList.remove('is-intro', 'is-morphing', 'is-fresh');
+  hero.classList.remove('is-intro', 'is-morphing');
   hero.classList.add('is-done');
   hero.querySelector('[data-sheet]')?.classList.add('is-in');
   gsap.set(hero.querySelectorAll('.hero-final, .hero-final *, .hero__object, .hero__scroll'), { clearProps: 'all' });
@@ -77,28 +71,7 @@ function finish(hero: HTMLElement) {
   const cw = hero.querySelector<HTMLElement>('[data-dim-w]'); const ch = hero.querySelector<HTMLElement>('[data-dim-hgt]');
   if (cw) cw.textContent = m.w.toLocaleString('ru-RU'); if (ch) ch.textContent = m.h.toLocaleString('ru-RU');
   hero.querySelectorAll('.dim').forEach((el) => el.classList.add('is-in'));
-  try { sessionStorage.setItem('intro-seen', '1'); } catch {}
   hero.dispatchEvent(new CustomEvent('hero:done'));
-}
-
-/* Короткая версия: лист рисуется, имя выходит по буквам, остальное проявляется. */
-function runShort(hero: HTMLElement, onDone?: (hero: HTMLElement) => void) {
-  hero.classList.add('is-fresh');
-  document.documentElement.classList.remove('intro-pending');
-  const sheet = hero.querySelector('[data-sheet]');
-  const tl = gsap.timeline({ defaults: { ease: 'expo.out' }, onComplete: () => { finish(hero); onDone?.(hero); } });
-  document.fonts.ready.then(() => {
-    tl.call(() => sheet?.classList.add('is-in'), [], 0);
-    const words = hero.querySelectorAll<HTMLElement>('[data-chars]');
-    const chars: HTMLElement[] = [];
-    words.forEach((w) => { const s = new SplitText(w, { type: 'chars', charsClass: 'char' }); chars.push(...(s.chars as HTMLElement[])); });
-    tl.set(hero.querySelector('.hero__name')!, { opacity: 1 }, 0.1);
-    tl.fromTo(chars, { yPercent: 110, rotateX: -40, opacity: 0 }, { yPercent: 0, rotateX: 0, opacity: 1, duration: 0.7, stagger: 0.02 }, 0.1);
-    countDims(hero, tl, 0.35);
-    const rest = hero.querySelectorAll('.hero__tag, .hero__meta, .hero__cta > *, .hero__object, .hero__scroll');
-    tl.fromTo(rest, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.05, clearProps: 'transform' }, 0.4);
-    tl.call(() => hero.classList.remove('is-fresh'), [], 0.4);
-  });
 }
 
 /* Полная версия: бриф печатается, строки превращаются в элементы. */
