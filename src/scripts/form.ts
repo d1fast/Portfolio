@@ -12,7 +12,7 @@ export function initForm(root: ParentNode = document) {
   const lang = form.dataset.lang || 'ru';
   const status = form.querySelector<HTMLElement>('[data-form-status]')!;
   const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
-  const labels = { submit: submit.textContent || '', sending: form.dataset.sending || '', success: form.dataset.success || '', error: form.dataset.error || '', errorConsent: form.dataset.errorConsent || '', errorEmpty: form.dataset.errorEmpty || '' };
+  const labels = { submit: submit.textContent || '', sending: form.dataset.sending || '', success: form.dataset.success || '', successTelegram: form.dataset.successTelegram || form.dataset.success || '', error: form.dataset.error || '', errorConsent: form.dataset.errorConsent || '', errorEmpty: form.dataset.errorEmpty || '' };
   const fallback = form.querySelector<HTMLElement>('[data-form-fallback]');
   const last = { t: 0 };
 
@@ -43,7 +43,7 @@ export function initForm(root: ParentNode = document) {
       const url = `https://t.me/${tgUser}?text=${encodeURIComponent(text)}`;
       last.t = Date.now();
       window.open(url, '_blank', 'noopener');
-      show(labels.success, 'ok');
+      show(labels.successTelegram, 'ok');
       return;
     }
 

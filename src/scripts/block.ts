@@ -7,17 +7,25 @@ gsap.registerPlugin(SplitText);
 export interface Player { play(delay?: number): void; reset(): void; }
 
 /**
- * Блок на экране. Как только видна пятая часть, запускаются анимации входа; когда блок
- * полностью ушёл с экрана, они сбрасываются и в следующий раз сыграют заново.
- * Класс is-on стоит, пока блок хоть чуть виден: по нему живут бесконечные анимации.
+ * Блок на экране. Сцена (stage.ts) шлёт блоку block:enter, когда он открывается, и block:leave,
+ * когда экран закрылся переходом и блок ушёл. enter запускает анимации входа, leave сбрасывает их,
+ * чтобы в следующий раз они сыграли заново. Класс is-on стоит, пока блок на экране: по нему живут
+ * бесконечные CSS-анимации. Без сцены (узкий режим, отключённый JS) работает IntersectionObserver.
  */
 export function watchBlock(root: HTMLElement, enter: () => void, leave?: () => void) {
   let active = false;
+  const on = () => { if (active) return; active = true; root.classList.add('is-on', 'is-in'); enter(); };
+  const off = () => { if (!active) return; active = false; root.classList.remove('is-on', 'is-in'); leave?.(); };
+  if (document.documentElement.classList.contains('stage-on')) {
+    root.addEventListener('block:enter', on);
+    root.addEventListener('block:leave', off);
+    if (root.classList.contains('is-current')) requestAnimationFrame(on);
+    return;
+  }
   const io = new IntersectionObserver((entries) => {
     for (const e of entries) {
-      root.classList.toggle('is-on', e.isIntersecting);
-      if (e.intersectionRatio >= 0.2 && !active) { active = true; root.classList.add('is-in'); enter(); }
-      else if (!e.isIntersecting && active) { active = false; root.classList.remove('is-in'); leave?.(); }
+      if (e.intersectionRatio >= 0.2) on();
+      else if (!e.isIntersecting || e.intersectionRatio === 0) off();
     }
   }, { threshold: [0, 0.2] });
   io.observe(root);
@@ -33,7 +41,7 @@ function player(get: () => gsap.core.Animation | undefined): Player {
 /** Текст по строкам: строки выезжают из-под маски. Переживает смену ширины (autoSplit). */
 export function splitLines(el: HTMLElement, vars: gsap.TweenVars = {}): Player {
   let tween: gsap.core.Tween | undefined;
-  SplitText.create(el, { type: 'lines', mask: 'lines', linesClass: 'ln', autoSplit: true, onSplit(self) {
+  SplitText.create(el, { type: 'lines', mask: 'lines', linesClass: 'ln', autoSplit: true, aria: 'none', onSplit(self) {
     // при пересборке строк (смена ширины, догрузка шрифта) новая анимация продолжает с того же места
     const running = !!tween && !tween.paused();
     tween = gsap.from(self.lines, { yPercent: 110, duration: 0.9, ease: 'expo.out', stagger: 0.08, paused: true, ...vars });

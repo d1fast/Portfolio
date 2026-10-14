@@ -1,5 +1,4 @@
 ---
-import { ClientRouter } from 'astro:transitions';
 import '../styles/fonts.generated.css';
 import '../styles/tokens.css';
 import '../styles/global.css';
@@ -13,7 +12,7 @@ interface Props {
   lang: Lang;
   title?: string;
   description?: string;
-  /** Путь страницы без языкового префикса и без base, например '/' или '/work/aroma-forge/'. */
+  /** Путь страницы без языкового префикса и без base, например '/' или '/work/perfume/'. */
   path: string;
   ogImage?: string;
   noindex?: boolean;
@@ -36,7 +35,7 @@ const ogImage = `${origin}${base}${Astro.props.ogImage ?? (lang === 'en' ? '/og-
 const other = lang === 'ru' ? 'en' : 'ru';
 ---
 <!doctype html>
-<html lang={d.htmlLang} data-theme={theme} class:list={[{ snap }]}>
+<html lang={d.htmlLang} data-theme={theme} class:list={[{ stage: snap }]}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -70,6 +69,7 @@ const other = lang === 'ru' ? 'en' : 'ru';
     <link rel="preload" href={`${base}/fonts/golos-cyr.woff2`} as="font" type="font/woff2" crossorigin />
     <script is:inline>
       document.documentElement.classList.add('js');
+      if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
       if (document.querySelector('[data-hero]') || location.pathname.replace(/\/en\/?$/, '/').endsWith('/')) document.documentElement.classList.add('intro-pending');
     </script>
     <script type="application/ld+json" set:html={JSON.stringify({
@@ -83,7 +83,6 @@ const other = lang === 'ru' ? 'en' : 'ru';
       address: { '@type': 'PostalAddress', addressLocality: lang === 'ru' ? 'Москва' : 'Moscow', addressCountry: 'RU' },
       sameAs: [site.telegramUrl],
     })} />
-    <ClientRouter />
   </head>
   <body>
     <a class="skip-link" href="#main">{d.nav.skipToContent}</a>
@@ -94,7 +93,7 @@ const other = lang === 'ru' ? 'en' : 'ru';
     {footer && <Footer lang={lang} />}
     {snap && (
       <nav class="dots" aria-label={lang === 'ru' ? 'Блоки страницы' : 'Page blocks'} data-dots>
-        {blocks.map(([id, label]) => <a href={`#${id}`} data-dot={id}><span class="dots__label">{label}</span><span class="visually-hidden">{label}</span></a>)}
+        {blocks.map(([id, label]) => <a href={`#${id}`} data-dot={id}><span class="dots__label">{label}</span></a>)}
       </nav>
     )}
     <script src="../scripts/main.ts"></script>

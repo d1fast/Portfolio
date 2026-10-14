@@ -3,9 +3,17 @@
 *::before,
 *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; scroll-behavior: auto; overflow-x: clip; color-scheme: only light; }
-/* Один скролл перемещает на следующий блок: блоки занимают экран и прилипают к его верху. */
-html.snap { scroll-snap-type: y mandatory; }
-@media (max-width: 760px), (max-height: 640px) { html.snap { scroll-snap-type: y proximity; } }
+/* Сцена главной (stage.ts): страница не скроллится сама, блоки листаются переходами.
+   Каждый блок ровно в экран; если содержимое выше, блок прокручивается внутри себя. */
+html.stage-on { overflow: hidden; overscroll-behavior: none; }
+html.stage-on body { overflow: hidden; }
+html.stage-on .block { height: 100dvh; min-height: 0; overflow-x: clip; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+html.stage-on .block::-webkit-scrollbar { display: none; }
+html.stage-on .block > .block__inner { min-height: 100%; }
+.stage-fx { position: fixed; inset: 0; z-index: 95; width: 100vw; height: 100vh; pointer-events: none; visibility: hidden; }
+.stage-fx.is-on { visibility: visible; }
+/* переход между страницами сайта (кейс, политика) средствами браузера, где он это умеет */
+@view-transition { navigation: auto; }
 body {
   margin: 0;
   min-height: 100dvh;
@@ -38,7 +46,7 @@ ul, ol { padding: 0; list-style: none; }
 .container { width: 100%; max-width: var(--container); margin-inline: auto; padding-inline: var(--gutter); }
 
 /* Блок: один экран, своя тема и свой фон. */
-.block { position: relative; min-height: 100dvh; scroll-snap-align: start; scroll-snap-stop: always; background: var(--bg); color: var(--fg); overflow: clip; isolation: isolate; }
+.block { position: relative; min-height: 100dvh; background: var(--bg); color: var(--fg); overflow: clip; isolation: isolate; }
 .block__inner { position: relative; z-index: 1; min-height: 100dvh; display: grid; align-content: center; padding-top: calc(var(--header-h) + 24px); padding-bottom: clamp(32px, 6vh, 72px); }
 .block__title { font: 800 clamp(32px, 5.4vw, 88px)/.95 var(--font-display); letter-spacing: -.03em; text-transform: uppercase; text-wrap: balance; }
 @media (max-width: 760px) { .block__inner { padding-top: calc(var(--header-h) + 16px); } }
@@ -53,16 +61,15 @@ html.js .split-line > .split-inner { display: block; will-change: transform; }
 /* до запуска скрипта первого экрана финальные элементы скрыты, чтобы не было вспышки перед вступлением */
 html.js.intro-pending .hero:not(.is-done) .hero-final > *, html.js.intro-pending .hero:not(.is-done) .hero__cta > *, html.js.intro-pending .hero:not(.is-done) .hero__scroll, html.js.intro-pending .hero:not(.is-done) .hero__object { opacity: 0; }
 
-/* Навигация по блокам: точки справа */
-.dots { position: fixed; right: clamp(10px, 1.6vw, 24px); top: 50%; z-index: 40; transform: translateY(-50%); display: grid; gap: 12px; color: var(--fg); transition: color var(--dur-theme) var(--ease-out); }
-.dots a { position: relative; display: grid; place-items: center; width: 24px; height: 24px; }
-.dots a::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: .45; transition: transform .3s var(--ease-out), opacity .2s; }
-.dots a::after { content: ''; position: absolute; inset: 4px; border: 1px solid currentColor; border-radius: 50%; transform: scale(.4); opacity: 0; transition: transform .35s var(--ease-out), opacity .25s; }
-.dots a.is-active::before { opacity: 1; transform: scale(1.1); }
-.dots a.is-active::after { transform: scale(1); opacity: .9; }
-.dots a:hover::before { opacity: 1; }
-.dots__label { position: absolute; right: 32px; top: 50%; transform: translateY(-50%) translateX(6px); font: 500 11px/1 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .2s, transform .3s var(--ease-out); }
-.dots a:hover .dots__label, .dots a:focus-visible .dots__label { opacity: .9; transform: translateY(-50%) translateX(0); }
+/* Навигация по блокам: штрихи справа, активный длиннее и с подписью */
+.dots { position: fixed; right: clamp(10px, 1.6vw, 24px); top: 50%; z-index: 40; transform: translateY(-50%); display: grid; gap: 4px; color: var(--fg); }
+.dots a { position: relative; display: grid; place-items: center end; width: 36px; height: 22px; }
+.dots a::before { content: ''; width: 12px; height: 2px; background: currentColor; opacity: .4; transition: width .45s var(--ease-out), opacity .2s; }
+.dots a.is-active::before { width: 30px; opacity: 1; }
+.dots a:hover::before { opacity: 1; width: 20px; }
+.dots a.is-active:hover::before { width: 30px; }
+.dots__label { position: absolute; right: 44px; top: 50%; transform: translateY(-50%) translateX(6px); padding: 4px 7px; border-radius: 3px; background: var(--bg); font: 500 11px/1 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .2s, transform .3s var(--ease-out); }
+.dots a:hover .dots__label, .dots a:focus-visible .dots__label { opacity: 1; transform: translateY(-50%) translateX(0); }
 @media (max-width: 760px) { .dots { display: none; } }
 
 /* Свой курсор только для мыши: перекрестие с координатами */
@@ -81,10 +88,6 @@ html.js.intro-pending .hero:not(.is-done) .hero-final > *, html.js.intro-pending
   .cursor.is-text .cursor__ring { transform: scale(.5); }
   .cursor.is-down .cursor__ring { transform: scale(.8); }
   .cursor.is-hidden { opacity: 0; }
-  .cursor__video { position: absolute; left: 24px; top: 24px; width: 300px; aspect-ratio: 16 / 9; overflow: clip; background: #000; border: 1px solid currentColor; transform: scale(.6) translateY(10px); opacity: 0; transform-origin: 0 0; transition: transform .35s var(--ease-out), opacity .25s; }
-  .cursor.is-preview .cursor__video { transform: scale(1) translateY(0); opacity: 1; }
-  .cursor.is-preview .cursor__ring, .cursor.is-preview .cursor__h, .cursor.is-preview .cursor__v, .cursor.is-preview .cursor__xy { opacity: 0; }
-  .cursor__video video { width: 100%; height: 100%; object-fit: cover; }
 }
 
 /* Разрезанный текст (SplitText в блоках): маски строк и слов режут по краю, хвосты букв не теряются. */

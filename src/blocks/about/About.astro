@@ -32,10 +32,9 @@ const ring = lang === 'ru' ? 'свободен для проектов • мо�
     </figure>
     <div class="about__text">
       <p class="about__name" data-about-name><span class="about__fullname">{d.hero.name}</span><span class="about__nick">{d.hero.nick}</span></p>
-      <p class="about__p about__lead" data-about-p>{d.about.p1}</p>
-      <p class="about__p" data-about-p>{d.about.p2}</p>
-      <p class="about__p" data-about-p>{d.about.p3}</p>
-      <ul class="about__facts" data-about-facts>{d.about.facts.map((f) => <li><i aria-hidden="true"></i>{f}</li>)}</ul>
+      <p class="about__p about__lead" data-about-p>{d.about.lead}</p>
+      {d.about.notes.map((n) => <p class="about__p" data-about-p>{n}</p>)}
+      <ul class="about__facts" data-about-facts>{d.about.stickers.map((f) => <li><i aria-hidden="true"></i>{f}</li>)}</ul>
     </div>
   </div>
 </section>

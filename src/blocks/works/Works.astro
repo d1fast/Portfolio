@@ -25,18 +25,11 @@ const ticker = works.map((w) => `${w.data.title} · ${w.data.year}`).join(' · '
         const href = `${base}${langPrefix(lang)}/work/${slug}/`;
         return (
           <li class="works__item" data-works-item>
-            <a class="work-card" href={href} data-preview-mp4={w.data.video ? base + w.data.video.mp4 : undefined} data-preview-webm={w.data.video ? base + w.data.video.webm : undefined}>
+            <a class="work-card" href={href}>
               <div class="work-card__screen" data-works-screen>
                 <i class="work-card__corner" aria-hidden="true"></i><i class="work-card__corner" aria-hidden="true"></i><i class="work-card__corner" aria-hidden="true"></i><i class="work-card__corner" aria-hidden="true"></i>
                 <div class="work-card__media" transition:name={`work-${slug}`} data-works-media>
-                  {w.data.video ? (
-                    <video class="work-card__video" muted playsinline loop preload="none" data-poster={base + w.data.video.poster} aria-label={d.a11y.videoPreview} data-inline-preview width="1280" height="720">
-                      <source src={base + w.data.video.webm} type="video/webm" />
-                      <source src={base + w.data.video.mp4} type="video/mp4" />
-                    </video>
-                  ) : (
-                    <img src={base + w.data.cover} alt={w.data.coverAlt} loading="lazy" width="1280" height="720" />
-                  )}
+                  <img src={base + w.data.cover} alt={w.data.coverAlt} loading="lazy" width="1280" height="720" />
                 </div>
                 <span class="work-card__rec" aria-hidden="true"><i></i>{w.data.year}</span>
               </div>

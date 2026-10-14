@@ -4,6 +4,12 @@
   --font-display: 'Unbounded', system-ui, sans-serif;
   --font-body: 'Golos Text', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  /* шрифты настроения блоков */
+  --font-serif: 'Playfair Display', Georgia, serif;          /* обо мне: журнальный разворот */
+  --font-hand: 'Caveat', 'Comic Sans MS', cursive;           /* пометки от руки, письмо */
+  --font-pixel: 'Pixelify Sans', ui-monospace, monospace;    /* что делаю: игровое меню */
+  --font-arcade: 'Press Start 2P', ui-monospace, monospace;  /* мелкие игровые подписи */
+  --font-cond: 'Oswald', 'Arial Narrow', sans-serif;         /* работы: афиша, кино */
 
   --text-base: clamp(16px, 1.05vw, 18px);
   --text-lg: clamp(18px, 1.5vw, 22px);

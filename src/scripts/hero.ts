@@ -58,13 +58,17 @@ function countDims(hero: HTMLElement, tl: gsap.core.Timeline, at: number) {
   const o = { w: 0, h: 0 };
   tl.call(() => { hero.querySelector('[data-dim-h]')?.classList.add('is-in'); hero.querySelector('[data-dim-v]')?.classList.add('is-in'); }, [], at);
   tl.to(o, { w, h, duration: 0.9, ease: 'power2.out', onUpdate: () => { if (cw) cw.textContent = fmt(o.w); if (ch) ch.textContent = fmt(o.h); } }, at + 0.1);
-  addEventListener('resize', () => { const m = measureDims(hero); if (cw) cw.textContent = fmt(m.w); if (ch) ch.textContent = fmt(m.h); }, { passive: true });
+  if (!hero.dataset.dimsBound) {
+    hero.dataset.dimsBound = '1';
+    addEventListener('resize', () => { const m = measureDims(hero); if (cw) cw.textContent = fmt(m.w); if (ch) ch.textContent = fmt(m.h); }, { passive: true });
+  }
 }
 
 function finish(hero: HTMLElement) {
   document.documentElement.classList.remove('intro-pending');
   hero.classList.remove('is-intro', 'is-morphing');
   hero.classList.add('is-done');
+  hero.querySelector('.hero__final')?.removeAttribute('inert');
   hero.querySelector('[data-sheet]')?.classList.add('is-in');
   gsap.set(hero.querySelectorAll('.hero-final, .hero-final *, .hero__object, .hero__scroll'), { clearProps: 'all' });
   const m = measureDims(hero);
@@ -83,6 +87,8 @@ function runFull(hero: HTMLElement, data: Brief, onDone?: (hero: HTMLElement) =>
   let tl: gsap.core.Timeline | null = null;
   hero.classList.add('is-intro');
   hero.classList.remove('is-done');
+  // пока идёт вступление, невидимые ссылки не ловят фокус
+  hero.querySelector('.hero__final')?.setAttribute('inert', '');
   document.documentElement.classList.remove('intro-pending');
   if (skip) { skip.hidden = false; skip.onclick = () => { sig.stop = true; tl?.kill(); finish(hero); onDone?.(hero); }; }
 
@@ -137,7 +143,8 @@ function morph(hero: HTMLElement, lineEls: HTMLElement[], onComplete: () => void
   for (const line of lineEls) {
     const id = line.dataset.id!;
     const target = hero.querySelector<HTMLElement>(`[data-target="${id}"]`);
-    if (!target) continue;
+    // строка без места на странице просто растворяется
+    if (!target) { tl.to(line, { opacity: 0, y: -10, duration: 0.4, ease: 'power2.in' }, 0.1 + k * 0.07); continue; }
     let mover: HTMLElement = line;
     if (id === 'main') {
       const txt = line.querySelector('.brief-txt') as HTMLElement;
@@ -170,4 +177,22 @@ function morph(hero: HTMLElement, lineEls: HTMLElement[], onComplete: () => void
   tl.fromTo(rest, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.05, ease: 'power3.out', clearProps: 'transform' }, 0.9);
   hero.dispatchEvent(new CustomEvent('hero:morph', { detail: { tl } }));
   return tl;
+}
+
+/**
+ * Возвращение на первый экран после других блоков: без печати заметок,
+ * имя снова поднимается по буквам, размеры пересчитываются, остальное проявляется.
+ */
+export function heroReenter(hero: HTMLElement) {
+  if (!hero.classList.contains('is-done')) return;
+  let chars = [...hero.querySelectorAll<HTMLElement>('.hero__name .char')];
+  if (!chars.length) {
+    hero.querySelectorAll<HTMLElement>('[data-chars]').forEach((w) => { const s = new SplitText(w, { type: 'chars', charsClass: 'char' }); chars.push(...(s.chars as HTMLElement[])); });
+  }
+  const rest = [...hero.querySelectorAll<HTMLElement>('.hero__tag, .hero__cta > *, .hero__object')];
+  hero.querySelectorAll('.dim').forEach((el) => el.classList.remove('is-in'));
+  const tl = gsap.timeline();
+  tl.fromTo(chars, { yPercent: 110, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.9, stagger: 0.03, ease: 'expo.out' }, 0.05);
+  tl.fromTo(rest, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.7, stagger: 0.07, ease: 'power3.out', clearProps: 'transform' }, 0.35);
+  countDims(hero, tl, 0.5);
 }

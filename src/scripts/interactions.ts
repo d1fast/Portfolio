@@ -90,6 +90,7 @@ export function initCopy(root: ParentNode = document) {
   for (const btn of root.querySelectorAll<HTMLElement>('[data-copy]:not(.is-copy-bound)')) {
     btn.classList.add('is-copy-bound');
     const label = btn.querySelector<HTMLElement>('[data-copy-label]');
+    label?.setAttribute('aria-live', 'polite');
     const original = label?.textContent || '';
     btn.addEventListener('click', async () => {
       try {
