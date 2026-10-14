@@ -13,11 +13,13 @@ export async function initHeroScene(canvas: HTMLCanvasElement, opts: { modelUrl?
 
   const group = new THREE.Group();
   scene.add(group);
-  const lime = new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue('--lime').trim() || '#D7FF00');
-  const lineMat = new THREE.LineBasicMaterial({ color: lime, transparent: true, opacity: 0.9 });
-  const faintMat = new THREE.LineBasicMaterial({ color: lime, transparent: true, opacity: 0.22 });
+  const host = canvas.closest<HTMLElement>('[data-theme]') || document.documentElement;
+  const tint = new THREE.Color(getComputedStyle(host).getPropertyValue('--accent').trim() || '#9DB3D3');
+  const fill = new THREE.Color(getComputedStyle(host).getPropertyValue('--bg').trim() || '#3F1521');
+  const lineMat = new THREE.LineBasicMaterial({ color: tint, transparent: true, opacity: 0.9 });
+  const faintMat = new THREE.LineBasicMaterial({ color: tint, transparent: true, opacity: 0.22 });
 
-  const addEdges = (geo: InstanceType<typeof THREE.BufferGeometry>, mat: InstanceType<typeof THREE.LineBasicMaterial>, angle = 1) => {
+  const addEdges = (geo: ConstructorParameters<typeof THREE.EdgesGeometry>[0] & object, mat: InstanceType<typeof THREE.LineBasicMaterial>, angle = 1) => {
     const edges = new THREE.EdgesGeometry(geo, angle);
     const lines = new THREE.LineSegments(edges, mat);
     group.add(lines);
@@ -41,7 +43,7 @@ export async function initHeroScene(canvas: HTMLCanvasElement, opts: { modelUrl?
           const seg = new THREE.LineSegments(edges, lineMat);
           seg.position.copy(o.position); seg.rotation.copy(o.rotation); seg.scale.copy(o.scale);
           o.parent?.add(seg);
-          o.material = new THREE.MeshBasicMaterial({ color: 0x050505, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
+          o.material = new THREE.MeshBasicMaterial({ color: fill, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
         }
       });
       group.add(root);
@@ -55,7 +57,7 @@ export async function initHeroScene(canvas: HTMLCanvasElement, opts: { modelUrl?
     const ring = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(new THREE.EllipseCurve(0, 0, 2.6, 2.6, 0, Math.PI * 2, false, 0).getPoints(96)), faintMat);
     ring.rotation.x = Math.PI / 2.3;
     group.add(ring);
-    const solid = new THREE.Mesh(new THREE.IcosahedronGeometry(1.88, 1), new THREE.MeshBasicMaterial({ color: 0x050505, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 }));
+    const solid = new THREE.Mesh(new THREE.IcosahedronGeometry(1.88, 1), new THREE.MeshBasicMaterial({ color: fill, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 }));
     group.add(solid);
     inner.userData.spin = 1.6;
     outer.userData.spin = 1;

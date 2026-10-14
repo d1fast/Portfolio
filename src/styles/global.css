@@ -39,9 +39,11 @@ ul, ol { padding: 0; list-style: none; }
 
 /* Блок: один экран, своя тема и свой фон. */
 .block { position: relative; min-height: 100dvh; scroll-snap-align: start; scroll-snap-stop: always; background: var(--bg); color: var(--fg); overflow: clip; isolation: isolate; }
-.block__inner { position: relative; z-index: 1; min-height: 100dvh; display: grid; align-content: center; padding: calc(var(--header-h) + 24px) 0 clamp(32px, 6vh, 72px); }
+.block__inner { position: relative; z-index: 1; min-height: 100dvh; display: grid; align-content: center; padding-top: calc(var(--header-h) + 24px); padding-bottom: clamp(32px, 6vh, 72px); }
 .block__title { font: 800 clamp(32px, 5.4vw, 88px)/.95 var(--font-display); letter-spacing: -.03em; text-transform: uppercase; text-wrap: balance; }
 @media (max-width: 760px) { .block__inner { padding-top: calc(var(--header-h) + 16px); } }
+/* справа место под точки навигации */
+@media (min-width: 761px) { .block > .container { padding-right: max(var(--gutter), 64px); } }
 
 /* Появление при входе блока на экран. До срабатывания элемент видим без JS. */
 html.js [data-reveal] { opacity: 0; }
@@ -84,3 +86,8 @@ html.js.intro-pending .hero:not(.is-done) .hero-final > *, html.js.intro-pending
   .cursor.is-preview .cursor__ring, .cursor.is-preview .cursor__h, .cursor.is-preview .cursor__v, .cursor.is-preview .cursor__xy { opacity: 0; }
   .cursor__video video { width: 100%; height: 100%; object-fit: cover; }
 }
+
+/* Разрезанный текст (SplitText в блоках): маски строк и слов режут по краю, хвосты букв не теряются. */
+.ln-mask, .wd-mask { display: block; padding-bottom: .12em; margin-bottom: -.12em; }
+.wd-mask { display: inline-block; vertical-align: top; white-space: nowrap; }
+.wd, .ch { display: inline-block; will-change: transform; }

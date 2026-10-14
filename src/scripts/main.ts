@@ -5,6 +5,7 @@ import { initMagnetic, initScramble, initActiveItems, initMarquee, initCopy, ini
 import { initForm } from './form';
 import { initHero } from './hero';
 import { initWorksPreview } from './works-preview';
+import { initSnapNav } from './snapnav';
 
 /* Скрипты блоков главной подгружаются, когда блок первый раз приближается к экрану. */
 const BLOCKS: Record<string, () => Promise<{ init: (root: HTMLElement) => void }>> = {
@@ -44,6 +45,7 @@ function init() {
   initHero(() => idle(startScene));
   setTimeout(() => idle(startScene), 1800);
   initBlocks();
+  initSnapNav();
   initReveal();
   initSectionThemes();
   initMagnetic();

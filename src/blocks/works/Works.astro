@@ -9,32 +9,43 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const all = await getCollection('work', (e) => e.id.endsWith(`/${lang}`) && !e.data.draft);
 const works = all.sort((a, b) => a.data.order - b.data.order || b.data.year - a.data.year);
 const slugOf = (id: string) => id.split('/')[0];
+const nn = (n: number) => String(n).padStart(2, '0');
+// Бегущая строка под работами: названия и год, повторяются, чтобы лента была бесшовной.
+const ticker = works.map((w) => `${w.data.title} · ${w.data.year}`).join(' · ') + ' · ';
 ---
 <section class="block block--works works" id="works" data-theme="works" data-block="works">
-  <div class="block__inner container">
-    <h2 class="block__title" data-reveal="lines">{d.works.title}</h2>
-    <ul class="works__list" data-reveal="stagger">
-      {works.map((w) => {
+  <div class="block__inner container works__inner">
+    <div class="works__head">
+      <h2 class="block__title works__title" data-works-title>{d.works.title}</h2>
+      <p class="works__count" data-works-count aria-hidden="true"><b>01</b><span>/</span><b>{nn(works.length)}</b></p>
+    </div>
+    <ul class="works__list">
+      {works.map((w, i) => {
         const slug = slugOf(w.id);
         const href = `${base}${langPrefix(lang)}/work/${slug}/`;
         return (
-          <li class="works__item">
+          <li class="works__item" data-works-item>
             <a class="work-card" href={href} data-preview-mp4={w.data.video ? base + w.data.video.mp4 : undefined} data-preview-webm={w.data.video ? base + w.data.video.webm : undefined}>
-              <div class="work-card__media" transition:name={`work-${slug}`} data-tilt="4">
-                {w.data.video ? (
-                  <video class="work-card__video" muted playsinline loop preload="none" data-poster={base + w.data.video.poster} aria-label={d.a11y.videoPreview} data-inline-preview width="1280" height="720">
-                    <source src={base + w.data.video.webm} type="video/webm" />
-                    <source src={base + w.data.video.mp4} type="video/mp4" />
-                  </video>
-                ) : (
-                  <img src={base + w.data.cover} alt={w.data.coverAlt} loading="lazy" width="1280" height="720" />
-                )}
+              <div class="work-card__screen" data-works-screen>
+                <i class="work-card__corner" aria-hidden="true"></i><i class="work-card__corner" aria-hidden="true"></i><i class="work-card__corner" aria-hidden="true"></i><i class="work-card__corner" aria-hidden="true"></i>
+                <div class="work-card__media" transition:name={`work-${slug}`} data-works-media>
+                  {w.data.video ? (
+                    <video class="work-card__video" muted playsinline loop preload="none" data-poster={base + w.data.video.poster} aria-label={d.a11y.videoPreview} data-inline-preview width="1280" height="720">
+                      <source src={base + w.data.video.webm} type="video/webm" />
+                      <source src={base + w.data.video.mp4} type="video/mp4" />
+                    </video>
+                  ) : (
+                    <img src={base + w.data.cover} alt={w.data.coverAlt} loading="lazy" width="1280" height="720" />
+                  )}
+                </div>
+                <span class="work-card__rec" aria-hidden="true"><i></i>{w.data.year}</span>
               </div>
               <div class="work-card__body">
-                <h3 class="work-card__title">{w.data.title}</h3>
-                <p class="work-card__sub">{w.data.subtitle}</p>
-                <p class="work-card__meta"><span>{w.data.year}</span><span>{w.data.stack.join(' · ')}</span></p>
-                <span class="work-card__open">{d.works.open}</span>
+                <span class="work-card__idx" aria-hidden="true">{nn(i + 1)}</span>
+                <h3 class="work-card__title" data-works-name>{w.data.title}</h3>
+                <p class="work-card__sub" data-works-sub>{w.data.subtitle}</p>
+                <ul class="work-card__stack" data-works-stack aria-label={d.works.stack}>{w.data.stack.map((s) => <li>{s}</li>)}</ul>
+                <span class="work-card__open" data-works-open><span data-scramble>{d.works.open}</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13L13 3M6 3h7v7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg></span>
               </div>
             </a>
           </li>
@@ -42,4 +53,5 @@ const slugOf = (id: string) => id.split('/')[0];
       })}
     </ul>
   </div>
+  <div class="works__ticker" data-marquee aria-hidden="true"><div class="works__track" data-works-track><span>{ticker}</span><span>{ticker}</span></div></div>
 </section>

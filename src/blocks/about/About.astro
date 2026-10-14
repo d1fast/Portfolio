@@ -1,25 +1,41 @@
 ---
 import './about.css';
+import fs from 'node:fs';
 import { t, type Lang } from '../../i18n';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const d = t(lang);
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+// Фото: положить файл в public/photo/me.jpg (или .webp, .png), пропорция 4:5. Пока его нет, стоит заглушка.
+const photo = ['me.webp', 'me.jpg', 'me.png'].find((f) => fs.existsSync(`public/photo/${f}`));
+const ring = lang === 'ru' ? 'свободен для проектов • москва • d1fast • ' : 'open for projects • moscow • d1fast • ';
 ---
 <section class="block block--about about" id="about" data-theme="about" data-block="about">
   <div class="block__inner container about__grid">
-    <h2 class="block__title about__title" data-reveal="lines">{d.about.title}</h2>
-    <figure class="about__photo" data-reveal="scale">
-      <div class="about__photo-ph" role="img" aria-label={d.about.photoAlt}>
-        <span>{d.about.photoSoon}</span>
+    <h2 class="block__title about__title" data-about-title>{d.about.title}</h2>
+    <figure class="about__photo" data-about-photo data-tilt="3">
+      <svg class="about__frame" viewBox="0 0 400 500" preserveAspectRatio="none" aria-hidden="true"><rect x="1" y="1" width="398" height="498" data-about-frame vector-effect="non-scaling-stroke" /></svg>
+      <div class="about__pic" data-about-pic>
+        {photo ? (
+          <img src={`${base}/photo/${photo}`} alt={d.about.photoAlt} width="800" height="1000" loading="lazy" decoding="async" />
+        ) : (
+          <div class="about__ph" role="img" aria-label={d.about.photoAlt}><span class="about__ph-note">{d.about.photoSoon}</span></div>
+        )}
       </div>
-      <span class="about__stamp" data-reveal="stamp" aria-hidden="true">{lang === 'ru' ? 'Свободен для проектов' : 'Open for projects'}</span>
+      <div class="about__ring" aria-hidden="true" data-about-ring>
+        <svg viewBox="0 0 200 200">
+          <defs><path id="about-ring-path" d="M100,100 m-70,0 a70,70 0 1,1 140,0 a70,70 0 1,1 -140,0" /></defs>
+          <text textLength="439.8" lengthAdjust="spacing"><textPath href="#about-ring-path" textLength="439.8" lengthAdjust="spacing">{ring}</textPath></text>
+        </svg>
+        <i class="about__ring-dot"></i>
+      </div>
     </figure>
     <div class="about__text">
-      <p class="about__name" data-reveal="lines"><span class="about__fullname">{d.hero.name}</span> <span class="about__nick">{d.hero.nick}</span></p>
-      <p class="about__p about__lead" data-reveal="lines">{d.about.p1}</p>
-      <p class="about__p" data-reveal="lines">{d.about.p2}</p>
-      <p class="about__p about__ai" data-reveal="lines">{d.about.p3}</p>
-      <ul class="about__facts" data-reveal="stagger">{d.about.facts.map((f) => <li>{f}</li>)}</ul>
+      <p class="about__name" data-about-name><span class="about__fullname">{d.hero.name}</span><span class="about__nick">{d.hero.nick}</span></p>
+      <p class="about__p about__lead" data-about-p>{d.about.p1}</p>
+      <p class="about__p" data-about-p>{d.about.p2}</p>
+      <p class="about__p" data-about-p>{d.about.p3}</p>
+      <ul class="about__facts" data-about-facts>{d.about.facts.map((f) => <li><i aria-hidden="true"></i>{f}</li>)}</ul>
     </div>
   </div>
 </section>

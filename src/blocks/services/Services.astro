@@ -12,19 +12,52 @@ interface Props { lang: Lang }
 const { lang } = Astro.props;
 const d = t(lang);
 const icons = [sites, apps, bots, threed, games, ui, spec];
+const items = d.services.items;
+const nn = (n: number) => String(n).padStart(2, '0');
+// Подписи меню. Только для этого блока.
+const ui18n = {
+  ru: { menu: 'Меню услуг', select: 'выбрано', hint: 'наведите или ↑ ↓', of: 'из' },
+  en: { menu: 'Services menu', select: 'selected', hint: 'hover or ↑ ↓', of: 'of' },
+}[lang];
 ---
 <section class="block block--services services" id="services" data-theme="services" data-block="services">
-  <div class="block__inner container">
-    <h2 class="block__title" data-reveal="lines">{d.services.title}</h2>
-    <ul class="services__list" data-active-list data-reveal="stagger">
-      {d.services.items.map((item, i) => (
-        <li class="services__item">
-          <span class="services__num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
-          <h3 class="services__name">{item.title}</h3>
-          <p class="services__text"><span>{item.text}</span></p>
-          <span class="services__icon" aria-hidden="true" data-draw set:html={icons[i]} />
-        </li>
-      ))}
-    </ul>
+  <div class="block__inner container services__grid">
+    <h2 class="block__title services__title" data-services-title>{d.services.title}</h2>
+
+    <div class="services__menu" role="group" aria-label={ui18n.menu} data-keys data-services-menu>
+      <span class="services__band" aria-hidden="true" data-services-band></span>
+      <span class="services__marker" aria-hidden="true" data-services-marker><svg viewBox="0 0 10 12"><path d="M1 1l8 5-8 5z" fill="currentColor" /></svg></span>
+      <ul class="services__list" data-services-list>
+        {items.map((item, i) => (
+          <li class="services__item" class:list={[{ 'is-active': i === 0 }]} data-services-item>
+            <button class="services__btn" type="button" aria-pressed={i === 0 ? 'true' : 'false'} data-services-btn>
+              <span class="services__num" aria-hidden="true">{nn(i + 1)}</span>
+              <span class="services__name">{item.title}</span>
+            </button>
+            <p class="services__desc visually-hidden">{item.text}</p>
+          </li>
+        ))}
+      </ul>
+      <p class="services__hint" aria-hidden="true">{ui18n.hint}</p>
+    </div>
+
+    <div class="services__dialog" aria-hidden="true" data-services-dialog>
+      <svg class="services__frame" viewBox="0 0 100 100" preserveAspectRatio="none"><rect x=".5" y=".5" width="99" height="99" vector-effect="non-scaling-stroke" data-services-frame /></svg>
+      <span class="services__ghost" data-services-ghost>01</span>
+      <div class="services__head">
+        <span class="services__icons" data-services-icons>
+          {icons.map((svg, i) => <span class="services__icon" class:list={[{ 'is-on': i === 0 }]} set:html={svg} />)}
+        </span>
+        <span class="services__meta">
+          <span class="services__tag">{ui18n.select}</span>
+          <span class="services__dname" data-services-name>{items[0].title}</span>
+        </span>
+      </div>
+      <p class="services__text"><span data-services-text>{items[0].text}</span><i class="services__caret"></i></p>
+      <div class="services__foot">
+        <span class="services__count"><b data-services-count>01</b> {ui18n.of} {nn(items.length)}</span>
+        <span class="services__dots" data-services-dots>{items.map(() => <i></i>)}</span>
+      </div>
+    </div>
   </div>
 </section>

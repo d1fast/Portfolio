@@ -1,1 +1,58 @@
-/* Блок «contacts». Стили только под .block--contacts */
+/* Контакты: пудровый лист и винные чернила. По экрану петляет бумажный самолётик с хвостом,
+   ныряет за карточку формы и выныривает. Карточка раскрывается как письмо, поля подчёркиваются при вводе. */
+.contacts { display: flex; flex-direction: column; }
+.contacts > .block__inner { flex: 1; min-height: 0; }
+.contacts > .site-footer { position: relative; z-index: 1; }
+
+.contacts__sky { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.contacts__route { fill: none; stroke: var(--fg); stroke-width: 1; stroke-dasharray: 2 7; stroke-linecap: round; opacity: .28; }
+.contacts__trail { fill: none; stroke: var(--fg); stroke-width: 1.5; stroke-linecap: round; opacity: .7; }
+.contacts__plane path { fill: var(--fg); stroke: var(--bg); stroke-width: 1.2; stroke-linejoin: round; }
+
+.contacts__grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: clamp(32px, 6vw, 112px); row-gap: 28px; align-items: center; }
+.contacts__head { display: grid; gap: clamp(16px, 2.4vh, 28px); align-content: start; }
+.contacts__lead { font-size: var(--text-lg); line-height: 1.4; max-width: 30ch; }
+.contacts__links { display: flex; flex-wrap: wrap; gap: 12px; }
+.contacts__email { gap: 14px; max-width: 100%; }
+.contacts__email-addr { font-family: var(--font-mono); font-weight: 500; font-size: 14px; }
+.contacts__email-action { font: 600 11px/1 var(--font-mono); padding: 6px 8px; border-radius: 4px; background: color-mix(in oklab, var(--fg) 12%, transparent); transition: background-color var(--dur-base), color var(--dur-base); }
+.contacts__email.is-copied .contacts__email-action { background: var(--fg); color: var(--bg); }
+
+/* Карточка-письмо */
+.contact-form { position: relative; display: grid; gap: clamp(12px, 1.8vh, 18px); padding: clamp(20px, 2.4vw, 34px); background: color-mix(in oklab, var(--bg) 55%, #fff); border: 1.5px solid var(--fg); box-shadow: 8px 8px 0 var(--fg); transform-origin: 50% 0; }
+.contact-form::before { content: ''; position: absolute; left: -1.5px; right: -1.5px; top: -1.5px; height: 6px; background: repeating-linear-gradient(90deg, var(--fg) 0 14px, transparent 14px 20px, var(--accent-fg) 20px 34px, transparent 34px 40px); opacity: .8; }
+.contact-form__title { font: 700 clamp(20px, 1.8vw, 26px)/1.2 var(--font-display); letter-spacing: -.02em; }
+.field { position: relative; display: grid; gap: 6px; }
+.field__label { font: 500 12px/1.3 var(--font-mono); }
+.field__input { width: 100%; padding: 10px 0; border: 0; border-bottom: 1.5px solid var(--line-strong); background: transparent; color: var(--fg); border-radius: 0; }
+.field__input::placeholder { color: color-mix(in oklab, var(--fg) 62%, transparent); }
+.field__input:focus { outline: none; }
+.field::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--fg); transform: scaleX(0); transform-origin: 0 50%; transition: transform .45s var(--ease-out); }
+.field:focus-within::after { transform: scaleX(1); }
+.field__input[aria-invalid="true"] { border-color: var(--error); }
+.field__textarea { resize: vertical; min-height: 84px; }
+.field--hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.field--hp::after { display: none; }
+.consent { display: flex; gap: 12px; align-items: flex-start; font-size: 14px; line-height: 1.4; cursor: pointer; }
+.consent__box { width: 20px; height: 20px; margin: 1px 0 0; accent-color: var(--fg); flex: none; }
+.consent a { text-decoration: underline; text-underline-offset: 3px; }
+.contact-form__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; }
+.contact-form__hint { font-size: 13px; line-height: 1.4; opacity: .8; max-width: 34ch; }
+.contact-form__status { font: 500 14px/1.4 var(--font-mono); min-height: 1.4em; margin-top: -6px; }
+.contact-form__status:empty { min-height: 0; margin: 0; }
+.contact-form__status[data-kind="err"] { color: var(--error); }
+.contact-form__fallback { display: flex; flex-wrap: wrap; gap: 16px; font: 500 14px/1.4 var(--font-mono); }
+.contact-form__fallback a { border-bottom: 1.5px solid currentColor; padding-block: 10px; }
+
+@media (min-width: 761px) and (max-height: 800px) {
+  .contact-form { gap: 10px; padding: 20px 24px; }
+  .field__textarea { min-height: 64px; }
+  .contacts > .block__inner { padding-bottom: 20px; }
+}
+/* в одну колонку между кнопками и формой остаётся просвет, где самолётик делает петлю */
+@media (max-width: 900px) { .contacts__grid { grid-template-columns: minmax(0, 1fr); align-items: start; row-gap: 84px; } }
+@media (max-width: 760px) {
+  .contacts__lead { font-size: 17px; }
+  .contact-form { box-shadow: 5px 5px 0 var(--fg); margin-right: 5px; }
+}
+@media (max-width: 420px) { .contacts__email { white-space: normal; flex-wrap: wrap; height: auto; padding: 12px 18px; gap: 8px 12px; } .contacts__email-addr { font-size: 13px; } }

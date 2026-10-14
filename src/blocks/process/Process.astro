@@ -4,16 +4,34 @@ import { t, type Lang } from '../../i18n';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const d = t(lang);
+const steps = d.process.steps;
+const nn = (n: number) => String(n).padStart(2, '0');
+const label = lang === 'ru' ? 'Шаги работы' : 'Work steps';
 ---
 <section class="block block--process process" id="process" data-theme="process" data-block="process">
-  <div class="block__inner container">
-    <h2 class="block__title" data-reveal="lines">{d.process.title}</h2>
-    <ol class="process__list" data-active-list data-reveal="stagger">
-      {d.process.steps.map((s, i) => (
-        <li class="process__step">
-          <span class="process__num" aria-hidden="true">{i + 1}</span>
-          <h3 class="process__name">{s.title}</h3>
-          <p class="process__text">{s.text}</p>
+  <div class="process__bolts" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+  <div class="block__inner container process__inner">
+    <div class="process__head">
+      <h2 class="block__title process__title" data-process-title>{d.process.title}</h2>
+      <p class="process__big" aria-hidden="true"><span class="process__big-track" data-process-big>{steps.map((_, i) => <span>{nn(i + 1)}</span>)}</span></p>
+    </div>
+
+    <div class="process__rail" aria-hidden="true" data-process-rail>
+      <span class="process__line"></span>
+      <span class="process__fill" data-process-fill></span>
+      {steps.map((_, i) => <span class="process__node" style={`--i:${i}`} data-process-node><b>{nn(i + 1)}</b></span>)}
+      <span class="process__cart" data-process-cart><i></i></span>
+    </div>
+
+    <ol class="process__list" aria-label={label} data-process-list>
+      {steps.map((s, i) => (
+        <li class="process__step" class:list={[{ 'is-active': i === 0 }]} data-process-step>
+          <button class="process__btn" type="button" aria-pressed={i === 0 ? 'true' : 'false'} data-process-btn>
+            <span class="process__num" aria-hidden="true">{nn(i + 1)}</span>
+            <span class="process__name" data-process-name>{s.title}</span>
+          </button>
+          <p class="process__text" data-process-text>{s.text}</p>
+          <span class="process__bar" aria-hidden="true"><i data-process-bar></i></span>
         </li>
       ))}
     </ol>

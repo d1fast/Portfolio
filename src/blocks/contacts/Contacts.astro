@@ -11,11 +11,16 @@ const policyHref = `${base}${langPrefix(lang)}/policy/`;
 const hasEndpoint = Boolean(site.formEndpoint);
 ---
 <section class="block block--contacts contacts" id="contacts" data-theme="contacts" data-block="contacts">
+  <svg class="contacts__sky" aria-hidden="true" data-contacts-sky>
+    <path class="contacts__route" data-contacts-route />
+    <path class="contacts__trail" data-contacts-trail />
+    <g class="contacts__plane" data-contacts-plane><path d="M-14 -11 L16 0 L-14 11 L-8 0 Z M-8 0 L16 0" /></g>
+  </svg>
   <div class="block__inner container contacts__grid">
     <div class="contacts__head">
-      <h2 class="block__title" data-reveal="lines">{d.contacts.title}</h2>
-      <p class="contacts__lead" data-reveal="lines">{d.contacts.lead}</p>
-      <div class="contacts__links" data-reveal="stagger">
+      <h2 class="block__title contacts__title" data-contacts-title>{d.contacts.title}</h2>
+      <p class="contacts__lead" data-contacts-lead>{d.contacts.lead}</p>
+      <div class="contacts__links" data-contacts-links>
         <a class="btn btn--primary" href={site.telegramUrl} target="_blank" rel="noopener" data-magnetic>{d.contacts.telegram}</a>
         <button class="btn btn--ghost contacts__email" type="button" data-copy={site.email} data-copied={d.contacts.copied} data-magnetic="0.2">
           <span class="contacts__email-addr">{site.email}</span>
@@ -25,8 +30,8 @@ const hasEndpoint = Boolean(site.formEndpoint);
     </div>
     <form class="contact-form" data-contact-form data-endpoint={site.formEndpoint} data-tg-user={site.telegramUser} data-lang={lang}
       data-sending={d.contacts.sending} data-success={d.contacts.success} data-error={d.contacts.error}
-      data-error-consent={d.contacts.errorConsent} data-error-empty={d.contacts.errorEmpty} novalidate data-reveal="up">
-      <h3 class="contact-form__title">{d.contacts.formTitle}</h3>
+      data-error-consent={d.contacts.errorConsent} data-error-empty={d.contacts.errorEmpty} novalidate data-contacts-form>
+      <h3 class="contact-form__title" data-contacts-ftitle>{d.contacts.formTitle}</h3>
       <div class="field">
         <label class="field__label" for="cf-name">{d.contacts.nameLabel}</label>
         <input class="field__input" id="cf-name" name="name" type="text" autocomplete="name" maxlength="120" placeholder={d.contacts.namePlaceholder} />
