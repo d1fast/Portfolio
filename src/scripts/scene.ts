@@ -1,5 +1,5 @@
 /**
- * 3D-объект первого экрана: каркасная модель на чёрном листе. Пока это процедурная фигура,
+ * 3D-объект первого экрана: каркасная модель в цветах темы блока. Пока это процедурная фигура,
  * позже сюда встанет модель Савелия из Meshy (GLB) с тем же каркасным материалом.
  * Загружается лениво, рендерит только когда виден, плотность пикселей не выше 1.5.
  */
@@ -9,7 +9,7 @@ export async function initHeroScene(canvas: HTMLCanvasElement, opts: { modelUrl?
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
-  camera.position.set(0, 0, 7.2);
+  camera.position.set(0, 0, 7.8);
 
   const group = new THREE.Group();
   scene.add(group);
@@ -17,7 +17,7 @@ export async function initHeroScene(canvas: HTMLCanvasElement, opts: { modelUrl?
   const tint = new THREE.Color(getComputedStyle(host).getPropertyValue('--accent').trim() || '#9DB3D3');
   const fill = new THREE.Color(getComputedStyle(host).getPropertyValue('--bg').trim() || '#3F1521');
   const lineMat = new THREE.LineBasicMaterial({ color: tint, transparent: true, opacity: 0.9 });
-  const faintMat = new THREE.LineBasicMaterial({ color: tint, transparent: true, opacity: 0.22 });
+  const faintMat = new THREE.LineBasicMaterial({ color: tint, transparent: true, opacity: 0.35 });
 
   const addEdges = (geo: ConstructorParameters<typeof THREE.EdgesGeometry>[0] & object, mat: InstanceType<typeof THREE.LineBasicMaterial>, angle = 1) => {
     const edges = new THREE.EdgesGeometry(geo, angle);
@@ -36,7 +36,7 @@ export async function initHeroScene(canvas: HTMLCanvasElement, opts: { modelUrl?
       const size = box.getSize(new THREE.Vector3()).length();
       const center = box.getCenter(new THREE.Vector3());
       root.position.sub(center);
-      root.scale.setScalar(3.6 / size);
+      root.scale.setScalar(3.4 / size);
       root.traverse((o: any) => {
         if (o.isMesh) {
           const edges = new THREE.EdgesGeometry(o.geometry, 18);
@@ -52,12 +52,12 @@ export async function initHeroScene(canvas: HTMLCanvasElement, opts: { modelUrl?
   }
   if (!model) {
     // Процедурная фигура: икосаэдр с внутренним октаэдром и тонкой орбитой, как объект на чертеже.
-    const outer = addEdges(new THREE.IcosahedronGeometry(1.9, 1), lineMat, 10);
-    const inner = addEdges(new THREE.OctahedronGeometry(1.0, 0), lineMat, 1);
-    const ring = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(new THREE.EllipseCurve(0, 0, 2.6, 2.6, 0, Math.PI * 2, false, 0).getPoints(96)), faintMat);
+    const outer = addEdges(new THREE.IcosahedronGeometry(1.4, 1), lineMat, 10);
+    const inner = addEdges(new THREE.OctahedronGeometry(0.74, 0), lineMat, 1);
+    const ring = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(new THREE.EllipseCurve(0, 0, 1.9, 1.9, 0, Math.PI * 2, false, 0).getPoints(96)), faintMat);
     ring.rotation.x = Math.PI / 2.3;
     group.add(ring);
-    const solid = new THREE.Mesh(new THREE.IcosahedronGeometry(1.88, 1), new THREE.MeshBasicMaterial({ color: fill, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 }));
+    const solid = new THREE.Mesh(new THREE.IcosahedronGeometry(1.385, 1), new THREE.MeshBasicMaterial({ color: fill, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 }));
     group.add(solid);
     inner.userData.spin = 1.6;
     outer.userData.spin = 1;
