@@ -2,7 +2,7 @@
 *,
 *::before,
 *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; scroll-behavior: auto; overflow-x: clip; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: auto; overflow-x: clip; color-scheme: only light; }
 /* Один скролл перемещает на следующий блок: блоки занимают экран и прилипают к его верху. */
 html.snap { scroll-snap-type: y mandatory; }
 @media (max-width: 760px), (max-height: 640px) { html.snap { scroll-snap-type: y proximity; } }

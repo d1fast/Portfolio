@@ -40,6 +40,9 @@ const other = lang === 'ru' ? 'en' : 'ru';
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!-- цвета сайта заданы вручную: запрещаем браузеру и расширениям перекрашивать светлые блоки в тёмные -->
+    <meta name="color-scheme" content="only light" />
+    <meta name="darkreader-lock" />
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
