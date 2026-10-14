@@ -115,7 +115,7 @@ export const en: Dict = {
       'How long: for as long as we are talking. Write to me and I will delete the message.',
       'Legal basis: your consent, given by ticking the box before sending (Article 9 of Russian Federal Law 152-FZ). You can withdraw it by writing to the email above.',
       'Your rights: to find out what data I hold, and to ask me to correct or delete it. I answer such requests within 10 days.',
-      'The site sets no advertising trackers or analytics counters. Your browser may remember your language choice and that you have already seen the intro animation; that is not personal data.',
+      'The site sets no advertising trackers or analytics counters and stores nothing in your browser.',
     ],
     back: 'Home',
   },
