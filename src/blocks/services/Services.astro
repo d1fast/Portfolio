@@ -1,63 +1,117 @@
 ---
 import './services.css';
 import { t, type Lang } from '../../i18n';
-import sites from '../../icons/sites.svg?raw';
-import apps from '../../icons/apps.svg?raw';
-import bots from '../../icons/bots.svg?raw';
-import threed from '../../icons/threed.svg?raw';
-import games from '../../icons/games.svg?raw';
-import ui from '../../icons/ui.svg?raw';
-import spec from '../../icons/spec.svg?raw';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const d = t(lang);
-const icons = [sites, apps, bots, threed, games, ui, spec];
 const items = d.services.items;
 const nn = (n: number) => String(n).padStart(2, '0');
-// Подписи меню. Только для этого блока.
+// Подписи только этого блока: меню, кнопка «дальше», мини-игра и надписи внутри экранчиков.
 const ui18n = {
-  ru: { menu: 'Меню услуг', select: 'выбрано', hint: 'наведите или ↑ ↓', of: 'из' },
-  en: { menu: 'Services menu', select: 'selected', hint: 'hover or ↑ ↓', of: 'of' },
+  ru: {
+    menu: 'Меню услуг', hint: 'наведите или', next: 'Следующий пункт',
+    game: 'Мини-игра: нажмите, чтобы прыгнуть',
+    w: {
+      tapFine: 'клик или пробел', tapTouch: 'жми, чтобы прыгать', hi: 'рек',
+      bot: 'бот', online: 'в сети', typing: 'печатает…',
+      ask: 'Хочу записаться', pick: 'Выберите время:', t1: '12:00', t2: '18:30', done: 'Готово, жду вас!',
+      send: 'Отправить', spec: 'ТЗ', checks: ['цель', 'аудитория', 'экраны', 'сроки'],
+    },
+  },
+  en: {
+    menu: 'Services menu', hint: 'hover or', next: 'Next item',
+    game: 'Mini game: press to jump',
+    w: {
+      tapFine: 'click or space', tapTouch: 'tap to jump', hi: 'hi',
+      bot: 'bot', online: 'online', typing: 'typing…',
+      ask: 'I want to book', pick: 'Pick a time:', t1: '12:00', t2: '18:30', done: 'Done, see you!',
+      send: 'Send', spec: 'Spec', checks: ['goal', 'audience', 'screens', 'deadline'],
+    },
+  },
 }[lang];
+const widgets = ['sites', 'apps', 'bots', 'cube', 'game', 'ui', 'spec'];
+// В пиксельном шрифте нет заглавной кириллической «О»: для вида подставляем латинскую, для чтения остаётся aria-label.
+const px = (s: string) => s.replace(/О/g, 'O');
+const titleVis = px(d.services.title.toUpperCase());
 ---
-<section class="block block--services services" id="services" data-theme="services" data-block="services">
+<section class="block block--services services" id="services" data-theme="services" data-block="services" data-svc-ui={JSON.stringify(ui18n.w)}>
   <div class="block__inner container services__grid">
-    <h2 class="block__title services__title" data-services-title>{d.services.title}</h2>
+    <h2 class="block__title services__title" aria-label={d.services.title} data-label={d.services.title} data-services-title>{titleVis}</h2>
 
     <div class="services__menu" role="group" aria-label={ui18n.menu} data-keys data-services-menu>
-      <span class="services__band" aria-hidden="true" data-services-band></span>
-      <span class="services__marker" aria-hidden="true" data-services-marker><svg viewBox="0 0 10 12"><path d="M1 1l8 5-8 5z" fill="currentColor" /></svg></span>
-      <ul class="services__list" data-services-list>
-        {items.map((item, i) => (
-          <li class="services__item" class:list={[{ 'is-active': i === 0 }]} data-services-item>
-            <button class="services__btn" type="button" aria-pressed={i === 0 ? 'true' : 'false'} data-services-btn>
-              <span class="services__num" aria-hidden="true">{nn(i + 1)}</span>
-              <span class="services__name">{item.title}</span>
-            </button>
-            <p class="services__desc visually-hidden">{item.text}</p>
-          </li>
-        ))}
-      </ul>
-      <p class="services__hint" aria-hidden="true">{ui18n.hint}</p>
+      <div class="services__track" data-services-track>
+        <span class="services__band" aria-hidden="true" data-services-band></span>
+        <span class="services__marker" aria-hidden="true" data-services-marker>
+          <span class="services__mk-drop" data-services-mkdrop>
+            <span class="services__mk-pop" data-services-mkpop>
+              <svg viewBox="0 0 6 11" shape-rendering="crispEdges"><path d="M0 0h1v11H0zM1 1h1v9H1zM2 2h1v7H2zM3 3h1v5H3zM4 4h1v3H4zM5 5h1v1H5z" fill="currentColor" /></svg>
+            </span>
+          </span>
+        </span>
+        <ul class="services__list" data-services-list>
+          {items.map((item, i) => (
+            <li class="services__item" class:list={[{ 'is-active': i === 0 }]} data-services-item>
+              <button class="services__btn" type="button" aria-pressed={i === 0 ? 'true' : 'false'} data-services-btn>
+                <span class="services__row" data-services-row>
+                  <span class="services__num" aria-hidden="true">{nn(i + 1)}</span>
+                  <span class="services__name">{item.title}</span>
+                </span>
+              </button>
+              <p class="services__desc visually-hidden">{item.text}</p>
+            </li>
+          ))}
+        </ul>
+        <!-- копия списка тёмным цветом: видна только внутри полосы выделения, поэтому текст под полосой всегда инвертирован -->
+        <ul class="services__list services__list--inv" aria-hidden="true" data-services-inv>
+          {items.map((item, i) => (
+            <li class="services__item" class:list={[{ 'is-active': i === 0 }]}>
+              <span class="services__btn">
+                <span class="services__row">
+                  <span class="services__num">{nn(i + 1)}</span>
+                  <span class="services__name">{item.title}</span>
+                </span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <p class="services__hint" aria-hidden="true" data-services-hint>{ui18n.hint} <kbd>↑</kbd><kbd>↓</kbd></p>
     </div>
 
-    <div class="services__dialog" aria-hidden="true" data-services-dialog>
-      <svg class="services__frame" viewBox="0 0 100 100" preserveAspectRatio="none"><rect x=".5" y=".5" width="99" height="99" vector-effect="non-scaling-stroke" data-services-frame /></svg>
-      <span class="services__ghost" data-services-ghost>01</span>
-      <div class="services__head">
-        <span class="services__icons" data-services-icons>
-          {icons.map((svg, i) => <span class="services__icon" class:list={[{ 'is-on': i === 0 }]} set:html={svg} />)}
-        </span>
-        <span class="services__meta">
-          <span class="services__tag">{ui18n.select}</span>
-          <span class="services__dname" data-services-name>{items[0].title}</span>
-        </span>
+    <div class="services__dialog" data-services-dialog>
+      <span class="services__shade" aria-hidden="true"></span>
+      <div class="services__screen" data-services-screen>
+        <div class="services__power" data-services-power>
+          <div class="services__tube" data-services-tube>
+            {widgets.map((w, i) => (
+              <div class={`svc-w svc-w--${w}`} class:list={[{ 'is-shown': i === 0 }]} aria-hidden={w === 'game' ? undefined : 'true'} data-svc-w={w}>
+                {w === 'game' && (
+                  <button class="svc-game__hit" type="button" aria-label={ui18n.game} data-drag data-svc-hit></button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+        <span class="services__scan" aria-hidden="true"></span>
+        <span class="services__flash" aria-hidden="true" data-services-flash></span>
       </div>
-      <p class="services__text"><span data-services-text>{items[0].text}</span><i class="services__caret"></i></p>
-      <div class="services__foot">
-        <span class="services__count"><b data-services-count>01</b> {ui18n.of} {nn(items.length)}</span>
-        <span class="services__dots" data-services-dots>{items.map(() => <i></i>)}</span>
+
+      <div class="services__say" aria-hidden="true">
+        <p class="services__dname">
+          {items.map((item) => <span class="services__ghost">{px(item.title)}</span>)}
+          <span class="services__live" data-services-name>{px(items[0].title)}</span>
+        </p>
+        <span class="services__pips" data-services-pips>
+          {items.map((_, i) => <i class:list={[{ 'is-on': i === 0 }]}><b></b></i>)}
+        </span>
+        <p class="services__text">
+          {items.map((item) => <span class="services__ghost">{px(item.text)}<i class="services__caret"></i></span>)}
+          <span class="services__live"><span data-services-text>{px(items[0].text)}</span><i class="services__caret"></i></span>
+        </p>
       </div>
+      <button class="services__next" type="button" aria-label={ui18n.next} data-services-next>
+        <svg viewBox="0 0 9 5" shape-rendering="crispEdges" aria-hidden="true"><path d="M0 0h9v1H0zM1 1h7v1H1zM2 2h5v1H2zM3 3h3v1H3zM4 4h1v1H4z" fill="currentColor" /></svg>
+      </button>
     </div>
   </div>
 </section>

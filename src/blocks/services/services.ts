@@ -1,112 +1,290 @@
 import { gsap } from 'gsap';
-import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
 import { TextPlugin } from 'gsap/TextPlugin';
 import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
-import { watchBlock, splitChars, rise, wrap, nn } from '../../scripts/block';
+import { watchBlock, splitChars } from '../../scripts/block';
+import { buildWidgets, type WidgetUI } from './widgets';
 
-gsap.registerPlugin(DrawSVGPlugin, TextPlugin, ScrambleTextPlugin);
+gsap.registerPlugin(TextPlugin, ScrambleTextPlugin);
+
+// мигание: 0,1,0,1… и в конце 1
+const blink = (n: number) => (p: number) => (p >= 1 ? 1 : Math.floor(p * n) % 2);
 
 /**
- * Что делаю: меню из игры. Пункт выбирается наведением, тапом или стрелками, окно диалога
- * перепечатывает описание. Если ничего не трогать, меню само перебирает пункты.
+ * Что делаю: меню из игры. Пункт выбирается наведением, фокусом, тапом или стрелками. Полоса
+ * выделения ездит по списку, треугольник прыгает, экранчик в окне диалога «переключает канал»
+ * на живую штуку пункта, имя перемешивается, описание печатается. Если ничего не трогать,
+ * меню само перебирает пункты; полоска в квадратике пункта показывает, сколько осталось.
+ * Перебор стоит на паузе, пока мышь над меню или окном, пока фокус с клавиатуры внутри
+ * и ещё 9 секунд после любого действия человека.
  */
 export function init(root: HTMLElement) {
   const q = gsap.utils.selector(root);
+  const one = <T extends HTMLElement = HTMLElement>(s: string) => q<T>(s)[0] as T;
   const items = q<HTMLElement>('[data-services-item]');
   const btns = q<HTMLButtonElement>('[data-services-btn]');
-  const names = items.map((i) => i.querySelector('.services__name')!.textContent || '');
-  const texts = items.map((i) => i.querySelector('.services__desc')!.textContent || '');
-  const band = q('[data-services-band]')[0];
-  const marker = q('[data-services-marker]')[0];
-  const menu = q<HTMLElement>('[data-services-menu]')[0];
-  const list = q<HTMLElement>('[data-services-list]')[0];
-  const icons = q<HTMLElement>('.services__icon');
-  const ghost = q('[data-services-ghost]')[0];
-  const dname = q('[data-services-name]')[0];
-  const dtext = q('[data-services-text]')[0];
-  const count = q('[data-services-count]')[0];
-  const dots = q<HTMLElement>('[data-services-dots] i');
-  const cyr = /[а-яё]/i.test(names.join(''));
-  let current = 0;
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  let hovering = false;
-  let shown = false;
+  const rows = q<HTMLElement>('[data-services-row]');
+  const inv = one('[data-services-inv]');
+  const invItems = [...inv.children] as HTMLElement[];
+  const band = one('[data-services-band]');
+  const marker = one('[data-services-marker]');
+  const mkDrop = one('[data-services-mkdrop]');
+  const mkPop = one('[data-services-mkpop]');
+  const list = one('[data-services-list]');
+  const menu = one('[data-services-menu]');
+  const hint = one('[data-services-hint]');
+  const dialog = one('[data-services-dialog]');
+  const screen = one('[data-services-screen]');
+  const power = one('[data-services-power]');
+  const tube = one('[data-services-tube]');
+  const flash = one('[data-services-flash]');
+  const dname = one('[data-services-name]');
+  const dtext = one('[data-services-text]');
+  const pips = q<HTMLElement>('[data-services-pips] i');
+  const pipFill = pips.map((p) => p.querySelector('b') as HTMLElement);
+  const next = one<HTMLButtonElement>('[data-services-next]');
+  const slots = q<HTMLElement>('[data-svc-w]');
+  const hit = one<HTMLButtonElement>('[data-svc-hit]');
+  // в пиксельном шрифте нет заглавной кириллической «О», в окне (оно скрыто от чтения) рисуем латинскую
+  const px = (s: string) => s.replace(/О/g, 'O');
+  const names = items.map((i) => px(i.querySelector('.services__name')?.textContent || ''));
+  const texts = items.map((i) => px(i.querySelector('.services__desc')?.textContent || ''));
+  const total = items.length;
+  let ui: WidgetUI;
+  try { ui = JSON.parse(root.dataset.svcUi || '{}'); } catch { ui = {} as WidgetUI; }
+  const widgets = buildWidgets(slots, ui);
+  const GAME = slots.findIndex((s) => s.dataset.svcW === 'game');
+  const CUBE = slots.findIndex((s) => s.dataset.svcW === 'cube');
+  const chars = /[а-яё]/i.test(names.join('')) ? 'абвгдежзиклмнопрстуфхцчшэюя' : 'abcdefghijklmnopqrstuvwxyz';
 
-  // полоса и треугольник лежат в меню, пункты в списке со сдвигом 28px влево от края меню
+  let current = 0;
+  let shown = -1;
+  let on = false;
+  let ready = false; // вход отыграл, можно листать самому
+  let lastSel = 0;
+  let intent: ReturnType<typeof setTimeout> | undefined;
+
+  /* ---------- полоса, треугольник и инвертированная копия списка ---------- */
+  const pos = { y: 0 };
+  let rowH = 0, listH = 0;
+  const paint = () => {
+    const t = `translate3d(0,${pos.y.toFixed(2)}px,0)`;
+    band.style.transform = t;
+    marker.style.transform = t;
+    inv.style.clipPath = `inset(${pos.y.toFixed(2)}px 0 ${Math.max(0, listH - pos.y - rowH).toFixed(2)}px 0)`;
+  };
+  const measure = () => { rowH = items[0].offsetHeight; listH = list.offsetHeight; };
   const place = (i: number, instant = false) => {
-    const el = items[i];
-    const b = { x: el.offsetLeft + list.offsetLeft, y: el.offsetTop + list.offsetTop, width: el.offsetWidth, height: el.offsetHeight };
-    const m = { x: el.offsetLeft, y: el.offsetTop + list.offsetTop, height: el.offsetHeight };
-    if (instant) { gsap.set(band, b); gsap.set(marker, m); return; }
-    gsap.to(band, { ...b, duration: 0.45, ease: 'power3.out', overwrite: true });
-    gsap.to(marker, { ...m, duration: 0.55, ease: 'back.out(2)', overwrite: true });
+    const y = items[i].offsetTop;
+    gsap.killTweensOf(pos);
+    if (instant) { pos.y = y; paint(); return; }
+    gsap.to(pos, { y, duration: 0.3, ease: 'power3.out', onUpdate: paint });
+  };
+  const mark = (i: number) => {
+    items.forEach((el, k) => el.classList.toggle('is-active', k === i));
+    invItems.forEach((el, k) => el.classList.toggle('is-active', k === i));
+    // в меню одна точка табуляции: выбранный пункт, по остальным ходят стрелками
+    btns.forEach((b, k) => { b.setAttribute('aria-pressed', k === i ? 'true' : 'false'); b.tabIndex = k === i ? 0 : -1; });
+    pips.forEach((p, k) => p.classList.toggle('is-on', k === i));
   };
 
+  /* ---------- экранчик ---------- */
+  const fit = () => {
+    const w = tube.offsetWidth, h = tube.offsetHeight;
+    if (w && h) tube.style.setProperty('--k', Math.min(w / 360, h / 170).toFixed(4));
+    widgets.forEach((wd) => wd.resize?.());
+  };
+  const show = (i: number) => {
+    if (shown === i) return;
+    if (shown >= 0) { widgets[shown].stop(); slots[shown].classList.remove('is-shown'); }
+    shown = i;
+    slots[i].classList.add('is-shown');
+    widgets[i].play();
+  };
+  let sw: gsap.core.Timeline | undefined;
+  // смена канала: картинка схлопывается в полоску, вспышка, раскрывается уже новая
+  const channel = (i: number) => {
+    sw?.kill();
+    sw = gsap.timeline()
+      .to(tube, { scaleY: 0.02, scaleX: 1.04, duration: 0.1, ease: 'steps(3)' })
+      .set(flash, { opacity: 1 })
+      .add(() => show(i))
+      .to(tube, { scaleY: 1, scaleX: 1, duration: 0.2, ease: 'steps(5)' })
+      .to(flash, { opacity: 0, duration: 0.2, ease: 'steps(4)' }, '<');
+  };
+
+  /* ---------- текст в окне ---------- */
+  const sayName = (i: number) => {
+    gsap.to(dname, { duration: 0.45, scrambleText: { text: names[i], chars, speed: 0.8, revealDelay: 0.08 }, overwrite: true });
+  };
   const typeText = (i: number, delay = 0) => {
     gsap.killTweensOf(dtext);
-    gsap.set(dtext, { text: '' });
-    gsap.to(dtext, { text: { value: texts[i], delimiter: '' }, duration: Math.min(1.3, 0.3 + texts[i].length * 0.012), ease: 'none', delay });
+    dtext.textContent = '';
+    gsap.to(dtext, { text: { value: texts[i], delimiter: '' }, duration: Math.min(1.1, 0.25 + texts[i].length * 0.016), ease: 'none', delay });
   };
 
-  const select = (i: number, byUser = false) => {
-    if (i === current && shown) return;
-    const prev = current;
-    current = (i + items.length) % items.length;
-    items.forEach((el, k) => el.classList.toggle('is-active', k === current));
-    btns.forEach((b, k) => b.setAttribute('aria-pressed', k === current ? 'true' : 'false'));
-    dots.forEach((d, k) => d.classList.toggle('is-on', k === current));
-    place(current);
-    // окно диалога: иконка уходит, новая выпрыгивает; номер перелистывается; имя перемешивается; текст печатается
-    gsap.to(icons[prev], { scale: 0.6, opacity: 0, rotation: -12, duration: 0.2, ease: 'power2.in', overwrite: true, onComplete: () => icons[prev].classList.remove('is-on') });
-    icons[current].classList.add('is-on');
-    gsap.fromTo(icons[current], { scale: 0.5, opacity: 0, rotation: 12 }, { scale: 1, opacity: 1, rotation: 0, duration: 0.5, ease: 'back.out(2)', delay: 0.15, overwrite: true });
-    gsap.fromTo(ghost, { yPercent: 30, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.5, ease: 'expo.out', overwrite: true, onStart: () => { ghost.textContent = nn(current + 1); } });
-    count.textContent = nn(current + 1);
-    gsap.to(dname, { duration: 0.5, scrambleText: { text: names[current], chars: cyr ? 'абвгдежзиклмнопрстуфхцчшщэюя' : 'abcdefghijklmnopqrstuvwxyz', speed: 0.7, revealDelay: 0.05 }, overwrite: true });
-    typeText(current, 0.1);
-    if (byUser) arm(7000); else arm();
+  /* ---------- сам себя листает ---------- */
+  let prog: gsap.core.Tween | undefined;
+  let hoverMenu = false, hoverDialog = false, kbd = false, heldUntil = 0;
+  let holdCall: gsap.core.Tween | undefined;
+  const running = () => on && ready && !hoverMenu && !hoverDialog && !kbd && performance.now() >= heldUntil;
+  const sync = () => { if (prog) { if (running()) prog.resume(); else prog.pause(); } };
+  const arm = () => {
+    prog?.kill();
+    pipFill.forEach((b) => gsap.set(b, { scaleX: 0 }));
+    prog = gsap.fromTo(pipFill[current], { scaleX: 0 }, { scaleX: 1, duration: widgets[current].dwell, ease: 'none', paused: true, onComplete: () => select(current + 1) });
+    sync();
+  };
+  const hold = (ms = 9000) => {
+    heldUntil = performance.now() + ms;
+    holdCall?.kill();
+    holdCall = gsap.delayedCall(ms / 1000 + 0.05, sync);
+    sync();
   };
 
-  const arm = (ms = 3800) => { clearTimeout(timer); timer = setTimeout(() => { if (!hovering && root.classList.contains('is-in')) select(current + 1); else arm(); }, ms); };
+  // подтверждение: щелчок по уже выбранному пункту, как кнопка «A»
+  const confirm = () => {
+    gsap.fromTo([band, inv], { opacity: 1 }, { opacity: 1, duration: 0.3, ease: blink(6) });
+    if (shown === current) widgets[current].play();
+  };
 
+  function select(i: number, user = false) {
+    i = (i + total) % total;
+    if (user) hold();
+    if (i === current) { if (user && on) confirm(); return; }
+    current = i;
+    lastSel = performance.now();
+    mark(i);
+    place(i);
+    gsap.fromTo(mkPop, { scaleX: 0.5, scaleY: 1.5 }, { scaleX: 1, scaleY: 1, duration: 0.55, ease: 'elastic.out(1, 0.4)', overwrite: true });
+    if (on) channel(i);
+    sayName(i);
+    typeText(i, 0.12);
+    if (ready) arm();
+  }
+
+  /* ---------- ввод ---------- */
   btns.forEach((b, i) => {
-    b.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') select(i, true); });
-    b.addEventListener('focus', () => select(i, true));
-    b.addEventListener('click', () => select(i, true));
+    // наведение выбирает пункт, если мышь задержалась на нём хоть немного: при косом движении к окну
+    // курсор пересекает соседние пункты, и они не должны перехватывать выбор
+    b.addEventListener('pointerenter', (e) => {
+      if (e.pointerType !== 'mouse' || !on) return;
+      clearTimeout(intent);
+      intent = setTimeout(() => { if (on) select(i, true); }, 90);
+    });
+    b.addEventListener('pointerleave', () => clearTimeout(intent));
+    b.addEventListener('focus', () => { if (!on) return; if (i !== current) select(i, true); else hold(); });
+    // щелчок по только что выбранному (наведением или фокусом этого же нажатия) не считается подтверждением
+    b.addEventListener('click', () => { clearTimeout(intent); if (i === current && performance.now() - lastSel < 350) { hold(); return; } select(i, true); });
   });
-  menu.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') hovering = true; });
-  menu.addEventListener('pointerleave', () => { hovering = false; arm(); });
   menu.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); btns[(current + 1) % btns.length].focus(); }
-    else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); btns[(current - 1 + btns.length) % btns.length].focus(); }
+    const k = e.key;
+    let to = -1;
+    if (k === 'ArrowDown' || k === 'ArrowRight') to = current + 1;
+    else if (k === 'ArrowUp' || k === 'ArrowLeft') to = current - 1;
+    else if (k === 'Home') to = 0;
+    else if (k === 'End') to = total - 1;
+    if (to < 0 && k !== 'ArrowUp' && k !== 'ArrowLeft') return;
+    e.preventDefault();
+    btns[(to + total) % total].focus();
   });
-  addEventListener('resize', () => place(current, true), { passive: true });
+  next.addEventListener('click', () => select(current + 1, true));
 
-  // вход: заголовок по буквам, пункты выезжают слева по очереди, рамка окна рисуется, текст печатается
-  const title = splitChars(q('[data-services-title]')[0], { stagger: { each: 0.035, from: 'random' }, duration: 0.7 });
-  const listIn = rise(items, { x: -24, y: 0, stagger: 0.06, duration: 0.6 });
-  const cursor = wrap(gsap.timeline({ paused: true })
-    .fromTo([band, marker], { opacity: 0, x: -30 }, { opacity: 1, x: (i) => (i === 0 ? list.offsetLeft : 0), duration: 0.5, ease: 'expo.out' })
-    .fromTo(q('[data-services-frame]'), { drawSVG: '0%' }, { drawSVG: '100%', duration: 1.2, ease: 'power2.inOut' }, 0)
-    .fromTo(q('[data-services-dialog] > :not(svg)'), { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.6, ease: 'expo.out', stagger: 0.1 }, 0.3));
+  const hov = (el: HTMLElement, set: (v: boolean) => void) => {
+    el.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') { set(true); sync(); } });
+    el.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') { set(false); sync(); } });
+  };
+  hov(menu, (v) => { hoverMenu = v; });
+  hov(dialog, (v) => { hoverDialog = v; });
+  // фокус с клавиатуры внутри меню или окна ставит перебор на паузу (WCAG 2.2.2)
+  root.addEventListener('focusin', (e) => {
+    const t = e.target as HTMLElement;
+    kbd = (menu.contains(t) || dialog.contains(t)) && t.matches(':focus-visible');
+    sync();
+  });
+  root.addEventListener('focusout', (e) => {
+    const to = e.relatedTarget as HTMLElement | null;
+    if (!to || !(menu.contains(to) || dialog.contains(to))) { kbd = false; sync(); }
+  });
 
-  watchBlock(root, () => {
-    shown = true;
+  // игра: тап, клик, пробел или Enter на фокусе = прыжок
+  if (hit && GAME >= 0) {
+    hit.addEventListener('pointerdown', () => { widgets[GAME].jump?.(); hold(10000); });
+    hit.addEventListener('keydown', (e) => {
+      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); widgets[GAME].jump?.(); hold(10000); }
+    });
+  }
+  // 3D смотрит на указатель; на тачскрине тап толкает куб
+  if (CUBE >= 0) {
+    const pt = (e: PointerEvent) => { const r = screen.getBoundingClientRect(); return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; };
+    screen.addEventListener('pointermove', (e) => { if (shown === CUBE && e.pointerType === 'mouse') { const [x, y] = pt(e); widgets[CUBE].point?.(x, y); } });
+    screen.addEventListener('pointerdown', (e) => { if (shown === CUBE && e.pointerType !== 'mouse') { const [x, y] = pt(e); widgets[CUBE].point?.(x, y, true); hold(); } });
+  }
+
+  const reflow = () => { measure(); place(current, true); };
+  mark(current);
+  if ('ResizeObserver' in window) {
+    new ResizeObserver(fit).observe(screen);
+    new ResizeObserver(reflow).observe(list);
+  } else {
+    addEventListener('resize', () => { fit(); reflow(); }, { passive: true });
+  }
+  fit();
+  reflow();
+
+  /* ---------- вход ---------- */
+  // буквы заголовка выскакивают рывками, как спрайты
+  const h2 = one('[data-services-title]');
+  const title = splitChars(h2, { yPercent: 110, ease: 'steps(4)', duration: 0.42, stagger: { each: 0.045, from: 'random' } });
+  if (h2.dataset.label) h2.setAttribute('aria-label', h2.dataset.label);
+  const entry = gsap.timeline({ paused: true })
+    // пункты печатаются блоками слева направо
+    .fromTo(rows, { clipPath: 'inset(0% 100% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.36, ease: 'steps(8)', stagger: 0.05 }, 0.1)
+    // окно открывается как в RPG: полоска по ширине, потом вниз
+    .fromTo(dialog, { scaleX: 0, scaleY: 0.03 }, { scaleX: 1, scaleY: 0.03, duration: 0.2, ease: 'steps(6)' }, 0.15)
+    .to(dialog, { scaleY: 1, duration: 0.26, ease: 'steps(6)' }, 0.35)
+    // экран включается, как кинескоп
+    .fromTo(power, { scaleX: 0, scaleY: 0.012 }, { scaleX: 1, scaleY: 0.012, duration: 0.16, ease: 'steps(4)' }, 0.62)
+    .to(power, { scaleY: 1, duration: 0.24, ease: 'steps(5)' }, 0.78)
+    .call(() => show(current), [], 0.62)
+    // выделение мигает, треугольник падает сверху
+    .fromTo([band, inv], { opacity: 0 }, { opacity: 1, duration: 0.42, ease: blink(6) }, 0.5)
+    .fromTo(mkDrop, { y: -28, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: 'bounce.out' }, 0.52)
+    .fromTo(pips, { scale: 0 }, { scale: 1, duration: 0.18, ease: 'steps(3)', stagger: 0.04 }, 0.95)
+    .fromTo([next, hint], { opacity: 0 }, { opacity: 1, duration: 0.3, ease: 'steps(3)' }, 1.15)
+    .call(() => { sayName(current); typeText(current, 0.1); }, [], 0.9)
+    .call(() => { ready = true; arm(); }, [], 1.5);
+
+  const enter = () => {
+    on = true; ready = false;
+    hoverMenu = menu.matches(':hover'); hoverDialog = dialog.matches(':hover');
     current = 0;
-    items.forEach((el, k) => el.classList.toggle('is-active', k === 0));
-    icons.forEach((ic, k) => { ic.classList.toggle('is-on', k === 0); gsap.set(ic, { clearProps: 'all' }); });
-    dots.forEach((d, k) => d.classList.toggle('is-on', k === 0));
+    mark(0);
+    fit();
+    reflow();
     gsap.killTweensOf([dname, dtext]);
-    ghost.textContent = '01'; count.textContent = '01'; dname.textContent = names[0]; dtext.textContent = '';
-    place(0, true);
+    dname.textContent = ''; dtext.textContent = '';
     title.play(0);
-    listIn.play(0.2);
-    cursor.play(0.4);
-    typeText(0, 0.9);
-    arm(4600);
-  }, () => {
-    shown = false;
-    clearTimeout(timer);
-    [title, listIn, cursor].forEach((p) => p.reset());
-  });
+    entry.restart();
+  };
+  const leave = () => {
+    on = false; ready = false;
+    clearTimeout(intent);
+    title.reset();
+    entry.pause(0);
+    sw?.kill();
+    gsap.set(tube, { scaleX: 1, scaleY: 1 });
+    gsap.set(flash, { opacity: 0 });
+    widgets.forEach((w) => w.stop());
+    slots.forEach((s) => s.classList.remove('is-shown'));
+    shown = -1;
+    prog?.kill(); prog = undefined;
+    holdCall?.kill(); heldUntil = 0; kbd = false;
+    gsap.killTweensOf([dname, dtext, mkPop]);
+    gsap.set(mkPop, { scaleX: 1, scaleY: 1 });
+    pipFill.forEach((b) => gsap.set(b, { scaleX: 0 }));
+    current = 0;
+    mark(0);
+    place(0, true);
+  };
+  watchBlock(root, enter, leave);
 }
