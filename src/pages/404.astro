@@ -3,6 +3,16 @@ import Base from '../layouts/Base.astro';
 import { t, langPrefix } from '../i18n';
 const ru = t('ru'); const en = t('en');
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+// Английская версия шапки и подвала для адресов /en/...: скрипт ниже подставляет её на месте.
+const enChrome = {
+  title: `404: ${en.notFound.title}`,
+  skip: en.nav.skipToContent,
+  home: `${base}${langPrefix('en')}/`,
+  nav: [['about', en.nav.about], ['services', en.nav.services], ['works', en.nav.works], ['process', en.nav.process], ['contacts', en.nav.contacts]],
+  lang: { text: en.nav.langSwitch, title: en.nav.langSwitchTitle, href: `${base}/` },
+  copy: '© 2026 Saveliy Lopatin',
+  policy: { text: en.contacts.policy, href: `${base}${langPrefix('en')}/policy/` },
+};
 ---
 <Base lang="ru" path="/404/" title={`404: ${ru.notFound.title}`} noindex theme="hero">
   <section class="not-found container" data-lang-switch>
@@ -18,13 +28,25 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       <p class="not-found__links"><a class="btn btn--primary" href={`${base}${langPrefix('en')}/`}>{en.notFound.home}</a><a class="btn btn--ghost" href={`${base}${langPrefix('en')}/#works`}>{en.notFound.works}</a></p>
     </div>
   </section>
+  <script type="application/json" data-en-chrome set:html={JSON.stringify(enChrome)} />
   <script>
-    // Одна страница 404 на оба языка: если адрес начинался с /en/, показываем английский текст.
+    // Одна страница 404 на оба языка: если адрес начинался с /en/, показываем английский текст,
+    // а шапку, подвал и заголовок вкладки переводим на месте.
     const en = /\/en(\/|$)/.test(location.pathname);
     if (en) {
+      const c = JSON.parse(document.querySelector('[data-en-chrome]')?.textContent || '{}');
       document.documentElement.lang = 'en';
+      document.title = c.title;
       document.querySelector('.not-found__ru')?.setAttribute('hidden', '');
       document.querySelector('.not-found__en')?.removeAttribute('hidden');
+      const skip = document.querySelector('.skip-link'); if (skip) skip.textContent = c.skip;
+      const logo = document.querySelector<HTMLAnchorElement>('.site-header__logo'); if (logo) logo.href = c.home;
+      document.querySelectorAll<HTMLAnchorElement>('.site-header__nav a').forEach((a, i) => { const n = c.nav[i]; if (n) { a.href = c.home + '#' + n[0]; a.textContent = n[1]; } });
+      const nav = document.querySelector('.site-header__nav'); nav?.setAttribute('aria-label', 'Sections');
+      const sw = document.querySelector<HTMLAnchorElement>('.site-header__lang');
+      if (sw) { sw.textContent = c.lang.text; sw.title = c.lang.title; sw.href = c.lang.href; sw.hreflang = 'ru'; sw.lang = 'ru'; }
+      const copy = document.querySelector('.site-footer__copy'); if (copy) copy.textContent = c.copy;
+      const pol = document.querySelector<HTMLAnchorElement>('.site-footer__policy'); if (pol) { pol.textContent = c.policy.text; pol.href = c.policy.href; }
     }
   </script>
 </Base>

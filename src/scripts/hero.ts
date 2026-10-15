@@ -75,6 +75,7 @@ function finish(hero: HTMLElement) {
   const cw = hero.querySelector<HTMLElement>('[data-dim-w]'); const ch = hero.querySelector<HTMLElement>('[data-dim-hgt]');
   if (cw) cw.textContent = m.w.toLocaleString('ru-RU'); if (ch) ch.textContent = m.h.toLocaleString('ru-RU');
   hero.querySelectorAll('.dim').forEach((el) => el.classList.add('is-in'));
+  initNameFlex(hero);
   hero.dispatchEvent(new CustomEvent('hero:done'));
 }
 
@@ -195,4 +196,60 @@ export function heroReenter(hero: HTMLElement) {
   tl.fromTo(chars, { yPercent: 110, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.9, stagger: 0.03, ease: 'expo.out' }, 0.05);
   tl.fromTo(rest, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.7, stagger: 0.07, ease: 'power3.out', clearProps: 'transform' }, 0.35);
   countDims(hero, tl, 0.5);
+}
+
+/**
+ * Живое имя: буквы истончаются под курсором (ось толщины шрифта Unbounded 200-900),
+ * размерные линии сразу пересчитывают ширину. На тач-экранах по имени время от времени
+ * пробегает волна толщины, пока первый экран открыт.
+ */
+function initNameFlex(hero: HTMLElement) {
+  if (hero.dataset.flexBound) return;
+  hero.dataset.flexBound = '1';
+  const name = hero.querySelector<HTMLElement>('.hero__name');
+  if (!name) return;
+  let chars = [...name.querySelectorAll<HTMLElement>('.char')];
+  if (!chars.length) {
+    hero.querySelectorAll<HTMLElement>('[data-chars]').forEach((w) => { const s = new SplitText(w, { type: 'chars', charsClass: 'char' }); chars.push(...(s.chars as HTMLElement[])); });
+  }
+  const cw = hero.querySelector<HTMLElement>('[data-dim-w]'); const chh = hero.querySelector<HTMLElement>('[data-dim-hgt]');
+  const MAX = 900, MIN = 220;
+  const state = chars.map(() => ({ w: MAX }));
+  let raf = 0;
+  const render = () => {
+    raf = 0;
+    chars.forEach((c, i) => { c.style.fontVariationSettings = `'wght' ${Math.round(state[i].w)}`; });
+    const m = measureDims(hero);
+    if (cw) cw.textContent = m.w.toLocaleString('ru-RU');
+    if (chh) chh.textContent = m.h.toLocaleString('ru-RU');
+  };
+  const queue = () => { if (!raf) raf = requestAnimationFrame(render); };
+  const to = (i: number, w: number, d = 0.6, ease = 'power3.out', delay = 0) => gsap.to(state[i], { w, duration: d, ease, delay, overwrite: 'auto', onUpdate: queue });
+  const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
+  if (fine) {
+    hero.addEventListener('pointermove', (e) => {
+      if (e.pointerType !== 'mouse' || !hero.classList.contains('is-done')) return;
+      const r = name.getBoundingClientRect();
+      const reach = r.height * 1.05;
+      chars.forEach((c, i) => {
+        const b = c.getBoundingClientRect();
+        const d = Math.hypot(e.clientX - (b.left + b.width / 2), e.clientY - (b.top + b.height / 2));
+        const k = Math.max(0, 1 - d / reach);
+        to(i, MAX - (MAX - MIN) * k * k);
+      });
+    });
+    hero.addEventListener('pointerleave', () => chars.forEach((_, i) => to(i, MAX, 1.2, 'elastic.out(1, 0.5)')));
+  } else {
+    // волна по буквам раз в несколько секунд, только пока первый экран на экране
+    const wave = () => {
+      if (!hero.classList.contains('is-current') && document.documentElement.classList.contains('stage-on')) return;
+      chars.forEach((_, i) => {
+        gsap.timeline({ delay: i * 0.05 })
+          .to(state[i], { w: MIN + 80, duration: 0.45, ease: 'power2.out', onUpdate: queue })
+          .to(state[i], { w: MAX, duration: 0.9, ease: 'elastic.out(1, 0.55)', onUpdate: queue });
+      });
+    };
+    setInterval(wave, 5200);
+    setTimeout(wave, 900);
+  }
 }
