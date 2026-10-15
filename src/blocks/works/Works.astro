@@ -1,5 +1,7 @@
 ---
 import './works.css';
+import fs from 'node:fs';
+import path from 'node:path';
 import { getCollection } from 'astro:content';
 import { t, langPrefix, type Lang } from '../../i18n';
 interface Props { lang: Lang }
@@ -8,43 +10,114 @@ const d = t(lang);
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const all = await getCollection('work', (e) => e.id.endsWith(`/${lang}`) && !e.data.draft);
 const works = all.sort((a, b) => a.data.order - b.data.order || b.data.year - a.data.year);
-const slugOf = (id: string) => id.split('/')[0];
+// Блок показывает один проект как киноафишу: первый по порядку.
+const w = works[0];
+const slug = w ? w.id.split('/')[0] : '';
+const href = `${base}${langPrefix(lang)}/work/${slug}/`;
 const nn = (n: number) => String(n).padStart(2, '0');
-// Бегущая строка под работами: названия и год, повторяются, чтобы лента была бесшовной.
-const ticker = works.map((w) => `${w.data.title} · ${w.data.year}`).join(' · ') + ' · ';
+
+// Кадры плёнки: горизонтальные скриншоты из media. Если в public/blocks/works/ лежит своя копия кадра
+// (например, без надписи приложения в углу), берётся она. Маленькая версия -800 идёт в srcset, если есть.
+const has = (p: string) => fs.existsSync(path.join(process.cwd(), 'public', p));
+const own = (src: string) => { const p = `/blocks/works/${src.split('/').pop()}`; return has(p) ? p : src; };
+const stills = (w?.data.media ?? []).filter((m) => !m.portrait && m.kind === 'image').map((m) => {
+  const src = own(m.src);
+  const small = src.replace(/\.webp$/, '-800.webp');
+  return {
+    src: base + src,
+    srcset: has(small) ? `${base + small} 800w, ${base + src} 1600w` : undefined,
+    alt: m.alt,
+    caption: m.caption ?? '',
+  };
+});
+
+// Подписи только этого блока
+const ui = {
+  ru: { reel: 'Кадры проекта', carousel: 'карусель', frame: 'Кадр', of: 'из', role: 'Роль' },
+  en: { reel: 'Project stills', carousel: 'carousel', frame: 'Frame', of: 'of', role: 'Role' },
+}[lang];
+const tick = Array.from({ length: 6 });
 ---
 <section class="block block--works works" id="works" data-theme="works" data-block="works">
   <div class="block__inner container works__inner">
-    <div class="works__head">
-      <h2 class="block__title works__title" data-works-title>{d.works.title}</h2>
-      <p class="works__count" data-works-count aria-hidden="true"><b>01</b><span>/</span><b>{nn(works.length)}</b></p>
-    </div>
-    <ul class="works__list">
-      {works.map((w, i) => {
-        const slug = slugOf(w.id);
-        const href = `${base}${langPrefix(lang)}/work/${slug}/`;
-        return (
-          <li class="works__item" data-works-item>
-            <a class="work-card" href={href}>
-              <div class="work-card__screen" data-works-screen>
-                <i class="work-card__corner" aria-hidden="true"></i><i class="work-card__corner" aria-hidden="true"></i><i class="work-card__corner" aria-hidden="true"></i><i class="work-card__corner" aria-hidden="true"></i>
-                <div class="work-card__media" transition:name={`work-${slug}`} data-works-media>
-                  <img src={base + w.data.cover} alt={w.data.coverAlt} loading="lazy" width="1280" height="720" />
-                </div>
-                <span class="work-card__rec" aria-hidden="true"><i></i>{w.data.year}</span>
-              </div>
-              <div class="work-card__body">
-                <span class="work-card__idx" aria-hidden="true">{nn(i + 1)}</span>
-                <h3 class="work-card__title" data-works-name>{w.data.title}</h3>
-                <p class="work-card__sub" data-works-sub>{w.data.subtitle}</p>
-                <ul class="work-card__stack" data-works-stack aria-label={d.works.stack}>{w.data.stack.map((s) => <li>{s}</li>)}</ul>
-                <span class="work-card__open" data-works-open><span data-scramble>{d.works.open}</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13L13 3M6 3h7v7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg></span>
-              </div>
-            </a>
-          </li>
-        );
-      })}
-    </ul>
+    <h2 class="block__title works__title" data-works-title>{d.works.title}</h2>
+
+    {w && (
+      <div class="works__reel" role="group" aria-roledescription={ui.carousel} aria-label={ui.reel} data-works-reel>
+        <i class="works__glow" aria-hidden="true" data-works-glow></i>
+        <div class="works__gate" data-works-gate data-drag>
+          <div class="works__perf" aria-hidden="true"><i data-works-perf></i></div>
+          <a class="works__frame" href={href} tabindex="-1" transition:name={`work-${slug}`} data-works-media>
+            <span class="works__stills">
+              {stills.map((s, i) => (
+                <img class:list={['works__still', { 'is-active': i === 0 }]} src={s.src} srcset={s.srcset} sizes="(min-width: 980px) 58vw, 100vw" alt={s.alt} width="1600" height="900" loading="lazy" decoding="async" aria-hidden={i === 0 ? undefined : 'true'} data-works-still />
+              ))}
+            </span>
+            <span class="works__fx" aria-hidden="true">
+              <i class="works__blade works__blade--t" data-works-blade></i>
+              <i class="works__blade works__blade--b" data-works-blade></i>
+              <i class="works__bar" data-works-bar></i>
+              <i class="works__leak" data-works-leak></i>
+              <i class="works__flash" data-works-flash></i>
+              <i class="works__grain"></i>
+              <i class="works__scratch"></i>
+              <i class="works__vignette"></i>
+            </span>
+            <span class="works__leader" aria-hidden="true" data-works-leader>
+              <i class="works__ring"></i>
+              <i class="works__sweep" data-works-sweep></i>
+              <i class="works__ring works__ring--in"></i>
+              <i class="works__cross"></i>
+              <b data-works-leader-num>3</b>
+            </span>
+          </a>
+          <div class="works__perf works__perf--b" aria-hidden="true"><i data-works-perf></i></div>
+        </div>
+        <div class="works__cap" data-works-cap>
+          <p class="works__counter" aria-hidden="true"><span class="works__num"><b data-works-num>01</b></span><i>/</i><span>{nn(stills.length)}</span></p>
+          <div class="works__captions" aria-live="off" data-works-captions>
+            {stills.map((s, i) => <p class:list={['works__caption', { 'is-active': i === 0 }]} aria-hidden={i === 0 ? undefined : 'true'} data-works-caption>{s.caption}</p>)}
+          </div>
+          <div class="works__seg" data-works-seg>
+            {stills.map((_, i) => (
+              <button type="button" class="works__seg-btn" aria-label={`${ui.frame} ${i + 1} ${ui.of} ${stills.length}`} aria-current={i === 0 ? 'true' : 'false'} data-works-btn>
+                <i><i data-works-fill></i></i>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div class="works__poster">
+        <h3 class="works__name" data-works-name>{w.data.title}</h3>
+        <p class="works__tag" data-works-tag>{w.data.subtitle}</p>
+        <div class="works__bottom">
+          <dl class="works__credits" data-works-credits>
+            <div><dt>{d.works.year}</dt><dd>{w.data.year}</dd></div>
+            <div><dt>{ui.role}</dt><dd>{w.data.role}</dd></div>
+            <div><dt>{d.works.stack}</dt><dd>{w.data.stack.join(', ')}</dd></div>
+          </dl>
+          <a class="works__ticket" href={href} data-magnetic="0.18" data-works-open>
+            <span class="works__ticket-main" data-works-ticket>
+              <span class="works__ticket-label"><span class="works__ticket-ghost" aria-hidden="true">{d.works.open}</span><span data-scramble>{d.works.open}</span></span>
+            </span>
+            <span class="works__ticket-stub" aria-hidden="true" data-works-stub>
+              <svg viewBox="0 0 16 16"><path d="M4 12L12 4M6 4h6v6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            </span>
+          </a>
+        </div>
+      </div>
+    )}
   </div>
-  <div class="works__ticker" data-marquee aria-hidden="true"><div class="works__track" data-works-track><span>{ticker}</span><span>{ticker}</span></div></div>
+  {w && (
+    <div class="works__ticker" aria-hidden="true">
+      <div class="works__tickin" data-works-tickin>
+        <div class="works__track" data-works-track>
+          {[0, 1].map(() => (
+            <span class="works__tick-half">{tick.map(() => <span class="works__tick-item">{w.data.title}<i class="works__mark"></i><em>{w.data.year}</em><i class="works__mark"></i></span>)}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  )}
 </section>

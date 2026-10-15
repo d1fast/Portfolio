@@ -1,102 +1,328 @@
 import { gsap } from 'gsap';
+import { SplitText } from 'gsap/SplitText';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
-import { watchBlock, splitChars, splitLines, rise, wrap } from '../../scripts/block';
+import { MorphSVGPlugin } from 'gsap/MorphSVGPlugin';
+import { watchBlock, splitLines, rise, wrap } from '../../scripts/block';
 
-gsap.registerPlugin(DrawSVGPlugin);
+gsap.registerPlugin(SplitText, DrawSVGPlugin, MorphSVGPlugin);
+
+type Pt = [number, number];
+interface Box { l: number; t: number; r: number; b: number; w: number; h: number }
+interface Route { el: SVGPathElement; len: number }
+
+const NS = 'http://www.w3.org/2000/svg';
+
+/** Плавная кривая через точки (Catmull-Rom в кубические Безье). */
+function smooth(pts: Pt[]) {
+  const f = (n: number) => n.toFixed(1);
+  let d = `M ${f(pts[0][0])} ${f(pts[0][1])}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+    const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+    d += ` C ${f(c1[0])} ${f(c1[1])}, ${f(c2[0])} ${f(c2[1])}, ${f(p2[0])} ${f(p2[1])}`;
+  }
+  return d;
+}
+const rectD = (x: number, y: number, w: number, h: number) => `M${x} ${y} L${x + w} ${y} L${x + w} ${y + h} L${x} ${y + h} Z`;
 
 /**
- * Контакты: самолётик летит по петле через весь экран, за ним тянется хвост. Маршрут
- * строится под размер блока. Форма раскрывается как письмо, поля появляются по очереди.
+ * Контакты, письмо авиапочтой.
+ * Вход: бумажный самолётик пролетает по строкам заголовка, и надпись проявляется за его хвостом,
+ * потом под ней дорисовывается росчерк. Справа приезжает конверт: клапан открывается, поля письма
+ * проявляются, на марку падает штемпель. Дальше самолётик кружит по экрану с тонким следом,
+ * ныряет за письмо и уворачивается от курсора. После отправки письмо складывается в самолётик и улетает.
  */
 export function init(root: HTMLElement) {
-  const q = gsap.utils.selector(root);
-  const sky = q<SVGSVGElement>('[data-contacts-sky]')[0];
-  const route = q<SVGPathElement>('[data-contacts-route]')[0];
-  const trail = q<SVGPathElement>('[data-contacts-trail]')[0];
-  const plane = q<SVGGElement>('[data-contacts-plane]')[0];
-  const form = q<HTMLElement>('[data-contacts-form]')[0];
-  let len = 0;
-  const state = { p: 0 };
+  const q = <T extends Element = HTMLElement>(s: string) => root.querySelector(s) as T;
+  const sky = q<SVGSVGElement>('[data-sky]');
+  const trail = q<SVGPathElement>('[data-trail]');
+  const plane = q<SVGGElement>('[data-plane]');
+  const title = q('[data-title]');
+  const head = q('[data-head]');
+  const links = q('[data-links]');
+  const letter = q('[data-letter]');
+  const form = q<HTMLFormElement>('[data-form]');
+  const flap = q('[data-flap]');
+  const folds = q('[data-folds]');
+  const postmark = q('[data-postmark]');
+  const status = q('[data-form-status]');
+  const send = q<SVGSVGElement>('[data-send]');
+  const sendG = q<SVGGElement>('[data-send-g]');
+  const sheet = q<SVGPathElement>('[data-send-sheet]');
+  const fold = q<SVGPathElement>('[data-send-fold]');
+  const sendTrail = q<SVGPathElement>('[data-send-trail]');
+  const swash = root.querySelectorAll<SVGPathElement>('[data-swash]');
+  const footer = q('.site-footer');
+  const items = [...form.querySelectorAll<HTMLElement>(':scope > :not(.field--hp)')];
+  const fine = matchMedia('(hover: hover) and (pointer: fine)');
 
-  const head = q<HTMLElement>('.contacts__head')[0];
-  const linksEl = q<HTMLElement>('[data-contacts-links]')[0];
+  // невидимые пути маршрутов: по ним меряем длину и берём точки
+  const mk = () => { const p = document.createElementNS(NS, 'path'); p.setAttribute('fill', 'none'); p.setAttribute('stroke', 'none'); sky.appendChild(p); return p; };
+  const routes: Record<'write' | 'idle', Route> = { write: { el: mk(), len: 0 }, idle: { el: mk(), len: 0 } };
+  const ruler = mk();
 
-  // плавная кривая через точки (Catmull-Rom в кубические Безье)
-  const smooth = (pts: [number, number][]) => {
-    let d = `M ${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
-    for (let i = 0; i < pts.length - 1; i++) {
-      const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
-      const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
-      const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
-      d += ` C ${c1[0].toFixed(1)} ${c1[1].toFixed(1)}, ${c2[0].toFixed(1)} ${c2[1].toFixed(1)}, ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}`;
-    }
-    return d;
+  // ---------- заголовок по строкам ----------
+  let lines: HTMLElement[] = [];
+  let written = false;
+  const reveal: number[] = [];
+  let spans: [number, number][] = []; // на каком отрезке пути (в пикселях длины) пишется строка
+
+  // ---------- раскладка в координатах блока ----------
+  let W = 0, H = 0;
+  // положение по раскладке, без учёта transform: во время входа элементы ещё сдвинуты анимацией
+  const box = (el: HTMLElement): Box => {
+    let l = 0, t = 0, n: HTMLElement | null = el;
+    while (n && n !== root) { l += n.offsetLeft; t += n.offsetTop; n = n.offsetParent as HTMLElement | null; }
+    const w = el.offsetWidth, h = el.offsetHeight;
+    return { l, t, r: l + w, b: t + h, w, h };
   };
+  const setRoute = (r: Route, pts: Pt[]) => { r.el.setAttribute('d', smooth(pts)); r.len = r.el.getTotalLength(); };
+  const measure = (pts: Pt[]) => { ruler.setAttribute('d', smooth(pts)); return ruler.getTotalLength(); };
 
-  // маршрут строится по реальной раскладке: самолётик облетает текст и ныряет за форму
   const build = () => {
-    const w = root.clientWidth, h = root.clientHeight;
-    if (!w || !h) return;
-    sky.setAttribute('viewBox', `0 0 ${w} ${h}`);
-    const R = root.getBoundingClientRect();
-    const rel = (el: Element) => { const r = el.getBoundingClientRect(); return { l: r.left - R.left, t: r.top - R.top, r: r.right - R.left, b: r.bottom - R.top, w: r.width, h: r.height }; };
-    const H = rel(head), F = rel(form), L = rel(linksEl);
-    let pts: [number, number][];
-    if (F.t > H.b - 10) {
-      // форма под текстом: петля в просвете между кнопками и формой
-      const cy = (L.b + F.t) / 2, r = Math.min(26, (F.t - L.b) / 2 - 4), cx = w * 0.56;
-      pts = [[-40, cy + r * 0.6], [cx - r * 2, cy + r * 0.7], [cx, cy + r], [cx + r, cy], [cx, cy - r], [cx - r, cy], [cx + r * 0.4, cy + r * 0.9], [w * 0.86, cy + r * 0.3], [w + 40, cy - r * 0.2]];
+    W = root.clientWidth; H = root.clientHeight;
+    if (!W || !H || !lines.length) return;
+    sky.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    const narrow = W < 961;
+    const top = 56 + 24; // ниже фиксированной шапки
+
+    // путь письма: вдоль каждой строки, между строками петля назад, в конце уход вверх-вправо
+    const pts: Pt[] = [];
+    spans = [];
+    const lb = lines.map(box);
+    lb.forEach((b, i) => {
+      const fs = parseFloat(getComputedStyle(title).fontSize);
+      const x0 = b.l + fs * 0.12, x1 = b.r - fs * 0.3, y = b.t + b.h * 0.46;
+      if (i === 0) { pts.push([-90, y + fs * 0.5], [x0 - fs * 0.6, y + fs * 0.12]); }
+      else {
+        const p = lb[i - 1], py = p.t + p.h * 0.46, pr = p.r - fs * 0.3;
+        pts.push([pr + fs * 0.5, py + fs * 0.35], [(pr + x0) / 2, y + fs * 0.75], [x0 - fs * 0.5, y + fs * 0.2]);
+      }
+      const si = pts.length;
+      const n = Math.max(2, Math.round((x1 - x0) / 70));
+      for (let k = 0; k <= n; k++) pts.push([x0 + (x1 - x0) * k / n, y + (k % 2 ? -3 : 3) * (k && k < n ? 1 : 0)]);
+      const ei = pts.length - 1;
+      spans[i] = [measure(pts.slice(0, si + 1)), measure(pts.slice(0, ei + 1))];
+      if (i === lb.length - 1) {
+        const exitY = Math.max(top, y - fs * 1.6);
+        pts.push([x1 + fs * 0.7, y - fs * 0.3], [Math.min(W + 120, x1 + fs * 2.6), exitY], [W + 140, exitY - 10]);
+      }
+    });
+    setRoute(routes.write, pts);
+
+    // круг по экрану: под кнопками, вверх по просвету между колонками, над письмом, за письмо и прочь
+    const L = box(links), F = box(letter), Hd = box(head);
+    const footTop = box(footer).t;
+    let ip: Pt[];
+    if (!narrow) {
+      const gx = (Hd.r + F.l) / 2;
+      const low = Math.min(footTop - 30, Math.max(L.b + 70, F.b - 20));
+      ip = [[-90, low + 20], [L.l + L.w * 0.35, low], [gx - 30, Math.min(low - 20, L.b + 20)], [gx, Hd.t + Hd.h * 0.4],
+        [gx + 24, Math.max(top + 30, F.t - 40)], [F.l + F.w * 0.45, Math.max(top + 20, F.t - 56)], [F.r - 40, F.t + F.h * 0.3],
+        [F.l + F.w * 0.4, Math.min(footTop - 24, F.b + 36)], [W + 120, Math.min(footTop - 30, F.b + 6)]];
     } else {
-      // форма справа: снизу под кнопками, вверх по просвету между колонками, над формой и за неё
-      const gx = (H.r + F.l) / 2;
-      pts = [[-60, L.b + 70], [L.l + L.w * 0.45, L.b + 56], [gx - 10, L.b + 10], [gx, H.t + H.h * 0.45], [gx + 10, F.t - 46], [F.l + F.w * 0.45, F.t - 64], [F.r - 30, F.t + F.h * 0.35], [F.l + F.w * 0.25, F.b + 34], [w + 60, F.b - 10]];
+      // одна колонка: волна по просвету между кнопками и письмом, кнопок не касается
+      const y = (L.b + F.t) / 2, a = Math.max(0, Math.min(9, (F.t - L.b) / 2 - 26));
+      ip = [[-80, y + a]];
+      for (let k = 1; k <= 5; k++) ip.push([(W * k) / 6, y + (k % 2 ? -a : a)]);
+      ip.push([W + 80, y - a]);
     }
-    const d = smooth(pts);
-    route.setAttribute('d', d);
-    trail.setAttribute('d', d);
-    len = route.getTotalLength();
+    setRoute(routes.idle, ip);
     draw();
   };
+  let raf = 0;
+  const queueBuild = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(build); };
+  addEventListener('resize', queueBuild, { passive: true });
+  SplitText.create(title, { type: 'lines', linesClass: 'tl', autoSplit: true, onSplit(self) {
+    lines = self.lines as HTMLElement[];
+    lines.forEach((l, i) => { reveal[i] = written ? 1e4 : 0; l.style.setProperty('--w', `${reveal[i]}px`); });
+    queueBuild();
+  } });
+  document.fonts?.ready.then(queueBuild);
+
+  // ---------- полёт ----------
+  const fly = { p: 0 };
+  let cur: Route | null = null;
+  let flight: gsap.core.Tween | null = null;
+  let later: gsap.core.Tween | null = null;
+  let lastA = 0, bank = 0;
+  const mouse = { x: -1e4, y: -1e4 };
+  const dodge = { x: 0, y: 0 };
+  const TAIL = 260;
+
   const draw = () => {
-    if (!len) return;
-    const p = state.p;
-    const at = route.getPointAtLength(p * len);
-    const ahead = route.getPointAtLength(Math.min(len, p * len + 2));
-    const back = route.getPointAtLength(Math.max(0, p * len - 2));
-    const a = Math.atan2(ahead.y - back.y, ahead.x - back.x) * 180 / Math.PI;
-    plane.setAttribute('transform', `translate(${at.x} ${at.y}) rotate(${a})`);
-    gsap.set(trail, { drawSVG: `${Math.max(0, p - 0.16) * 100}% ${p * 100}%` });
+    if (!cur || !cur.len) return;
+    const L = cur.len, at = fly.p * L;
+    const pt = cur.el.getPointAtLength(at);
+    const a1 = cur.el.getPointAtLength(Math.min(L, at + 3)), a0 = cur.el.getPointAtLength(Math.max(0, at - 3));
+    const ang = Math.atan2(a1.y - a0.y, a1.x - a0.x) * 180 / Math.PI;
+    let da = ang - lastA; if (da > 180) da -= 360; if (da < -180) da += 360;
+    lastA = ang;
+    bank += (Math.min(0.55, Math.abs(da) * 0.09) - bank) * 0.2; // на вираже самолётик заваливается на крыло
+    // уворачивается от курсора
+    let tx = 0, ty = 0;
+    if (cur === routes.idle) {
+      const dx = pt.x - mouse.x, dy = pt.y - mouse.y, dist = Math.hypot(dx, dy);
+      if (dist < 130 && dist > 0.1) { const k = (130 - dist) / 130 * 56; tx = dx / dist * k; ty = dy / dist * k; }
+    }
+    dodge.x += (tx - dodge.x) * 0.12; dodge.y += (ty - dodge.y) * 0.12;
+    const s = W < 761 ? 0.85 : 1;
+    plane.setAttribute('transform', `translate(${(pt.x + dodge.x).toFixed(1)} ${(pt.y + dodge.y).toFixed(1)}) rotate(${ang.toFixed(1)}) scale(${s} ${(s * (1 - bank)).toFixed(3)})`);
+    const from = Math.max(0, at - TAIL) / L * 100, to = fly.p * 100;
+    gsap.set(trail, { drawSVG: `${from}% ${to}%` });
+    if (cur === routes.write) inkTitle(at, pt.x);
   };
-  build();
-  addEventListener('resize', build, { passive: true });
 
-  const flight = gsap.to(state, { p: 1, duration: 11, ease: 'none', repeat: -1, repeatDelay: 0.8, paused: true, onUpdate: draw });
-  const routeIn = wrap(gsap.fromTo(route, { drawSVG: '0%' }, { drawSVG: '100%', duration: 1.8, ease: 'power2.inOut', paused: true }));
+  // строка проявляется до хвоста самолётика
+  const inkTitle = (at: number, x: number) => {
+    lines.forEach((l, i) => {
+      const sp = spans[i]; if (!sp) return;
+      let w = reveal[i] || 0;
+      if (at >= sp[1]) w = 1e4;
+      else if (at > sp[0]) w = Math.max(w, x - l.getBoundingClientRect().left + root.getBoundingClientRect().left - 4);
+      if (w !== reveal[i]) { reveal[i] = w; l.style.setProperty('--w', `${w.toFixed(0)}px`); }
+    });
+    // росчерк сразу после последней буквы
+    if (!swashed && spans.length && at >= spans[spans.length - 1][1]) { swashed = true; swashIn.play(0.05); }
+  };
+  let swashed = false;
+  const setTitle = (on: boolean) => {
+    written = on;
+    if (!on) swashed = false;
+    title.classList.toggle('is-written', on);
+    lines.forEach((l, i) => { reveal[i] = on ? 1e4 : 0; l.style.setProperty('--w', `${reveal[i]}px`); });
+  };
 
-  const title = splitChars(q('[data-contacts-title]')[0], { stagger: 0.04, duration: 0.9, ease: 'back.out(1.6)' });
-  const lead = splitLines(q('[data-contacts-lead]')[0]);
-  const links = rise(q('[data-contacts-links] > *'), { y: 20, stagger: 0.1 });
+  const stopFlight = () => { flight?.kill(); flight = null; later?.kill(); later = null; };
+  const takeOff = (r: Route, duration: number, ease: string, done: () => void) => {
+    stopFlight();
+    cur = r; fly.p = 0; bank = 0; dodge.x = dodge.y = 0;
+    const a0 = r.el.getPointAtLength(0), a1 = r.el.getPointAtLength(4);
+    lastA = Math.atan2(a1.y - a0.y, a1.x - a0.x) * 180 / Math.PI;
+    trail.setAttribute('d', r.el.getAttribute('d') || '');
+    gsap.set(plane, { opacity: 1 });
+    draw();
+    flight = gsap.to(fly, { p: 1, duration, ease, onUpdate: draw, onComplete: () => {
+      gsap.to(trail, { drawSVG: '100% 100%', duration: 0.6, ease: 'power2.in' });
+      gsap.set(plane, { opacity: 0 });
+      done();
+    } });
+  };
+  const idle = () => {
+    if (!routes.idle.len) { later = gsap.delayedCall(0.5, idle); return; }
+    takeOff(routes.idle, routes.idle.len / 175, 'none', () => { later = gsap.delayedCall(1.4, idle); });
+  };
+  const write = () => {
+    if (!routes.write.len) { setTitle(true); swashed = true; swashIn.play(0); later = gsap.delayedCall(1, idle); return; }
+    const dur = gsap.utils.clamp(1.8, 3, routes.write.len / 640);
+    takeOff(routes.write, dur, 'sine.inOut', () => {
+      setTitle(true);
+      if (!swashed) { swashed = true; swashIn.play(0); }
+      later = gsap.delayedCall(1.1, idle);
+    });
+  };
+
+  root.addEventListener('pointermove', (e) => {
+    if (!fine.matches) return;
+    const R = root.getBoundingClientRect();
+    mouse.x = e.clientX - R.left; mouse.y = e.clientY - R.top + root.scrollTop;
+  });
+  root.addEventListener('pointerleave', () => { mouse.x = mouse.y = -1e4; });
+
+  // ---------- вход ----------
+  // росчерк открывается маской слева направо: у линии non-scaling-stroke, drawSVG с ней врёт
+  const hid = 'inset(-20px 100% -20px -20px)', shown = 'inset(-20px -20px -20px -20px)';
+  const swashIn = wrap(gsap.timeline({ paused: true })
+    .fromTo(swash[0], { clipPath: hid }, { clipPath: shown, duration: 0.55, ease: 'power2.inOut' })
+    .fromTo(swash[1], { clipPath: hid }, { clipPath: shown, duration: 0.4, ease: 'power2.out' }, '-=0.1'));
+  const lead = splitLines(q('[data-lead]'), { duration: 0.9 });
+  // явные конечные значения: у .btn есть CSS-переход transform, from() с ним путается
+  const btns = wrap(gsap.fromTo([...links.children], { y: 22, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: 'expo.out', stagger: 0.09, paused: true }));
+  const foot = rise(footer, { y: 0, duration: 0.8 });
   const envelope = wrap(gsap.timeline({ paused: true })
-    .fromTo(form, { rotationX: -75, opacity: 0, transformPerspective: 1200 }, { rotationX: 0, opacity: 1, duration: 1.1, ease: 'expo.out' }, 0)
-    .fromTo(form.children, { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'expo.out', stagger: 0.06, clearProps: 'opacity,transform' }, 0.35));
-  const foot = rise(q('.site-footer'), { y: 0, duration: 0.8 });
+    .fromTo(letter, { y: 70, rotation: -3, opacity: 0 }, { y: 0, rotation: 0, opacity: 1, duration: 0.9, ease: 'expo.out' }, 0)
+    .fromTo(flap, { opacity: 1, rotationX: 0, transformPerspective: 1100 }, { rotationX: 172, duration: 0.85, ease: 'power3.inOut' }, 0.55)
+    .to(flap, { opacity: 0, duration: 0.25, ease: 'power1.in' }, 1.12)
+    .fromTo(folds, { opacity: 1 }, { opacity: 0, duration: 0.4 }, 0.7)
+    .fromTo(items, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'expo.out', stagger: 0.055 }, 0.9)
+    .fromTo(postmark, { scale: 1.8, opacity: 0, rotation: -24 }, { scale: 1, opacity: 0.8, rotation: -8, duration: 0.26, ease: 'power4.in' }, 1.45)
+    .to(letter, { keyframes: { y: [0, 3, -1, 0] }, duration: 0.24, ease: 'none' }, 1.71));
 
-  // отправленная форма: самолётик делает круг почёта быстрее обычного
-  form.addEventListener('submit', () => { gsap.to(flight, { timeScale: 3, duration: 0.3, yoyo: true, repeat: 1, repeatDelay: 1.6 }); });
+  // ---------- отправка: письмо складывается в самолётик и улетает ----------
+  let sending: gsap.core.Timeline | null = null;
+  const restoreLetter = () => {
+    gsap.set(send, { visibility: 'hidden' });
+    gsap.set(form, { opacity: 1 });
+    gsap.set(items, { clearProps: 'opacity,transform' });
+  };
+  const sendOff = () => {
+    sending?.kill();
+    stopFlight(); gsap.set(plane, { opacity: 0 }); gsap.set(trail, { drawSVG: '0% 0%' });
+    const F = box(form), w = F.w, h = F.h, cx = w / 2, cy = h / 2;
+    send.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    const envW = Math.min(180, w * 0.5), envH = envW * 0.62;
+    const env = rectD(cx - envW / 2, cy - envH / 2, envW, envH);
+    const envFold = `M${cx - envW / 2} ${cy - envH / 2} L${cx} ${cy + envH * 0.08} L${cx + envW / 2} ${cy - envH / 2}`;
+    const pl = 1.9; // самолётик из письма крупнее летающего
+    const planeD = `M${cx + 18 * pl} ${cy} L${cx - 17 * pl} ${cy - 12 * pl} L${cx - 7 * pl} ${cy + 1 * pl} L${cx - 12 * pl} ${cy + 12 * pl} Z`;
+    // контур и сгиб самолётика винной линией, как у летающего
+    const planeFold = `M${cx + 18 * pl} ${cy} L${cx - 17 * pl} ${cy - 12 * pl} L${cx - 7 * pl} ${cy + 1 * pl} L${cx - 12 * pl} ${cy + 12 * pl} Z M${cx + 18 * pl} ${cy} L${cx - 7 * pl} ${cy + 1 * pl}`;
+    // траектория отлёта в координатах письма: вправо-вверх за край экрана
+    const Rw = root.clientWidth - F.l;
+    const topY = root.scrollTop + 110 - F.t; // верх видимой части блока в координатах письма
+    const fp: Pt[] = [[cx, cy], [cx + w * 0.3, cy - h * 0.04], [Math.max(cx + w * 0.55, Rw * 0.82), (cy + topY) / 2], [Rw + 160, topY]];
+    sendTrail.setAttribute('d', smooth(fp));
+    const tl2 = sendTrail.getTotalLength();
+    const fl = { p: 0 };
+    gsap.set(sheet, { attr: { d: rectD(0, 0, w, h) }, strokeWidth: 16 });
+    gsap.set(fold, { attr: { d: envFold }, drawSVG: '0%', opacity: 1 });
+    gsap.set(sendG, { x: 0, y: 0, rotation: 0, scale: 1, svgOrigin: `${cx} ${cy}` });
+    gsap.set(sendTrail, { drawSVG: '0% 0%' });
+    sending = gsap.timeline({ onComplete: () => { sending = null; later = gsap.delayedCall(0.8, idle); } })
+      .to(items, { opacity: 0, y: -10, duration: 0.25, stagger: 0.02, ease: 'power2.in' })
+      .set(send, { visibility: 'visible' })
+      .set(form, { opacity: 0 })
+      .to(sheet, { morphSVG: env, strokeWidth: 9, duration: 0.5, ease: 'power3.inOut' })
+      .to(fold, { drawSVG: '100%', duration: 0.3, ease: 'power2.out' }, '-=0.1')
+      .to(fold, { opacity: 0, duration: 0.15 }, '+=0.1')
+      .set(fold, { attr: { d: planeFold }, drawSVG: '0%', opacity: 1 })
+      .to(sheet, { morphSVG: planeD, strokeWidth: 0, duration: 0.45, ease: 'back.out(1.4)' }, '<')
+      .to(fold, { drawSVG: '100%', duration: 0.35, ease: 'power1.inOut' }, '-=0.2')
+      .to(sendG, { rotation: -10, duration: 0.25, ease: 'power2.out' })
+      .to(fl, { p: 1, duration: 1.1, ease: 'power2.in', onUpdate: () => {
+        const at = fl.p * tl2;
+        const p = sendTrail.getPointAtLength(at), a = sendTrail.getPointAtLength(Math.min(tl2, at + 3)), b = sendTrail.getPointAtLength(Math.max(0, at - 3));
+        gsap.set(sendG, { x: p.x - cx, y: p.y - cy, rotation: Math.atan2(a.y - b.y, a.x - b.x) * 180 / Math.PI, scale: 1 - fl.p * 0.45 });
+        gsap.set(sendTrail, { drawSVG: `${Math.max(0, at - 320) / tl2 * 100}% ${fl.p * 100}%` });
+      } })
+      .to(sendTrail, { drawSVG: '100% 100%', duration: 0.4 })
+      .add(restoreLetter)
+      .fromTo(letter, { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: 'expo.out', immediateRender: false })
+      .fromTo(items, { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.04, ease: 'expo.out', clearProps: 'opacity,transform', immediateRender: false }, '<0.2');
+  };
+  new MutationObserver(() => {
+    const kind = status.dataset.kind;
+    if (kind === 'ok' && root.classList.contains('is-on') && !sending) sendOff();
+    else if (kind === 'err') gsap.fromTo(letter, { x: 0 }, { keyframes: { x: [-9, 8, -6, 4, -2, 0] }, duration: 0.45, ease: 'none' });
+  }).observe(status, { attributes: true, attributeFilter: ['data-kind'], childList: true });
 
   watchBlock(root, () => {
     build();
-    state.p = 0; draw();
-    routeIn.play(0);
-    flight.delay(0.6); flight.restart(true);
-    title.play(0);
-    lead.play(0.35);
-    links.play(0.5);
-    envelope.play(0.25);
-    foot.play(0.9);
+    setTitle(false);
+    gsap.set(plane, { opacity: 0 });
+    later = gsap.delayedCall(0.15, write);
+    envelope.play(0.05);
+    lead.play(0.5);
+    btns.play(0.75);
+    foot.play(1.1);
   }, () => {
-    flight.pause(0);
-    state.p = 0; draw();
-    [routeIn, title, lead, links, envelope, foot].forEach((p) => p.reset());
+    stopFlight();
+    sending?.kill(); sending = null; restoreLetter();
+    gsap.set(plane, { opacity: 0 });
+    gsap.set(trail, { drawSVG: '0% 0%' });
+    gsap.set(sendTrail, { drawSVG: '0% 0%' });
+    setTitle(false);
+    [swashIn, lead, btns, foot, envelope].forEach((p) => p.reset());
   });
 }

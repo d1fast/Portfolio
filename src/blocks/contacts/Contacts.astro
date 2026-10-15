@@ -9,55 +9,130 @@ const d = t(lang);
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const policyHref = `${base}${langPrefix(lang)}/policy/`;
 const hasEndpoint = Boolean(site.formEndpoint);
+// каждое предложение подводки с новой строки, чтобы короткое слово не повисало в конце строки
+const leadParts = d.contacts.lead.split(/(?<=\.)\s+/);
+
+// Марка с зубцами: прямоугольник, по краям которого выкушены полукруги перфорации.
+const stamp = (() => {
+  const W = 56, H = 64, s = 8, r = 2.4;
+  let p = 'M0 0';
+  for (let c = s / 2; c < W; c += s) p += ` L${c - r} 0 A${r} ${r} 0 0 0 ${c + r} 0`;
+  p += ` L${W} 0`;
+  for (let c = s / 2; c < H; c += s) p += ` L${W} ${c - r} A${r} ${r} 0 0 0 ${W} ${c + r}`;
+  p += ` L${W} ${H}`;
+  for (let c = W - s / 2; c > 0; c -= s) p += ` L${c + r} ${H} A${r} ${r} 0 0 0 ${c - r} ${H}`;
+  p += ` L0 ${H}`;
+  for (let c = H - s / 2; c > 0; c -= s) p += ` L0 ${c + r} A${r} ${r} 0 0 0 0 ${c - r}`;
+  return p + ' Z';
+})();
+// Бумажный самолётик носом вправо, центр в 0 0: верхнее крыло, нижнее крыло, сгиб.
+const planeTop = 'M18 0 L-17 -12 L-7 1 Z';
+const planeLow = 'M18 0 L-7 1 L-12 12 Z';
+const planeKeel = 'M18 0 L-7 1';
 ---
 <section class="block block--contacts contacts" id="contacts" data-theme="contacts" data-block="contacts">
-  <svg class="contacts__sky" aria-hidden="true" data-contacts-sky>
-    <path class="contacts__route" data-contacts-route />
-    <path class="contacts__trail" data-contacts-trail />
-    <g class="contacts__plane" data-contacts-plane><path d="M-14 -11 L16 0 L-14 11 L-8 0 Z M-8 0 L16 0" /></g>
+  <svg class="contacts__sky" aria-hidden="true" data-sky>
+    <path class="contacts__trail" data-trail />
+    <g class="contacts__plane" data-plane>
+      <path class="contacts__wing" d={planeTop} />
+      <path class="contacts__wing contacts__wing--low" d={planeLow} />
+      <path class="contacts__keel" d={planeKeel} />
+    </g>
   </svg>
   <div class="block__inner container contacts__grid">
-    <div class="contacts__head">
-      <h2 class="block__title contacts__title" data-contacts-title>{d.contacts.title}</h2>
-      <p class="contacts__lead" data-contacts-lead>{d.contacts.lead}</p>
-      <div class="contacts__links" data-contacts-links>
-        <a class="btn btn--primary" href={site.telegramUrl} target="_blank" rel="noopener" data-magnetic>{d.contacts.telegram}</a>
+    <div class="contacts__head" data-head>
+      <div class="contacts__sign">
+        <h2 class="block__title contacts__title" data-title>{d.contacts.title}</h2>
+        <svg class="contacts__swash" viewBox="0 0 400 44" preserveAspectRatio="none" aria-hidden="true">
+          <path data-swash d="M6 22 C 70 12, 150 8, 236 12 S 360 22, 394 8" />
+          <path data-swash d="M40 36 C 120 29, 220 27, 318 32" />
+        </svg>
+      </div>
+      <p class="contacts__lead" data-lead>{leadParts.map((part, i) => <>{i > 0 && <br />}{part}</>)}</p>
+      <div class="contacts__links" data-links>
+        <a class="btn btn--primary contacts__tg" href={site.telegramUrl} target="_blank" rel="noopener" data-magnetic>
+          <svg class="contacts__tg-icon" viewBox="-20 -14 40 28" aria-hidden="true"><path d={planeTop} /><path d={planeLow} /></svg>
+          <span>{d.contacts.telegram}</span>
+        </a>
         <button class="btn btn--ghost contacts__email" type="button" data-copy={site.email} data-copied={d.contacts.copied} data-magnetic="0.2">
           <span class="contacts__email-addr">{site.email}</span>
           <span class="contacts__email-action" data-copy-label>{d.contacts.copy}</span>
         </button>
       </div>
     </div>
-    <form class="contact-form" data-contact-form data-endpoint={site.formEndpoint} data-tg-user={site.telegramUser} data-lang={lang}
-      data-sending={d.contacts.sending} data-success={d.contacts.success} data-success-telegram={d.contacts.successTelegram} data-error={d.contacts.error}
-      data-error-consent={d.contacts.errorConsent} data-error-empty={d.contacts.errorEmpty} novalidate data-contacts-form>
-      <h3 class="contact-form__title" data-contacts-ftitle>{d.contacts.formTitle}</h3>
-      <div class="field">
-        <label class="field__label" for="cf-name">{d.contacts.nameLabel}</label>
-        <input class="field__input" id="cf-name" name="name" type="text" autocomplete="name" maxlength="120" placeholder={d.contacts.namePlaceholder} />
+
+    <div class="contacts__letter" data-letter>
+      <form class="contact-form" data-contact-form data-endpoint={site.formEndpoint} data-tg-user={site.telegramUser} data-lang={lang}
+        data-sending={d.contacts.sending} data-success={d.contacts.success} data-success-telegram={d.contacts.successTelegram} data-error={d.contacts.error}
+        data-error-consent={d.contacts.errorConsent} data-error-empty={d.contacts.errorEmpty} novalidate aria-labelledby="cf-title" data-form>
+        <div class="contact-form__top">
+          <h3 class="contact-form__title" id="cf-title">{d.contacts.formTitle}</h3>
+          <div class="contacts__stamp" aria-hidden="true">
+            <svg class="contacts__stamp-paper" viewBox="-1 -1 58 66">
+              <path class="contacts__stamp-edge" d={stamp} />
+              <rect class="contacts__stamp-pic" x="6" y="6" width="44" height="52" />
+              <path class="contacts__stamp-cloud" d="M11 46 q4 -5 8 0 q3 -4 7 0 M30 20 q4 -5 8 0 q3 -4 7 0" />
+              <g transform="translate(29 33) rotate(-24) scale(.82)">
+                <path class="contacts__stamp-wing" d={planeTop} />
+                <path class="contacts__stamp-wing contacts__stamp-wing--low" d={planeLow} />
+              </g>
+            </svg>
+            <svg class="contacts__postmark" viewBox="0 0 120 60" data-postmark>
+              <circle cx="92" cy="30" r="24" />
+              <circle cx="92" cy="30" r="18.5" />
+              <path d="M2 18 q8 -5 16 0 t16 0 t16 0 t16 0" />
+              <path d="M2 27 q8 -5 16 0 t16 0 t16 0 t16 0" />
+              <path d="M2 36 q8 -5 16 0 t16 0 t16 0 t16 0" />
+              <path d="M2 45 q8 -5 16 0 t16 0 t16 0 t16 0" />
+            </svg>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field__label" for="cf-name">{d.contacts.nameLabel}</label>
+          <input class="field__input" id="cf-name" name="name" type="text" autocomplete="name" maxlength="120" placeholder={d.contacts.namePlaceholder} />
+          <svg class="field__ink" viewBox="0 0 300 8" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M0 4 q6 -4 12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0" /></svg>
+        </div>
+        <div class="field">
+          <label class="field__label" for="cf-message">{d.contacts.messageLabel}</label>
+          <textarea class="field__input field__textarea" id="cf-message" name="message" rows="3" maxlength="2000" required placeholder={d.contacts.messagePlaceholder}></textarea>
+          <svg class="field__ink" viewBox="0 0 300 8" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M0 4 q6 -4 12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0 t12 0" /></svg>
+        </div>
+        <div class="field field--hp" aria-hidden="true">
+          <label for="cf-website">Website</label>
+          <input id="cf-website" name="website" type="text" tabindex="-1" autocomplete="off" />
+        </div>
+        <label class="consent">
+          <input class="consent__box" type="checkbox" name="consent" required />
+          <span class="consent__mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path pathLength="1" d="M4 13 C 6 14.5, 8 17, 9.5 19.5 C 12 13, 15.5 8, 21 3.5" /></svg></span>
+          <span class="consent__text">{d.contacts.consent} <a href={policyHref}>{d.contacts.consentLink}</a></span>
+        </label>
+        <div class="contact-form__actions">
+          <button class="btn btn--primary contact-form__send" type="submit" data-magnetic="0.2">{hasEndpoint ? d.contacts.submit : d.contacts.submitTelegram}</button>
+          {!hasEndpoint && <p class="contact-form__hint">{d.contacts.telegramHint}</p>}
+        </div>
+        <p class="contact-form__status" id="cf-status" data-form-status role="status" aria-live="polite"></p>
+        <p class="contact-form__fallback" data-form-fallback hidden>
+          <a href={site.telegramUrl} target="_blank" rel="noopener">@{site.telegramUser}</a>
+          <a href={`mailto:${site.email}`}>{site.email}</a>
+        </p>
+      </form>
+      <!-- клапан конверта и сгибы: видны, пока письмо не раскрылось -->
+      <div class="contacts__flap" aria-hidden="true" data-flap>
+        <svg viewBox="0 0 100 40" preserveAspectRatio="none"><path class="contacts__flap-back" d="M0 0 H100 L50 40 Z" /><path class="contacts__flap-edge" d="M0 0 L50 40 L100 0" /></svg>
+        <span class="contacts__seal"></span>
       </div>
-      <div class="field">
-        <label class="field__label" for="cf-message">{d.contacts.messageLabel}</label>
-        <textarea class="field__input field__textarea" id="cf-message" name="message" rows="4" maxlength="2000" required placeholder={d.contacts.messagePlaceholder}></textarea>
-      </div>
-      <div class="field field--hp" aria-hidden="true">
-        <label for="cf-website">Website</label>
-        <input id="cf-website" name="website" type="text" tabindex="-1" autocomplete="off" />
-      </div>
-      <label class="consent">
-        <input class="consent__box" type="checkbox" name="consent" required />
-        <span class="consent__text">{d.contacts.consent} <a href={policyHref}>{d.contacts.consentLink}</a></span>
-      </label>
-      <div class="contact-form__actions">
-        <button class="btn btn--primary" type="submit" data-magnetic>{hasEndpoint ? d.contacts.submit : d.contacts.submitTelegram}</button>
-        {!hasEndpoint && <p class="contact-form__hint">{d.contacts.telegramHint}</p>}
-      </div>
-      <p class="contact-form__status" id="cf-status" data-form-status role="status" aria-live="polite"></p>
-      <p class="contact-form__fallback" data-form-fallback hidden>
-        <a href={site.telegramUrl} target="_blank" rel="noopener">@{site.telegramUser}</a>
-        <a href={`mailto:${site.email}`}>{site.email}</a>
-      </p>
-    </form>
+      <svg class="contacts__folds" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" data-folds><path d="M0 100 L50 52 L100 100" /></svg>
+      <!-- письмо при отправке складывается в самолётик и улетает -->
+      <svg class="contacts__send" aria-hidden="true" data-send>
+        <defs>
+          <pattern id="contacts-airmail" width="22" height="22" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <rect width="22" height="22" class="contacts__air-a" /><rect width="7" height="22" class="contacts__air-b" /><rect x="11" width="7" height="22" class="contacts__air-c" />
+          </pattern>
+        </defs>
+        <path class="contacts__send-trail" data-send-trail />
+        <g data-send-g><path class="contacts__send-sheet" data-send-sheet /><path class="contacts__send-fold" data-send-fold /></g>
+      </svg>
+    </div>
   </div>
   <Footer lang={lang} />
 </section>

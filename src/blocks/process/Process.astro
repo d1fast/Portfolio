@@ -1,39 +1,133 @@
 ---
 import './process.css';
 import { t, type Lang } from '../../i18n';
+import { VB_X, VB_Y, VB_W, VB_H, SHAPES, SKETCH, ORDER, SPRING, CONE, CONE_GRAD, RIM, CHECK_CIRCLE, CHECK_MARK, GLINTS, AXES, DIMS, LABELS, MARKS, J0, J1, J2, gear } from './lamp';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const d = t(lang);
 const steps = d.process.steps;
 const nn = (n: number) => String(n).padStart(2, '0');
-const label = lang === 'ru' ? 'Шаги работы' : 'Work steps';
+const words = d.process.title.split(' ');
+const ui = { ru: { list: 'Шаги работы' }, en: { list: 'Work steps' } }[lang];
 ---
 <section class="block block--process process" id="process" data-theme="process" data-block="process">
-  <div class="process__bolts" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   <div class="block__inner container process__inner">
-    <div class="process__head">
-      <h2 class="block__title process__title" data-process-title>{d.process.title}</h2>
-      <p class="process__big" aria-hidden="true"><span class="process__big-track" data-process-big>{steps.map((_, i) => <span>{nn(i + 1)}</span>)}</span></p>
+    <div class="process__side">
+      <h2 class="block__title process__title" aria-label={d.process.title} data-process-title><span aria-hidden="true">{words.map((w, i) => <>{i ? ' ' : ''}<span class="process__word" data-process-word>{w}</span></>)}</span></h2>
+      <div class="process__note" aria-hidden="true">
+        <p class="process__num"><span>0</span><span class="process__num-roll"><span class="process__num-track" data-process-roll>{[...steps.map((_, i) => i + 1), 1].map((n) => <span>{n}</span>)}</span></span></p>
+        <div class="process__says">
+          {steps.map((s, i) => <p class="process__say" class:list={[{ 'is-on': i === 0 }]} data-process-say>{s.text}</p>)}
+        </div>
+      </div>
     </div>
 
-    <div class="process__rail" aria-hidden="true" data-process-rail>
-      <span class="process__line"></span>
-      <span class="process__fill" data-process-fill></span>
-      {steps.map((_, i) => <span class="process__node" style={`--i:${i}`} data-process-node><b>{nn(i + 1)}</b></span>)}
-      <span class="process__cart" data-process-cart><i></i></span>
+    <div class="process__stage" data-process-stage aria-hidden="true">
+      <div class="process__draw" style={`--ar: ${VB_W - VB_X} / ${VB_H - VB_Y}`}>
+        <svg class="process__svg" viewBox={`${VB_X} ${VB_Y} ${VB_W - VB_X} ${VB_H - VB_Y}`} preserveAspectRatio="xMidYMax meet" focusable="false" data-process-svg>
+          <defs>
+            <linearGradient id="process-light" gradientUnits="userSpaceOnUse" x1={CONE_GRAD.x1} y1={CONE_GRAD.y1} x2={CONE_GRAD.x2} y2={CONE_GRAD.y2}>
+              <stop offset="0" stop-color="#fff" stop-opacity=".95" />
+              <stop offset="1" stop-color="#fff" stop-opacity="0" />
+            </linearGradient>
+            <!-- блик полировки: косая светлая полоса едет вдоль градиента, детали залиты им поверх цвета -->
+            <linearGradient id="process-shine-g" gradientUnits="userSpaceOnUse" x1="-35" y1="0" x2="35" y2="28" data-process-shine>
+              <stop offset="0" stop-color="#fff" stop-opacity="0" />
+              <stop offset=".5" stop-color="#fff" stop-opacity=".8" />
+              <stop offset="1" stop-color="#fff" stop-opacity="0" />
+            </linearGradient>
+            <clipPath id="process-lens-clip"><circle r="46" /></clipPath>
+          </defs>
+
+          <!-- 2. чертёж: осевые и размеры -->
+          <g class="pr-blue" data-process-blue>
+            {AXES.map((p) => <path class="pr-axis" d={p} data-process-axis />)}
+            {DIMS.map((p) => <path class="pr-dim" d={p} data-process-dim />)}
+            {LABELS.map((l) => <text class="pr-label" x={l.x} y={l.y} transform={`rotate(${l.rot} ${l.x} ${l.y})`} data-process-label>{l.text}</text>)}
+          </g>
+
+          <!-- 1–2. набросок, который потом становится чистым контуром -->
+          <g id="process-sk" class="pr-sketch">
+            {ORDER.map((k) => <path class="pr-line" d={SKETCH[k]} data-clean={SHAPES[k]} data-sketch={SKETCH[k]} data-process-line />)}
+            {MARKS.map((m) => <text class="pr-mark" x={m[0]} y={m[1]} data-process-mark>?</text>)}
+          </g>
+
+          <!-- 3–4. детали лампы -->
+          <g class="pr-lamp" data-process-lamp>
+            <g class="pr-part" data-part="base">
+              <path class="pr-solid" d={SHAPES.plate} />
+              <path class="pr-solid" d={SHAPES.dome} />
+              <path class="pr-glint" d={GLINTS[3]} />
+              <path class="pr-shine" d={SHAPES.plate} /><path class="pr-shine" d={SHAPES.dome} />
+            </g>
+            <g class="pr-part" data-part="arm1">
+              <path class="pr-solid" d={SHAPES.arm1} />
+              <path class="pr-glint" d={GLINTS[0]} />
+              <path class="pr-shine" d={SHAPES.arm1} />
+            </g>
+            <g class="pr-part" data-part="spring"><path class="pr-spring" d={SPRING} data-process-spring /></g>
+            <g class="pr-pivot" data-process-pivot1>
+              <g class="pr-part" data-part="arm2">
+                <path class="pr-solid" d={SHAPES.arm2} />
+                <path class="pr-glint" d={GLINTS[1]} />
+                <path class="pr-shine" d={SHAPES.arm2} />
+              </g>
+              <g class="pr-pivot" data-process-pivot2>
+                <g class="pr-nod" data-process-nod>
+                  <path class="pr-cone" d={CONE} data-process-cone />
+                  <g class="pr-part" data-part="bulb"><path class="pr-bulb" d={SHAPES.bulb} data-process-bulb /></g>
+                  <g class="pr-part" data-part="shade">
+                    <path class="pr-shade" d={SHAPES.shade} />
+                    <path class="pr-glint" d={GLINTS[2]} />
+                    <path class="pr-shine" d={SHAPES.shade} />
+                    <path class="pr-rim" d={RIM} />
+                  </g>
+                  <g class="pr-part pr-joint" data-part="j2"><path d={SHAPES.j2} /><path class="pr-slot" d={`M${J2[0] - 6} ${J2[1]}H${J2[0] + 6}`} /></g>
+                </g>
+              </g>
+              <g class="pr-part pr-joint" data-part="j1"><path d={SHAPES.j1} /><path class="pr-slot" d={`M${J1[0] - 6} ${J1[1]}H${J1[0] + 6}`} /></g>
+            </g>
+            <g class="pr-part pr-joint" data-part="j0"><path d={SHAPES.j0} /><path class="pr-slot" d={`M${J0[0] - 6} ${J0[1]}H${J0[0] + 6}`} /></g>
+          </g>
+
+          <!-- 4. готово -->
+          <g class="pr-check" data-process-check>
+            <path class="pr-check-c" d={CHECK_CIRCLE} data-process-check-c />
+            <path class="pr-check-m" d={CHECK_MARK} data-process-check-m />
+          </g>
+
+          <!-- щелчки при сборке -->
+          <g class="pr-snaps" data-process-snaps>
+            {[J0, J1, J2].map((j) => <g class="pr-snap" transform={`translate(${j[0]} ${j[1]})`}>{[0, 60, 120, 180, 240, 300].map((a) => <path d="M0 -17V-24" transform={`rotate(${a})`} />)}</g>)}
+          </g>
+
+          <!-- 1. лупа: внутри увеличенная копия наброска -->
+          <g class="pr-lens" data-process-lens>
+            <path class="pr-lens-handle" d="M33 33L68 68" />
+            <circle class="pr-lens-glass" r="46" />
+            <g clip-path="url(#process-lens-clip)"><use href="#process-sk" data-process-lens-view /></g>
+            <circle class="pr-lens-rim" r="46" />
+            <path class="pr-lens-glare" d="M-31 -13A34 34 0 0 1 -12 -32" />
+          </g>
+        </svg>
+      </div>
+      <div class="process__belt"><i data-process-belt></i></div>
     </div>
 
-    <ol class="process__list" aria-label={label} data-process-list>
-      {steps.map((s, i) => (
-        <li class="process__step" class:list={[{ 'is-active': i === 0 }]} data-process-step>
-          <button class="process__btn" type="button" aria-pressed={i === 0 ? 'true' : 'false'} data-process-btn>
-            <span class="process__num" aria-hidden="true">{nn(i + 1)}</span>
-            <span class="process__name" data-process-name>{s.title}</span>
-          </button>
-          <p class="process__text" data-process-text>{s.text}</p>
-          <span class="process__bar" aria-hidden="true"><i data-process-bar></i></span>
-        </li>
-      ))}
-    </ol>
+    <div class="process__line" data-process-rail>
+      <span class="process__track" aria-hidden="true"><i class="process__done" data-process-done></i><i class="process__prog" data-process-prog></i></span>
+      <span class="process__cart" aria-hidden="true" data-process-cart><svg viewBox="0 0 60 60" data-process-gear><path d={gear()} fill-rule="evenodd" /></svg></span>
+      <ol class="process__steps" aria-label={ui.list} data-process-list>
+        {steps.map((s, i) => (
+          <li class="process__step" class:list={[{ 'is-active': i === 0 }]} data-process-step>
+            <button class="process__btn" type="button" aria-pressed={i === 0 ? 'true' : 'false'} data-process-btn>
+              <span class="process__node" aria-hidden="true" data-process-node>{nn(i + 1)}</span>
+              <span class="process__name">{s.title}</span>
+              <span class="visually-hidden">. {s.text}</span>
+            </button>
+          </li>
+        ))}
+      </ol>
+    </div>
   </div>
 </section>
