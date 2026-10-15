@@ -7,7 +7,7 @@
   /* шрифты настроения блоков */
   --font-serif: 'Playfair Display', Georgia, serif;          /* обо мне: журнальный разворот */
   --font-hand: 'Caveat', 'Comic Sans MS', cursive;           /* пометки от руки, письмо */
-  --font-pixel: 'Pixelify Sans', ui-monospace, monospace;    /* что делаю: игровое меню */
+  --font-pixel: 'Tiny5', ui-monospace, monospace;            /* что делаю: игровое меню (кириллица без искажений) */
   --font-arcade: 'Press Start 2P', ui-monospace, monospace;  /* мелкие игровые подписи */
   --font-cond: 'Oswald', 'Arial Narrow', sans-serif;         /* работы: афиша, кино */
 
