@@ -74,7 +74,7 @@ module.exports.handler = async function (event) {
   if (!token || !chatId) return reply(500, { ok: false, error: 'config' });
 
   const text = [
-    `<b>Сообщение с сайта</b> (${lang})`,
+    `<b>Заявка с сайта</b> (${lang})`,
     `<b>От:</b> ${escapeHtml(name || 'не указано')}`,
     '',
     escapeHtml(message),

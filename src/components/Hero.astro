@@ -27,7 +27,7 @@ const modelUrl = fs.existsSync('public/models/me.glb') ? `${base}/models/me.glb`
       <canvas class="hero__canvas" data-hero-canvas data-model={modelUrl}></canvas>
     </div>
     <div class="hero__cta">
-      <a class="btn btn--primary" href={site.telegramUrl} target="_blank" rel="noopener" data-target="contact" data-magnetic>{d.hero.ctaTelegram}</a>
+      <a class="btn btn--primary" href="#contacts" data-target="contact" data-magnetic>{d.hero.ctaContact}</a>
       <a class="btn btn--ghost" href="#works" data-target="main" data-magnetic="0.2">{d.hero.ctaWorks}</a>
     </div>
   </div>

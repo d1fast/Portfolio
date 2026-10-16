@@ -8,7 +8,6 @@ const { lang } = Astro.props;
 const d = t(lang);
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const policyHref = `${base}${langPrefix(lang)}/policy/`;
-const hasEndpoint = Boolean(site.formEndpoint);
 // каждое предложение подводки с новой строки, чтобы короткое слово не повисало в конце строки
 const leadParts = d.contacts.lead.split(/(?<=\.)\s+/);
 
@@ -50,11 +49,7 @@ const planeKeel = 'M18 0 L-7 1';
       </div>
       <p class="contacts__lead" data-lead>{leadParts.map((part, i) => <>{i > 0 && <br />}{part}</>)}</p>
       <div class="contacts__links" data-links>
-        <a class="btn btn--primary contacts__tg" href={site.telegramUrl} target="_blank" rel="noopener" data-magnetic>
-          <svg class="contacts__tg-icon" viewBox="-20 -14 40 28" aria-hidden="true"><path d={planeTop} /><path d={planeLow} /></svg>
-          <span>{d.contacts.telegram}</span>
-        </a>
-        <button class="btn btn--ghost contacts__email" type="button" data-copy={site.email} data-copied={d.contacts.copied} data-magnetic="0.2">
+        <button class="btn btn--primary contacts__email" type="button" data-copy={site.email} data-copied={d.contacts.copied} data-magnetic="0.2">
           <span class="contacts__email-addr">{site.email}</span>
           <span class="contacts__email-action" data-copy-label>{d.contacts.copy}</span>
         </button>
@@ -62,8 +57,8 @@ const planeKeel = 'M18 0 L-7 1';
     </div>
 
     <div class="contacts__letter" data-letter>
-      <form class="contact-form" data-contact-form data-endpoint={site.formEndpoint} data-tg-user={site.telegramUser} data-lang={lang}
-        data-sending={d.contacts.sending} data-success={d.contacts.success} data-success-telegram={d.contacts.successTelegram} data-error={d.contacts.error}
+      <form class="contact-form" data-contact-form data-endpoint={site.formEndpoint} data-lang={lang}
+        data-sending={d.contacts.sending} data-success={d.contacts.success} data-success-mail={d.contacts.successMail} data-email={site.email} data-error={d.contacts.error}
         data-error-consent={d.contacts.errorConsent} data-error-empty={d.contacts.errorEmpty} novalidate aria-labelledby="cf-title" data-form>
         <div class="contact-form__top">
           <h3 class="contact-form__title" id="cf-title">{d.contacts.formTitle}</h3>
@@ -107,12 +102,10 @@ const planeKeel = 'M18 0 L-7 1';
           <span class="consent__text">{d.contacts.consent} <a href={policyHref}>{d.contacts.consentLink}</a></span>
         </label>
         <div class="contact-form__actions">
-          <button class="btn btn--primary contact-form__send" type="submit" data-magnetic="0.2" aria-describedby={hasEndpoint ? undefined : 'cf-hint'}>{hasEndpoint ? d.contacts.submit : d.contacts.submitTelegram}</button>
-          {!hasEndpoint && <p class="contact-form__hint visually-hidden" id="cf-hint">{d.contacts.telegramHint}</p>}
+          <button class="btn btn--primary contact-form__send" type="submit" data-magnetic="0.2">{d.contacts.submit}</button>
         </div>
         <p class="contact-form__status" id="cf-status" data-form-status role="status" aria-live="polite"></p>
         <p class="contact-form__fallback" data-form-fallback hidden>
-          <a href={site.telegramUrl} target="_blank" rel="noopener">@{site.telegramUser}</a>
           <a href={`mailto:${site.email}`}>{site.email}</a>
         </p>
       </form>
