@@ -202,6 +202,21 @@
   .about__grid { row-gap: 11px; }
   .about__notes { row-gap: 13px; }
 }
+/* телефон с панелями браузера (Safari, Telegram): пометки змейкой в две колонки, иначе блок не влезает */
+@media (max-width: 599px) and (max-height: 860px) {
+  .about__title { font-size: clamp(42px, 12vw, 64px); }
+  .about__lead { font-size: clamp(15.5px, 4.3vw, 20px); line-height: 1.28; }
+  .about__notes { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 14px; row-gap: 6px; }
+  .about__note, .about__note--1, .about__note--2, .about__note--3, .about__note--4 { font-size: clamp(17px, 4.7vw, 21px); line-height: 1.05; }
+  .about__note--1 { grid-column: 1; grid-row: 1; }
+  .about__note--2 { grid-column: 2; grid-row: 1; justify-self: start; --nx: .5em; margin-right: 0; margin-top: .45em; }
+  /* порядок буквой П: стрелки идут вправо, вниз и влево и не пересекаются */
+  .about__note--3 { grid-column: 2; grid-row: 2; justify-self: start; --nx: .3em; margin-top: 1.3em; max-width: calc(100% - .4em); }
+  .about__note--4 { grid-column: 1; grid-row: 2; justify-self: start; --nx: 0px; margin-right: 0; margin-top: 1.5em; }
+}
+@media (max-width: 599px) and (max-height: 700px) {
+  .about__grid { --pw: clamp(128px, min(38vw, calc((100dvh - 470px) * .8)), 150px); padding-bottom: 10px; }
+}
 /* телефон боком: всё мельче и ниже шапки ровно на свой отступ, чтобы влезло в один экран */
 @media (orientation: landscape) and (max-height: 540px) and (min-width: 761px) {
   .about__grid { --pw: calc((100dvh - 92px) * .7); --gap: 40px; padding-top: calc(var(--header-h) + 8px); padding-bottom: 10px; }
