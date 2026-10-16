@@ -39,15 +39,14 @@ export function init(root: HTMLElement) {
   const flash = one('[data-services-flash]');
   const dname = one('[data-services-name]');
   const dtext = one('[data-services-text]');
+  const pipsBox = one('[data-services-pips]');
   const pips = q<HTMLElement>('[data-services-pips] i');
   const pipFill = pips.map((p) => p.querySelector('b') as HTMLElement);
   const next = one<HTMLButtonElement>('[data-services-next]');
   const slots = q<HTMLElement>('[data-svc-w]');
   const hit = one<HTMLButtonElement>('[data-svc-hit]');
-  // в пиксельном шрифте нет заглавной кириллической «О», в окне (оно скрыто от чтения) рисуем латинскую
-  const px = (s: string) => s.replace(/О/g, 'O');
-  const names = items.map((i) => px(i.querySelector('.services__name')?.textContent || ''));
-  const texts = items.map((i) => px(i.querySelector('.services__desc')?.textContent || ''));
+  const names = items.map((i) => i.querySelector('.services__name')?.textContent || '');
+  const texts = items.map((i) => i.querySelector('.services__desc')?.textContent || '');
   const total = items.length;
   let ui: WidgetUI;
   try { ui = JSON.parse(root.dataset.svcUi || '{}'); } catch { ui = {} as WidgetUI; }
@@ -90,7 +89,9 @@ export function init(root: HTMLElement) {
   /* ---------- экранчик ---------- */
   const fit = () => {
     const w = tube.offsetWidth, h = tube.offsetHeight;
-    if (w && h) tube.style.setProperty('--k', Math.min(w / 360, h / 170).toFixed(4));
+    // сверху и снизу остаётся полоса под «каналы» в углу, чтобы они не наезжали на сцену
+    const res = pipsBox.offsetTop + pipsBox.offsetHeight + 4;
+    if (w && h) tube.style.setProperty('--k', Math.min(w / 360, (h - res * 2) / 170).toFixed(4));
     widgets.forEach((wd) => wd.resize?.());
   };
   const show = (i: number) => {
@@ -188,12 +189,29 @@ export function init(root: HTMLElement) {
     btns[(to + total) % total].focus();
   });
   next.addEventListener('click', () => select(current + 1, true));
+  // подсказка «наведите или ↑↓»: пока мышь над меню, стрелки листают пункты, даже если фокус ещё не в меню.
+  // Фокус переходит на пункт, дальше клавиши обрабатывает само меню ([data-keys]). Сцена не получает
+  // нажатие, потому что оно уже отменено (stage.ts пропускает defaultPrevented).
+  document.addEventListener('keydown', (e) => {
+    if (!on || !hoverMenu || e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
+    const t = e.target as HTMLElement;
+    if (menu.contains(t) || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable) return;
+    const k = e.key;
+    let to = -1;
+    if (k === 'ArrowDown' || k === 'ArrowRight') to = current + 1;
+    else if (k === 'ArrowUp' || k === 'ArrowLeft') to = current - 1 + total;
+    else if (k === 'Home') to = 0;
+    else if (k === 'End') to = total - 1;
+    if (to < 0) return;
+    e.preventDefault();
+    btns[to % total].focus({ preventScroll: true });
+  });
 
   const hov = (el: HTMLElement, set: (v: boolean) => void) => {
     el.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') { set(true); sync(); } });
     el.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') { set(false); sync(); } });
   };
-  hov(menu, (v) => { hoverMenu = v; });
+  hov(menu, (v) => { hoverMenu = v; menu.classList.toggle('is-hover', v); });
   hov(dialog, (v) => { hoverDialog = v; });
   // фокус с клавиатуры внутри меню или окна ставит перебор на паузу (WCAG 2.2.2)
   root.addEventListener('focusin', (e) => {
@@ -235,7 +253,6 @@ export function init(root: HTMLElement) {
   // буквы заголовка выскакивают рывками, как спрайты
   const h2 = one('[data-services-title]');
   const title = splitChars(h2, { yPercent: 110, ease: 'steps(4)', duration: 0.42, stagger: { each: 0.045, from: 'random' } });
-  if (h2.dataset.label) h2.setAttribute('aria-label', h2.dataset.label);
   const entry = gsap.timeline({ paused: true })
     // пункты печатаются блоками слева направо
     .fromTo(rows, { clipPath: 'inset(0% 100% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.36, ease: 'steps(8)', stagger: 0.05 }, 0.1)
@@ -257,6 +274,7 @@ export function init(root: HTMLElement) {
   const enter = () => {
     on = true; ready = false;
     hoverMenu = menu.matches(':hover'); hoverDialog = dialog.matches(':hover');
+    menu.classList.toggle('is-hover', hoverMenu);
     current = 0;
     mark(0);
     fit();

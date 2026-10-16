@@ -12,7 +12,7 @@ const ui18n = {
     menu: 'Меню услуг', hint: 'наведите или', next: 'Следующий пункт',
     game: 'Мини-игра: нажмите, чтобы прыгнуть',
     w: {
-      tapFine: 'клик или пробел', tapTouch: 'жми, чтобы прыгать', hi: 'рек',
+      tapFine: 'клик или пробел', tapTouch: 'жми, чтобы прыгать', hi: 'рекорд',
       bot: 'бот', online: 'в сети', typing: 'печатает…',
       ask: 'Хочу записаться', pick: 'Выберите время:', t1: '12:00', t2: '18:30', done: 'Готово, жду вас!',
       send: 'Отправить', spec: 'ТЗ', checks: ['цель', 'аудитория', 'экраны', 'сроки'],
@@ -30,13 +30,10 @@ const ui18n = {
   },
 }[lang];
 const widgets = ['sites', 'apps', 'bots', 'cube', 'game', 'ui', 'spec'];
-// В пиксельном шрифте нет заглавной кириллической «О»: для вида подставляем латинскую, для чтения остаётся aria-label.
-const px = (s: string) => s.replace(/О/g, 'O');
-const titleVis = px(d.services.title.toUpperCase());
 ---
 <section class="block block--services services" id="services" data-theme="services" data-block="services" data-svc-ui={JSON.stringify(ui18n.w)}>
   <div class="block__inner container services__grid">
-    <h2 class="block__title services__title" aria-label={d.services.title} data-label={d.services.title} data-services-title>{titleVis}</h2>
+    <h2 class="block__title services__title" data-services-title>{d.services.title}</h2>
 
     <div class="services__menu" role="group" aria-label={ui18n.menu} data-keys data-services-menu>
       <div class="services__track" data-services-track>
@@ -75,7 +72,10 @@ const titleVis = px(d.services.title.toUpperCase());
           ))}
         </ul>
       </div>
-      <p class="services__hint" aria-hidden="true" data-services-hint>{ui18n.hint} <kbd>↑</kbd><kbd>↓</kbd></p>
+      <p class="services__hint" aria-hidden="true" data-services-hint>{ui18n.hint}
+        <kbd><svg viewBox="0 0 7 4" shape-rendering="crispEdges"><path d="M3 0h1v1H3zM2 1h3v1H2zM1 2h5v1H1zM0 3h7v1H0z" fill="currentColor" /></svg></kbd>
+        <kbd><svg viewBox="0 0 7 4" shape-rendering="crispEdges"><path d="M0 0h7v1H0zM1 1h5v1H1zM2 2h3v1H2zM3 3h1v1H3z" fill="currentColor" /></svg></kbd>
+      </p>
     </div>
 
     <div class="services__dialog" data-services-dialog>
@@ -92,21 +92,22 @@ const titleVis = px(d.services.title.toUpperCase());
             ))}
           </div>
         </div>
+        <!-- «каналы» в углу экрана, как у телевизора: какой пункт показан и сколько ему осталось -->
+        <span class="services__pips" aria-hidden="true" data-services-pips>
+          {items.map((_, i) => <i class:list={[{ 'is-on': i === 0 }]}><b></b></i>)}
+        </span>
         <span class="services__scan" aria-hidden="true"></span>
         <span class="services__flash" aria-hidden="true" data-services-flash></span>
       </div>
 
       <div class="services__say" aria-hidden="true">
         <p class="services__dname">
-          {items.map((item) => <span class="services__ghost">{px(item.title)}</span>)}
-          <span class="services__live" data-services-name>{px(items[0].title)}</span>
+          {items.map((item) => <span class="services__ghost">{item.title}</span>)}
+          <span class="services__live" data-services-name>{items[0].title}</span>
         </p>
-        <span class="services__pips" data-services-pips>
-          {items.map((_, i) => <i class:list={[{ 'is-on': i === 0 }]}><b></b></i>)}
-        </span>
         <p class="services__text">
-          {items.map((item) => <span class="services__ghost">{px(item.text)}<i class="services__caret"></i></span>)}
-          <span class="services__live"><span data-services-text>{px(items[0].text)}</span><i class="services__caret"></i></span>
+          {items.map((item) => <span class="services__ghost">{item.text}<i class="services__caret"></i></span>)}
+          <span class="services__live"><span data-services-text>{items[0].text}</span><i class="services__caret"></i></span>
         </p>
       </div>
       <button class="services__next" type="button" aria-label={ui18n.next} data-services-next>

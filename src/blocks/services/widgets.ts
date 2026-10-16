@@ -31,7 +31,7 @@ function el(parent: HTMLElement, cls: string, box?: Box, text?: string): HTMLEle
   const e = document.createElement('div');
   e.className = cls;
   if (box) Object.assign(e.style, { left: box[0] + 'px', top: box[1] + 'px', width: box[2] + 'px', height: box[3] + 'px' });
-  if (text != null) e.textContent = text.replace(/О/g, 'O'); // в пиксельном шрифте нет заглавной кириллической «О»
+  if (text != null) e.textContent = text;
   parent.appendChild(e);
   return e;
 }
@@ -153,8 +153,8 @@ function apps(root: HTMLElement): Widget {
   const sideEls = [el(side, 'svc-ac', [12, 10, 14, 14]), ...[38, 48, 58, 68].map((y, i) => el(side, i === 1 ? 'svc-ac' : 'svc-dim', [10, y, 18, 4]))];
   const k1 = el(win, 'svc-s0', [46, 8, 116, 46]);
   el(k1, 'svc-dim', [8, 8, 40, 3]);
-  const num = el(k1, 'svc-arc', [8, 22, 100, 14], '0');
-  Object.assign(num.style, { fontSize: '14px', color: C.ac });
+  const num = el(k1, 'svc-arc', [8, 21, 100, 16], '0');
+  Object.assign(num.style, { fontSize: '16px', color: C.ac });
   const up = el(k1, '', [96, 6, 10, 6]); up.innerHTML = sprite(UP, { x: C.pk }, 2);
   const k2 = el(win, 'svc-s0', [170, 8, 120, 46]);
   el(k2, 'svc-dim', [8, 8, 48, 3]);
@@ -222,25 +222,28 @@ function bots(root: HTMLElement, ui: WidgetUI): Widget {
   const head = el(win, 'svc-head', [0, 0, 204, 26]);
   const ava = el(head, 'svc-ac', [7, 6, 14, 14]);
   el(ava, 'svc-s0', [3, 4, 2, 3]); el(ava, 'svc-s0', [9, 4, 2, 3]); el(ava, 'svc-s0', [4, 9, 6, 2]);
-  const name = el(head, 'svc-txt', [28, 4, 120, 11], ui.bot);
-  Object.assign(name.style, { fontWeight: '700', color: C.ac });
-  const st1 = el(head, 'svc-txt', [28, 15, 120, 9], ui.online);
-  const st2 = el(head, 'svc-txt', [28, 15, 120, 9], ui.typing);
-  Object.assign(st1.style, { fontSize: '9px', color: C.fg });
-  Object.assign(st2.style, { fontSize: '9px', color: C.pk });
+  const name = el(head, 'svc-txt', [28, 3, 120, 12], ui.bot);
+  Object.assign(name.style, { fontSize: '12px', color: C.ac });
+  const st1 = el(head, 'svc-txt', [28, 15, 120, 10], ui.online);
+  const st2 = el(head, 'svc-txt', [28, 15, 120, 10], ui.typing);
+  Object.assign(st1.style, { fontSize: '10px', color: C.fg });
+  Object.assign(st2.style, { fontSize: '10px', color: C.pk });
+  // пузыри по 24px высотой: вопрос 32, ответ 62, кнопки 92, итог 120
   const me = el(win, 'svc-bub svc-bub--me', undefined, ui.ask);
-  Object.assign(me.style, { right: '8px', top: '34px' });
-  const typing = el(win, 'svc-bub svc-bub--bot', [8, 60, 40, 19]);
-  const dots = [8, 17, 26].map((x) => el(typing, 'svc-dot', [x, 8, 4, 4]));
-  const bot1 = at(el(win, 'svc-bub svc-bub--bot', undefined, ui.pick), 8, 60);
-  const keys = [ui.t1, ui.t2].map((t, i) => el(win, 'svc-key', [8 + i * 64, 84, 60, 20], t));
-  const bot2 = at(el(win, 'svc-bub svc-bub--bot', undefined, ui.done), 8, 112);
+  Object.assign(me.style, { right: '8px', top: '32px' });
+  const typing = el(win, 'svc-bub svc-bub--bot', [8, 62, 40, 24]);
+  const dots = [8, 17, 26].map((x) => el(typing, 'svc-dot', [x, 10, 4, 4]));
+  const bot1 = at(el(win, 'svc-bub svc-bub--bot', undefined, ui.pick), 8, 62);
+  const keys = [ui.t1, ui.t2].map((t, i) => el(win, 'svc-key', [8 + i * 64, 92, 60, 22], t));
+  const bot2 = at(el(win, 'svc-bub svc-bub--bot', undefined, ui.done), 8, 120);
   bot2.insertAdjacentHTML('beforeend', sprite(CHECK, { x: C.pk }, 1, 'svc-check'));
-  const ring = el(win, 'svc-ring', [72 + 20, 84 - 10, 20, 20]);
+  // волна от нажатия: рамка по форме кнопки «18:30» (72, 92, 60×22) расходится от её центра на 8 и 4 px
+  // и гаснет, не задевая пузыри выше и ниже; конечный размер = рамка 2px без искажения
+  const ring = el(win, 'svc-ring', [64, 88, 76, 30]);
   const cur = cursor(all, 320, 186);
   const S = (n: number) => `steps(${n})`;
-  // кнопка «18:30» в координатах сцены: окно 76+2, 3+2; центр кнопки 72+30, 84+10
-  const tx = 78 + 102 - 320, ty = 5 + 94 - 186;
+  // кнопка «18:30» в координатах сцены: окно 76+2, 3+2; центр кнопки 72+30, 92+11
+  const tx = 78 + 102 - 320, ty = 5 + 103 - 186;
   return timed(5.4, () => gsap.timeline({ paused: true, repeat: -1, repeatDelay: 0.3 })
     .set(all, { opacity: 1 }, 0)
     .fromTo(win, { scaleY: 0.08, opacity: 0 }, { scaleY: 1, opacity: 1, duration: 0.24, ease: S(4) }, 0)
@@ -258,9 +261,8 @@ function bots(root: HTMLElement, ui: WidgetUI): Widget {
     .fromTo(cur, { x: 0, y: 0, opacity: 0 }, { x: tx, y: ty, opacity: 1, duration: 0.6, ease: 'power2.inOut' }, 2.55)
     .to(cur, { scale: 0.78, duration: 0.08, ease: S(1), yoyo: true, repeat: 1 }, 3.2)
     .fromTo(keys[1], { backgroundColor: 'rgba(0,0,0,0)', color: C.fg }, { backgroundColor: C.ac, color: C.s0, duration: 0.05, ease: S(1) }, 3.22)
-    .set(ring, { opacity: 0, scale: 0.4 }, 0)
-    .set(ring, { opacity: 1 }, 3.22)
-    .to(ring, { scale: 3.2, opacity: 0, duration: 0.42, ease: S(5) }, 3.22)
+    .set(ring, { opacity: 0 }, 0)
+    .fromTo(ring, { scaleX: 60 / 76, scaleY: 22 / 30, opacity: 1 }, { scaleX: 1, scaleY: 1, opacity: 0, duration: 0.42, ease: S(5), immediateRender: false }, 3.22)
     .to(cur, { x: tx + 60, y: ty + 70, opacity: 0, duration: 0.6, ease: 'power2.in' }, 3.5)
     .fromTo(bot2, { scale: 0.4, opacity: 0, transformOrigin: '0% 100%' }, { scale: 1, opacity: 1, duration: 0.3, ease: 'back.out(2.4)' }, 3.6)
     .to(all, { opacity: 0, duration: 0.24, ease: S(3) }, 5.1));
@@ -293,7 +295,7 @@ function kit(root: HTMLElement, ui: WidgetUI): Widget {
   const ghost = el(win, 'svc-ghost', [14, 114, 100, 28]);
   el(ghost, 'svc-dim', [30, 10, 36, 4]);
   const btn = el(win, 'svc-btn', [130, 114, 112, 28], ui.send);
-  const ring = el(win, 'svc-ring', [176, 118, 20, 20]);
+  const ring = el(win, 'svc-ring', [122, 106, 128, 44]); // вокруг кнопки «Отправить» (130, 114, 112×28)
   const cur = cursor(all, 330, 186);
   const S = (n: number) => `steps(${n})`;
   const sx = (x: number) => 52 + x - 330, sy = (y: number) => 8 + y - 186; // из координат окна в сдвиг курсора
@@ -327,9 +329,8 @@ function kit(root: HTMLElement, ui: WidgetUI): Widget {
     .to(cur, { x: sx(186), y: sy(128), duration: 0.45, ease: 'power2.inOut' }, 3.9)
     .to(cur, press(), 4.4)
     .to(btn, { y: 3, boxShadow: 'inset 0 0px 0 rgba(0,0,0,0)', duration: 0.06, ease: S(1), yoyo: true, repeat: 1, repeatDelay: 0.1 }, 4.42)
-    .set(ring, { opacity: 0, scale: 0.4 }, 0)
-    .set(ring, { opacity: 1 }, 4.44)
-    .to(ring, { scale: 4, opacity: 0, duration: 0.45, ease: S(5) }, 4.44)
+    .set(ring, { opacity: 0 }, 0)
+    .fromTo(ring, { scaleX: 112 / 128, scaleY: 28 / 44, opacity: 1 }, { scaleX: 1, scaleY: 1, opacity: 0, duration: 0.45, ease: S(5), immediateRender: false }, 4.44)
     .to(cur, { x: sx(250), y: sy(190), opacity: 0, duration: 0.5, ease: 'power2.in' }, 4.8)
     .to(all, { opacity: 0, duration: 0.24, ease: S(3) }, 5.3));
 }
@@ -341,15 +342,16 @@ function spec(root: HTMLElement, ui: WidgetUI): Widget {
   const fold = el(all, 'svc-fold', [92 + 176 - 14, 4, 14, 14]);
   const mark = el(paper, 'svc-pk', [9, 9, 30, 20]);
   const title = el(paper, 'svc-txt svc-ink', [12, 10, 60, 18], ui.spec);
-  Object.assign(title.style, { font: `700 17px/1 var(--font-pixel)` });
+  Object.assign(title.style, { font: `400 16px/1 var(--font-pixel)` });
   const under = el(paper, 'svc-ink-bg', [12, 31, 30, 2]);
   const widths = [96, 122, 82, 108];
   const rows = ui.checks.slice(0, 4).map((label, i) => {
     const y = 42 + i * 26;
     const box = el(paper, 'svc-cb', [12, y, 13, 13]);
     const t = el(box, '', [1, 2, 7, 6]); t.innerHTML = sprite(CHECK, { x: C.s0 }, 1);
-    const lab = el(paper, 'svc-txt svc-ink', [32, y + 1, 130, 12], label);
-    const bar = el(paper, 'svc-ibar', [32, y + 15, widths[i], 3]);
+    const lab = el(paper, 'svc-txt svc-ink', [32, y, 130, 14], label);
+    lab.style.fontSize = '14px';
+    const bar = el(paper, 'svc-ibar', [32, y + 17, widths[i], 3]);
     return { box, t, lab, bar, len: label.length };
   });
   const segs = [0, 1, 2, 3].map((j) => {
@@ -448,7 +450,7 @@ function cube(root: HTMLElement): Widget {
   for (const x of [-1, 1]) for (const y of [-1, 1]) for (const z of [-1, 1]) V.push([x, y, z]);
   const E: [number, number][] = [];
   for (let a = 0; a < 8; a++) for (let b = a + 1; b < 8; b++) { const d = V[a].reduce((s, v, i) => s + (v !== V[b][i] ? 1 : 0), 0); if (d === 1) E.push([a, b]); }
-  let ay = 0.6, ax = 0, tx = 0, ty = 0, cx = 0, cy = 0, spin = 0, phase = 0, time = 0;
+  let ay = 0.6, tx = 0, ty = 0, cx = 0, cy = 0, spin = 0, phase = 0, time = 0;
   const draw = (dt: number) => {
     time += dt; phase = (phase + dt * 1.1) % 1;
     spin *= Math.exp(-2.2 * dt);

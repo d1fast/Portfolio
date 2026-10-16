@@ -4,6 +4,15 @@
 .services {
   --rowh: clamp(40px, 7.4vh, 68px);
   --hint-h: 38px;
+  /* Tiny5 нарисован на сетке 8 пикселей на кегль: размеры кратны 8 (или 4), чтобы пиксели букв были ровными */
+  --fs-title: clamp(40px, 5.6vw, 96px);
+  --fs-row: 24px;
+  --fs-name: 32px;
+  --fs-text: clamp(20px, 1.7vw, 24px);
+  --fs-num: 8px;
+  --pip: 8px;
+  font-variant-ligatures: none;
+  font-synthesis: none;
   /* палитра экранчика; те же цвета продублированы в widgets.ts для canvas */
   --s0: #2B0614;
   --s1: #4B0B23;
@@ -17,12 +26,16 @@
   --px2: polygon(0 2px, 2px 2px, 2px 0, calc(100% - 2px) 0, calc(100% - 2px) 2px, 100% 2px, 100% calc(100% - 2px), calc(100% - 2px) calc(100% - 2px), calc(100% - 2px) 100%, 2px 100%, 2px calc(100% - 2px), 0 calc(100% - 2px));
 }
 @media (hover: none), (pointer: coarse) { .services { --hint-h: 0px; } }
+/* где браузер умеет round(), размеры прилипают к сетке шрифта; старые браузеры берут clamp() выше */
+@supports (width: round(down, 10px, 8px)) {
+  .services { --fs-title: round(down, clamp(40px, 5.6vw, 96px), 8px); --fs-text: round(nearest, clamp(20px, 1.7vw, 24px), 4px); }
+}
 
 .services__grid { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); grid-template-areas: "title title" "menu dialog"; column-gap: clamp(28px, 4.6vw, 88px); row-gap: clamp(16px, 3vh, 34px); align-items: start; }
 
-/* Заголовок: пиксельный, с выдавленной тенью, как надпись на заставке игры */
-.services__title { grid-area: title; font: 700 clamp(38px, 5.6vw, 92px)/.92 var(--font-pixel); letter-spacing: .02em; text-transform: none; color: var(--fg); text-shadow: .05em .05em 0 var(--sh1), .1em .1em 0 var(--sh2); }
-.services__title .wd-mask { padding-right: .12em; margin-right: -.12em; padding-bottom: .16em; margin-bottom: -.16em; }
+/* Заголовок: пиксельный, с выдавленной тенью в два шага, как надпись на заставке игры */
+.services__title { grid-area: title; font: 400 var(--fs-title)/.875 var(--font-pixel); letter-spacing: 0; text-transform: uppercase; color: var(--fg); text-shadow: calc(var(--fs-title) / 16) calc(var(--fs-title) / 16) 0 var(--sh1), calc(var(--fs-title) / 8) calc(var(--fs-title) / 8) 0 var(--sh2); }
+.services__title .wd-mask { padding-right: .14em; margin-right: -.14em; padding-bottom: .16em; margin-bottom: -.16em; }
 
 /* Меню */
 .services__menu { grid-area: menu; position: relative; padding-left: 30px; }
@@ -30,8 +43,8 @@
 .services__list { position: relative; z-index: 1; display: grid; }
 .services__list--inv { position: absolute; inset: 0; z-index: 2; color: var(--bg); pointer-events: none; clip-path: inset(0 0 100% 0); }
 .services__btn { display: block; width: 100%; height: var(--rowh); padding: 0 16px 0 12px; text-align: left; color: var(--muted); }
-.services__row { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-content: center; align-items: baseline; height: 100%; font: 400 clamp(18px, 1.8vw, 30px)/1 var(--font-pixel); white-space: nowrap; transition: transform var(--dur-base) var(--ease-out); }
-.services__num { font: 400 10px/1 var(--font-arcade); letter-spacing: 0; }
+.services__row { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-content: center; align-items: baseline; height: 100%; font: 400 var(--fs-row)/1 var(--font-pixel); white-space: nowrap; transition: transform var(--dur-base) var(--ease-out); }
+.services__num { font: 400 var(--fs-num)/1 var(--font-arcade); letter-spacing: 0; }
 .services__name { overflow: hidden; text-overflow: ellipsis; padding-block: .1em; }
 .services__item.is-active .services__row { transform: translateX(10px); }
 .services__list--inv .services__btn { color: var(--bg); }
@@ -42,12 +55,15 @@
 .services__mk-drop, .services__mk-pop { display: block; }
 .services__marker svg { width: 12px; height: 22px; animation: services-nudge .5s steps(1) infinite alternate; }
 @keyframes services-nudge { to { transform: translateX(4px); } }
-.services__hint { display: flex; align-items: center; gap: 6px; height: var(--hint-h); padding: 14px 0 0 12px; font: 400 15px/1 var(--font-pixel); color: var(--muted); }
-.services__hint kbd { display: inline-grid; place-items: center; width: 24px; height: 22px; font: 400 9px/1 var(--font-arcade); color: var(--fg); box-shadow: inset 0 0 0 2px var(--muted), inset 0 -4px 0 var(--sh1); padding-bottom: 2px; }
+.services__hint { display: flex; align-items: center; gap: 6px; height: var(--hint-h); padding: 14px 0 0 12px; font: 400 16px/1 var(--font-pixel); color: var(--muted); }
+.services__hint kbd { display: inline-grid; place-items: center; width: 26px; height: 24px; color: var(--fg); box-shadow: inset 0 0 0 2px var(--muted), inset 0 -4px 0 var(--sh1); padding-bottom: 2px; }
+.services__hint kbd svg { width: 14px; height: 8px; }
+/* стрелки работают и под мышью: пока она над меню, клавиши подсвечены */
+.services__menu.is-hover .services__hint kbd { box-shadow: inset 0 0 0 2px var(--fg), inset 0 -4px 0 var(--sh1); }
 @media (hover: none), (pointer: coarse) { .services__hint { display: none; } }
 
 /* Окно диалога: рамка в 4px со ступенчатыми углами и жёсткая пиксельная тень */
-.services__dialog { grid-area: dialog; position: relative; isolation: isolate; height: calc(var(--rowh) * 7 + var(--hint-h)); display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: minmax(0, 1fr) auto; gap: 12px 10px; padding: 16px 16px 14px 18px; }
+.services__dialog { grid-area: dialog; position: relative; isolation: isolate; height: calc(var(--rowh) * 7 + var(--hint-h)); display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: minmax(0, 1fr) auto; gap: 12px 0; padding: 16px 16px 14px 18px; }
 .services__dialog::before, .services__dialog::after, .services__shade { content: ''; position: absolute; z-index: -1; clip-path: var(--px8); }
 /* жёсткая пиксельная тень отдельным слоем, а не filter: внутри всё время что-то движется */
 .services__shade { inset: 0; z-index: -2; background: var(--sh2); transform: translate(6px, 6px); pointer-events: none; }
@@ -61,20 +77,23 @@
 @keyframes services-roll { to { transform: translateY(460%); } }
 .services__flash { position: absolute; left: 0; right: 0; top: 50%; z-index: 4; height: 4px; margin-top: -2px; background: var(--accent); opacity: 0; pointer-events: none; }
 
-.services__say { grid-column: 1; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 6px 14px; padding-left: 4px; }
-.services__dname, .services__text { display: grid; }
+/* имя на всю ширину окна; описание оставляет справа место под кнопку ▼ */
+.services__say { grid-column: 1 / -1; grid-row: 2; display: grid; gap: 6px; padding-left: 4px; min-width: 0; }
+.services__dname, .services__text { display: grid; min-width: 0; }
 .services__dname > *, .services__text > * { grid-area: 1 / 1; }
 .services__ghost { visibility: hidden; }
-.services__dname { font: 700 clamp(20px, 1.85vw, 30px)/1.1 var(--font-pixel); color: var(--accent); white-space: nowrap; }
-.services__text { grid-column: 1 / -1; font: 400 clamp(16px, 1.22vw, 20px)/1.35 var(--font-pixel); color: var(--fg); }
-.services__caret { display: inline-block; width: .5em; height: 1em; margin-left: 3px; vertical-align: -.14em; background: var(--accent); animation: services-caret 1s steps(1) infinite; }
+.services__dname { font: 400 var(--fs-name)/1.125 var(--font-pixel); color: var(--accent); white-space: nowrap; }
+.services__text { font: 400 var(--fs-text)/1.375 var(--font-pixel); color: var(--fg); padding-right: 40px; }
+/* курсор не занимает места в строке (отрицательный отступ), поэтому никогда не переносится один на новую строку */
+.services__caret { display: inline-block; width: .5em; height: 1em; margin: 0 calc(-.5em - 4px) 0 4px; vertical-align: -.125em; background: var(--accent); animation: services-caret 1s steps(1) infinite; }
 @keyframes services-caret { 50% { opacity: 0; } }
-.services__pips { display: flex; gap: 5px; }
-.services__pips i { position: relative; width: 10px; height: 10px; background: color-mix(in oklab, var(--fg) 26%, var(--s1)); }
-.services__pips i.is-on { background: color-mix(in oklab, var(--fg) 45%, var(--s1)); }
+/* «каналы» в левом верхнем углу экрана: квадратик показанного пункта заполняется, пока идёт таймер */
+.services__pips { position: absolute; z-index: 2; top: calc(var(--pip) + 2px); left: calc(var(--pip) + 4px); display: flex; gap: calc(var(--pip) / 2); pointer-events: none; }
+.services__pips i { position: relative; width: var(--pip); height: var(--pip); background: color-mix(in oklab, var(--fg) 24%, var(--s0)); }
+.services__pips i.is-on { background: color-mix(in oklab, var(--fg) 42%, var(--s0)); }
 .services__pips b { position: absolute; inset: 0; background: var(--accent); transform: scaleX(0); transform-origin: 0 50%; }
 .services__pips i:not(.is-on) b { transform: scaleX(0) !important; }
-.services__next { grid-column: 2; grid-row: 2; align-self: end; display: grid; place-items: center; width: 36px; height: 36px; margin: 0 -4px -2px 0; color: var(--accent); }
+.services__next { grid-column: 2; grid-row: 2; z-index: 1; align-self: end; display: grid; place-items: center; width: 36px; height: 36px; margin: 0 -4px -2px 0; color: var(--accent); }
 .services__next svg { width: 18px; height: 10px; animation: services-bob .6s steps(1) infinite alternate; }
 @keyframes services-bob { to { transform: translateY(4px); } }
 .services__next:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; border-radius: 0; }
@@ -116,17 +135,17 @@
 
 /* чат */
 .svc-head { background: var(--s0); }
-.svc-bub { padding: 5px 7px; font: 400 11px/1.1 var(--font-pixel); white-space: nowrap; clip-path: var(--px2); }
+.svc-bub { padding: 5px 7px; font: 400 14px/1 var(--font-pixel); white-space: nowrap; clip-path: var(--px2); }
 .svc-bub--me { background: var(--accent); color: var(--s0); }
 .svc-bub--bot { background: var(--s0); color: var(--fg); }
-.svc-key { display: grid; place-items: center; border: 2px solid var(--fg); color: var(--fg); font: 400 10px/1 var(--font-pixel); clip-path: var(--px2); }
+.svc-key { display: grid; place-items: center; border: 2px solid var(--fg); color: var(--fg); font: 400 12px/1 var(--font-pixel); clip-path: var(--px2); }
 .svc-st .svc-dot { width: 4px; height: 4px; background: var(--fg); }
 .svc-st .svc-check { position: relative; display: inline-block; vertical-align: -1px; margin-left: 4px; }
 
 /* интерфейс */
 .svc-tg { border: 2px solid var(--fg); background: var(--s0); clip-path: var(--px2); }
 .svc-knob { background: var(--fg); }
-.svc-btn { display: grid; place-items: center; background: var(--accent); color: var(--s0); font: 700 11px/1 var(--font-pixel); clip-path: var(--px2); box-shadow: inset 0 -3px 0 color-mix(in oklab, var(--accent) 55%, var(--s2)); }
+.svc-btn { display: grid; place-items: center; background: var(--accent); color: var(--s0); font: 400 14px/1 var(--font-pixel); clip-path: var(--px2); box-shadow: inset 0 -3px 0 color-mix(in oklab, var(--accent) 55%, var(--s2)); }
 .svc-ghost { border: 2px solid var(--fg); clip-path: var(--px2); }
 .svc-box { border: 2px solid var(--fg); }
 
@@ -141,47 +160,46 @@
 /* игра */
 .svc-game__hit { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .svc-game__hit:focus-visible { outline: 2px solid var(--accent); outline-offset: -6px; border-radius: 0; }
-.svc-score { position: absolute; top: 10px; right: 12px; z-index: 1; display: flex; gap: 14px; font: 400 8px/1 var(--font-arcade); color: var(--accent); pointer-events: none; }
+.svc-score { position: absolute; top: calc(var(--pip) + 2px); right: calc(var(--pip) + 4px); z-index: 1; display: flex; gap: 14px; font: 400 8px/1 var(--font-arcade); color: var(--accent); pointer-events: none; }
 .svc-score span:first-child { color: var(--fg); }
-.svc-hint { position: absolute; left: 0; right: 0; bottom: 6%; z-index: 1; text-align: center; font: 400 13px/1 var(--font-pixel); color: var(--accent); pointer-events: none; animation: services-blink 1.4s steps(1) infinite; transition: opacity .2s; }
+.svc-hint { position: absolute; left: 0; right: 0; bottom: 6%; z-index: 1; text-align: center; font: 400 16px/1 var(--font-pixel); color: var(--accent); pointer-events: none; animation: services-blink 1.4s steps(1) infinite; transition: opacity .2s; }
 @keyframes services-blink { 72% { opacity: 0; } }
 .svc-hint.is-off { opacity: 0; animation: none; }
 
-@media (min-width: 1500px) and (min-height: 860px) {
-  .svc-score { font-size: 10px; top: 12px; right: 14px; }
-  .svc-hint { font-size: 16px; }
+/* номера пунктов: 16px рядом с пунктами в 32px, 8px рядом с пунктами в 24px и меньше */
+@media (min-width: 1280px), (max-width: 900px) and (min-width: 601px) {
+  .services { --fs-row: 32px; --fs-num: 16px; }
+  .services__row { grid-template-columns: 60px minmax(0, 1fr); }
+}
+@media (min-width: 1280px) and (min-height: 860px) {
+  .services { --pip: 10px; }
+  .svc-score { font-size: 16px; gap: 24px; }
+  .svc-hint { font-size: 24px; }
 }
 
 /* Узкие экраны: окно сверху, меню под ним */
+/* Узкие экраны: окно сверху, меню под ним; полоса выделения и окно кончаются на одной линии справа */
 @media (max-width: 900px) {
-  .services { --rowh: 52px; }
+  .services { --rowh: 52px; --fs-title: 56px; --fs-row: 32px; --fs-name: 32px; --fs-text: 24px; --pip: 10px; }
   .services__grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "title" "dialog" "menu"; row-gap: 18px; }
-  .services__title { font-size: clamp(34px, 7vw, 60px); }
-  .services__row { font-size: 22px; }
-  .services__dname { font-size: 24px; }
-  .services__text { font-size: 18px; }
-  .services__dialog { height: auto; grid-template-rows: auto auto; padding: 12px 12px 10px 14px; gap: 10px 8px; }
+  .services__dialog { height: auto; grid-template-rows: auto auto; padding: 12px 12px 10px 14px; gap: 10px 0; }
   .services__screen { height: clamp(140px, 36vw, 280px); }
-  .services__menu { width: 100%; max-width: 640px; }
+  .services__menu { width: 100%; }
 }
 @media (max-width: 600px) {
-  .services { --rowh: 42px; }
+  .services { --rowh: 42px; --fs-title: 48px; --fs-row: 24px; --fs-name: 24px; --fs-text: 16px; --pip: 8px; }
   .services__grid { row-gap: 16px; }
-  .services__title { font-size: clamp(34px, 10.4vw, 48px); }
   .services__menu { padding-left: 24px; }
   .services__marker { left: -24px; }
-  .services__row { grid-template-columns: 34px minmax(0, 1fr); font-size: 17px; }
-  .services__num { font-size: 8px; }
+  .services__btn { padding-right: 8px; }
+  .services__row { grid-template-columns: 32px minmax(0, 1fr); }
   .services__item.is-active .services__row { transform: translateX(6px); }
   .services__screen { height: clamp(136px, 48vw, 210px); }
-  .services__dname { font-size: 19px; }
-  .services__text { font-size: 15px; }
-  .services__pips { gap: 4px; }
-  .services__pips i { width: 8px; height: 8px; }
+  .services__say { gap: 4px; }
+  .services__text { padding-right: 36px; }
   .services__shade { transform: translate(4px, 4px); }
-  .svc-hint { font-size: 11px; bottom: 5%; }
+  .svc-hint { font-size: 16px; bottom: 5%; }
 }
 @media (max-width: 380px), (max-height: 700px) and (max-width: 600px) {
-  .services { --rowh: 38px; }
-  .services__row { font-size: 16px; }
+  .services { --rowh: 38px; --fs-title: 40px; --fs-row: 20px; }
 }
