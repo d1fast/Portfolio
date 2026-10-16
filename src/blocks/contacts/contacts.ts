@@ -67,6 +67,7 @@ export function init(root: HTMLElement) {
   let written = false;
   const reveal: number[] = [];
   let spans: [number, number][] = []; // на каком отрезке пути (в пикселях длины) пишется строка
+  let lineLeft: number[] = []; // левый край строк в координатах блока, меряется при раскладке
 
   // ---------- раскладка в координатах блока ----------
   let W = 0, H = 0;
@@ -93,10 +94,11 @@ export function init(root: HTMLElement) {
     const lb = lines.map(box);
     lb.forEach((b, i) => {
       const fs = parseFloat(getComputedStyle(title).fontSize);
-      const x0 = b.l + fs * 0.12, x1 = b.r - fs * 0.3, y = b.t + b.h * 0.46;
+      // самолётик идёт по низу строки: след ложится под буквы, а не зачёркивает их
+      const x0 = b.l + fs * 0.12, x1 = b.r - fs * 0.3, y = b.t + b.h * 0.8;
       if (i === 0) { pts.push([-90, y + fs * 0.5], [x0 - fs * 0.6, y + fs * 0.12]); }
       else {
-        const p = lb[i - 1], py = p.t + p.h * 0.46, pr = p.r - fs * 0.3;
+        const p = lb[i - 1], py = p.t + p.h * 0.8, pr = p.r - fs * 0.3;
         pts.push([pr + fs * 0.5, py + fs * 0.35], [(pr + x0) / 2, y + fs * 0.75], [x0 - fs * 0.5, y + fs * 0.2]);
       }
       const si = pts.length;
@@ -105,25 +107,28 @@ export function init(root: HTMLElement) {
       const ei = pts.length - 1;
       spans[i] = [measure(pts.slice(0, si + 1)), measure(pts.slice(0, ei + 1))];
       if (i === lb.length - 1) {
-        const exitY = Math.max(top, y - fs * 1.6);
-        pts.push([x1 + fs * 0.7, y - fs * 0.3], [Math.min(W + 120, x1 + fs * 2.6), exitY], [W + 140, exitY - 10]);
+        // уход одной плавной дугой вправо-вверх, без излома у края экрана
+        const exitY = Math.max(top, y - fs * 1.8);
+        pts.push([x1 + fs * 0.9, y - fs * 0.25], [W + 160, exitY]);
       }
     });
     setRoute(routes.write, pts);
+    lineLeft = lb.map((b) => b.l);
 
     // круг по экрану: под кнопками, вверх по просвету между колонками, над письмом, за письмо и прочь
     const L = box(links), F = box(letter), Hd = box(head);
     const footTop = box(footer).t;
     let ip: Pt[];
     if (!narrow) {
+      // широкая спокойная дуга: под кнопками, вверх по просвету между колонками, над письмом, нырок за письмо и прочь вправо
       const gx = (Hd.r + F.l) / 2;
-      const low = Math.min(footTop - 30, Math.max(L.b + 70, F.b - 20));
-      ip = [[-90, low + 20], [L.l + L.w * 0.35, low], [gx - 30, Math.min(low - 20, L.b + 20)], [gx, Hd.t + Hd.h * 0.4],
-        [gx + 24, Math.max(top + 30, F.t - 40)], [F.l + F.w * 0.45, Math.max(top + 20, F.t - 56)], [F.r - 40, F.t + F.h * 0.3],
-        [F.l + F.w * 0.4, Math.min(footTop - 24, F.b + 36)], [W + 120, Math.min(footTop - 30, F.b + 6)]];
+      const low = Math.min(footTop - 40, L.b + 80);
+      const over = Math.max(top + 24, F.t - 44);
+      ip = [[-90, low + 10], [L.l + L.w * 0.5, low], [Math.min(gx, F.l - 30), F.t + F.h * 0.5], [F.l + F.w * 0.2, over], [F.l + F.w * 0.62, over + 6],
+        [F.r - F.w * 0.12, F.t + F.h * 0.32], [F.r + (W - F.r) * 0.55, F.t + F.h * 0.62], [W + 120, F.t + F.h * 0.7]];
     } else {
-      // одна колонка: волна по просвету между кнопками и письмом, кнопок не касается
-      const y = (L.b + F.t) / 2, a = Math.max(0, Math.min(9, (F.t - L.b) / 2 - 26));
+      // одна колонка: волна по просвету между кнопкой и письмом, самолётик ныряет между слоями
+      const y = (L.b + F.t) / 2, a = 6;
       ip = [[-80, y + a]];
       for (let k = 1; k <= 5; k++) ip.push([(W * k) / 6, y + (k % 2 ? -a : a)]);
       ip.push([W + 80, y - a]);
@@ -171,7 +176,7 @@ export function init(root: HTMLElement) {
     const s = W < 761 ? 0.85 : 1;
     plane.setAttribute('transform', `translate(${(pt.x + dodge.x).toFixed(1)} ${(pt.y + dodge.y).toFixed(1)}) rotate(${ang.toFixed(1)}) scale(${s} ${(s * (1 - bank)).toFixed(3)})`);
     const from = Math.max(0, at - TAIL) / L * 100, to = fly.p * 100;
-    gsap.set(trail, { drawSVG: cur === routes.write ? '0% 0%' : `${from}% ${to}%` });
+    gsap.set(trail, { drawSVG: `${from}% ${to}%` });
     if (cur === routes.write) inkTitle(at, pt.x);
   };
 
@@ -181,7 +186,7 @@ export function init(root: HTMLElement) {
       const sp = spans[i]; if (!sp) return;
       let w = reveal[i] || 0;
       if (at >= sp[1]) w = 1e4;
-      else if (at > sp[0]) w = Math.max(w, x - l.getBoundingClientRect().left + root.getBoundingClientRect().left - 4);
+      else if (at > sp[0]) w = Math.max(w, x - (lineLeft[i] || 0) - 4);
       if (w !== reveal[i]) { reveal[i] = w; l.style.setProperty('--w', `${w.toFixed(0)}px`); }
     });
     // росчерк сразу после последней буквы
@@ -205,7 +210,7 @@ export function init(root: HTMLElement) {
     gsap.set(plane, { opacity: 1 });
     draw();
     flight = gsap.to(fly, { p: 1, duration, ease, onUpdate: draw, onComplete: () => {
-      if (cur !== routes.write) gsap.to(trail, { drawSVG: '100% 100%', duration: 0.6, ease: 'power2.in' });
+      gsap.to(trail, { drawSVG: '100% 100%', duration: 0.6, ease: 'power2.in' });
       gsap.set(plane, { opacity: 0 });
       done();
     } });
@@ -216,8 +221,9 @@ export function init(root: HTMLElement) {
   };
   const write = () => {
     if (!routes.write.len) { setTitle(true); swashed = true; swashIn.play(0); later = gsap.delayedCall(1, idle); return; }
-    const dur = gsap.utils.clamp(1.8, 3, routes.write.len / 640);
-    takeOff(routes.write, dur, 'sine.inOut', () => {
+    // ровная скорость: без разгона в середине и без торможения у края экрана
+    const dur = gsap.utils.clamp(2, 4.2, routes.write.len / 430);
+    takeOff(routes.write, dur, 'none', () => {
       setTitle(true);
       if (!swashed) { swashed = true; swashIn.play(0); }
       later = gsap.delayedCall(1.1, idle);
@@ -323,7 +329,9 @@ export function init(root: HTMLElement) {
     build();
     setTitle(false);
     gsap.set(plane, { opacity: 0 });
-    later = gsap.delayedCall(0.15, write);
+    // при переходе между блоками экран ещё открывается: самолётик стартует, когда шторка ушла
+    const veiled = !!document.querySelector('.stage-fx.is-on');
+    later = gsap.delayedCall(veiled ? 0.62 : 0.15, write);
     envelope.play(0.05);
     lead.play(0.5);
     btns.play(0.75);

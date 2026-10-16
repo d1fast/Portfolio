@@ -11,6 +11,7 @@
   --font-arcade: 'Press Start 2P', ui-monospace, monospace;  /* мелкие игровые подписи */
   --font-cond: 'Oswald', 'Arial Narrow', sans-serif;         /* работы: афиша, кино */
   --font-tech: 'Sofia Sans Condensed', 'Arial Narrow', sans-serif; /* как я работаю: надписи чертежа */
+  --font-letter: 'Lora', Georgia, serif;                     /* контакты: письмо, в пару к почерку */
 
   --text-base: clamp(16px, 1.05vw, 18px);
   --text-lg: clamp(18px, 1.5vw, 22px);

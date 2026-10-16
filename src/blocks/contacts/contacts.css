@@ -6,7 +6,11 @@
   --sky-deep: #7E99C2;
   --ink: var(--fg);
   display: flex; flex-direction: column;
+  /* к почерку заголовков книжная антиква: письмо, а не интерфейс */
+  font-family: var(--font-letter);
 }
+.contacts .btn, .contacts > .site-footer { font-family: var(--font-letter); }
+.contacts .btn { font-weight: 600; letter-spacing: .01em; }
 .block.contacts > .block__inner,
 html.stage-on .block.contacts > .block__inner { flex: 1 0 auto; min-height: 0; }
 .contacts > .site-footer { position: relative; z-index: 1; }
@@ -42,21 +46,9 @@ html.stage-on .block.contacts > .block__inner { flex: 1 0 auto; min-height: 0; }
 .contacts__lead { font-size: var(--text-lg); line-height: 1.4; max-width: 28ch; }
 .contacts__links { display: flex; flex-wrap: wrap; gap: 12px; }
 .contacts__links > .btn { flex: 1 1 auto; }
-.contacts__tg { gap: 12px; padding-left: 20px; }
-.contacts__tg-icon { width: 22px; height: 16px; flex: none; overflow: visible; }
-.contacts__tg-icon path { fill: currentColor; }
-.contacts__tg-icon path + path { opacity: .6; }
-@keyframes contacts-tg-fly {
-  0% { transform: translate(0, 0) rotate(0); opacity: 1; }
-  42% { transform: translate(26px, -22px) rotate(-14deg); opacity: 0; }
-  43% { transform: translate(-26px, 18px) rotate(-14deg); opacity: 0; }
-  100% { transform: translate(0, 0) rotate(0); opacity: 1; }
-}
-@media (hover: hover) and (pointer: fine) { .contacts__tg:hover .contacts__tg-icon { animation: contacts-tg-fly .7s var(--ease-out); } }
-.contacts__tg:focus-visible .contacts__tg-icon, .contacts__tg:active .contacts__tg-icon { animation: contacts-tg-fly .7s var(--ease-out); }
 .contacts__email { gap: 14px; max-width: 100%; }
-.contacts__email-addr { font-family: var(--font-mono); font-weight: 500; font-size: 14px; }
-.contacts__email-action { font: 600 11px/1 var(--font-mono); padding: 6px 8px; border-radius: var(--radius-sm); background: color-mix(in oklab, var(--ink) 12%, transparent); transition: background-color var(--dur-base), color var(--dur-base); }
+.contacts__email-addr { font-weight: 500; font-size: 15px; }
+.contacts__email-action { font: italic 500 13px/1 var(--font-letter); padding: 6px 8px; border-radius: var(--radius-sm); background: color-mix(in oklab, var(--ink) 12%, transparent); transition: background-color var(--dur-base), color var(--dur-base); }
 .contacts__email.is-copied .contacts__email-action, .contacts__email:hover .contacts__email-action { background: var(--bg); color: var(--ink); }
 
 /* письмо */
@@ -86,9 +78,9 @@ html.stage-on .block.contacts > .block__inner { flex: 1 0 auto; min-height: 0; }
 .contacts__postmark circle + circle { stroke-width: 1; }
 
 .field { position: relative; display: grid; gap: 4px; }
-.field__label { font: 500 13px/1.3 var(--font-body); color: color-mix(in oklab, var(--ink) 86%, var(--paper)); }
-.field__input { width: 100%; padding: 8px 0 9px; border: 0; border-bottom: 1.5px solid var(--line-strong); background: transparent; color: var(--ink); border-radius: 0; font-size: 16px; transition: border-color var(--dur-base); }
-.field__input::placeholder { color: color-mix(in oklab, var(--ink) 70%, var(--paper)); opacity: 1; }
+.field__label { font: 600 13.5px/1.3 var(--font-letter); color: color-mix(in oklab, var(--ink) 86%, var(--paper)); }
+.field__input { width: 100%; padding: 8px 0 9px; border: 0; border-bottom: 1.5px solid var(--line-strong); background: transparent; color: var(--ink); border-radius: 0; font: 400 16px/1.3 var(--font-letter); transition: border-color var(--dur-base); }
+.field__input::placeholder { color: color-mix(in oklab, var(--ink) 70%, var(--paper)); opacity: 1; font-style: italic; }
 .field__input:focus { outline: none; border-bottom-color: color-mix(in oklab, var(--ink) 20%, transparent); }
 .field__input[aria-invalid="true"] { border-bottom-color: var(--error); }
 /* разлинованный лист: последняя линейка и есть нижняя черта поля */
@@ -119,8 +111,8 @@ html.stage-on .block.contacts > .block__inner { flex: 1 0 auto; min-height: 0; }
 .contact-form__hint { flex: 1 1 190px; font-size: 13px; line-height: 1.35; color: color-mix(in oklab, var(--ink) 86%, var(--paper)); max-width: 30ch; }
 .contact-form__status { font: 600 22px/1.15 var(--font-hand); min-height: 1.15em; margin-top: -4px; }
 .contact-form__status:empty { min-height: 0; margin: 0; }
-.contact-form__status[data-kind="err"] { color: var(--error); font: 500 14px/1.4 var(--font-body); }
-.contact-form__fallback { display: flex; flex-wrap: wrap; gap: 4px 18px; font: 500 14px/1.4 var(--font-mono); margin-top: -8px; }
+.contact-form__status[data-kind="err"] { color: var(--error); font: 500 14px/1.4 var(--font-letter); }
+.contact-form__fallback { display: flex; flex-wrap: wrap; gap: 4px 18px; font: 500 14px/1.4 var(--font-letter); margin-top: -8px; }
 .contact-form__fallback a { border-bottom: 1.5px solid currentColor; padding-block: 10px 2px; }
 
 /* клапан конверта, сгибы и печать-наклейка */
@@ -154,21 +146,41 @@ html.stage-on .block.contacts > .block__inner { flex: 1 0 auto; min-height: 0; }
   .contacts__title.block__title, .contacts__title + .contacts__swash { font-size: clamp(60px, 11vw, 110px); }
   .contacts__letter { justify-self: start; max-width: 600px; }
 }
+/* телефон: весь блок с письмом и подвалом помещается в экран без прокрутки */
 @media (max-width: 760px) {
-  .contacts__grid { row-gap: 60px; padding-bottom: 12px; align-content: start; }
-  .contacts__title.block__title, .contacts__title + .contacts__swash { font-size: clamp(50px, 14.6vw, 96px); }
-  .contacts__lead { font-size: 18px; }
+  .contacts__grid { row-gap: clamp(18px, 3.4vh, 40px); padding-bottom: 10px; align-content: start; }
+  .contacts__head { gap: clamp(10px, 1.8vh, 18px); }
+  .contacts__sign { margin-bottom: 0; }
+  .contacts__title.block__title, .contacts__title + .contacts__swash { font-size: clamp(44px, min(13.4vw, 7.6vh), 96px); }
+  .contacts__lead { font-size: 16.5px; line-height: 1.35; }
   .contacts__links { width: 100%; }
-  .contact-form { padding: 16px 18px 20px; border-width: 7px; }
-  .contact-form__actions { flex-wrap: wrap; }
-  .contacts__postmark { width: 92px; right: 14px; }
+  .contacts__links .btn { min-height: 46px; }
+  .contact-form { gap: clamp(8px, 1.3vh, 14px); padding: 12px 16px 16px; border-width: 6px; }
+  .contact-form__top { min-height: 0; }
+  .contact-form__title { font-size: 27px; padding-top: 2px; }
+  .contacts__stamp { width: 40px; height: 46px; margin: -2px -2px 0 0; }
+  .contacts__postmark { width: 80px; right: 12px; top: 2px; }
+  .field { gap: 0; }
+  .field__input { padding: 6px 0 7px; }
+  .field__textarea { height: calc(2 * 28px + 2px); }
+  .consent { font-size: 13.5px; gap: 10px; }
+  .contact-form__actions { flex-wrap: wrap; padding-top: 0; }
+  .contact-form__send { min-height: 46px; }
+  .contacts > .site-footer { padding: 10px var(--gutter) 12px; font-size: 11.5px; flex-wrap: nowrap; gap: 12px; white-space: nowrap; }
+  html.stage-on .block.contacts > .block__inner, .block.contacts > .block__inner { padding-top: 64px; }
+}
+@media (max-width: 400px) {
+  .consent { font-size: 13px; }
+  .contacts > .site-footer { font-size: 11px; }
 }
 @media (max-width: 420px) {
   .contacts__links .btn { width: 100%; }
-  .contacts__email { white-space: normal; flex-wrap: wrap; height: auto; padding: 12px 18px; gap: 8px 12px; }
-  .contacts__email-addr { font-size: 13px; }
-  .contact-form__title { font-size: 28px; }
-  .contacts__postmark { width: 74px; right: 10px; }
+  .contacts__email { padding: 0 18px; gap: 12px; }
+  .contacts__email-addr { font-size: 14px; }
+}
+/* высокий телефон: письму можно дать третью строку */
+@media (max-width: 760px) and (min-height: 760px) {
+  .field__textarea { height: calc(3 * 28px + 2px); }
 }
 
 /* у темы акцент совпадает с текстом, поэтому заливка при наведении у главных кнопок бумажная
