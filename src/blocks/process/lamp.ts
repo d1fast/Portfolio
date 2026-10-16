@@ -202,10 +202,33 @@ export const CONE = `M${pt(FL)}L${pt(FR)}L${pt(add(FR, mul(rayR, RAY)))}L${pt(ad
 export const CONE_GRAD = { x1: r1(SF[0]), y1: r1(SF[1]), x2: r1(add(SF, mul(SD, 230))[0]), y2: r1(add(SF, mul(SD, 230))[1]) };
 export const RIM = `M${pt(FL)}L${pt(FR)}`;
 const poolX = (hit(FL, rayL)[0] + hit(FR, rayR)[0]) / 2;
-export const CHECK_C: P = [Math.round(poolX + 6), BENCH - 34];
-export const CHECK_R = 25;
+// галочка висит в луче на середине высоты, справа от лампочки
+export const CHECK_C: P = [Math.round(poolX - 10), BENCH - 124];
+export const CHECK_R = 29;
 export const CHECK_CIRCLE = circleD(CHECK_C, CHECK_R);
-export const CHECK_MARK = `M${pt(add(CHECK_C, [-11, 1]))}L${pt(add(CHECK_C, [-3, 9]))}L${pt(add(CHECK_C, [12, -8]))}`;
+export const CHECK_MARK = `M${pt(add(CHECK_C, [-13, 1]))}L${pt(add(CHECK_C, [-4, 10]))}L${pt(add(CHECK_C, [14, -9]))}`;
+export const CHECK_RING = circleD(CHECK_C, CHECK_R + 6);
+/** искры вокруг галочки: короткие лучи, вылетают наружу */
+export const SPARKS = Array.from({ length: 10 }, (_, i) => {
+  const a = (i / 10) * 360 + 9;
+  return `M${pt(add(CHECK_C, mul(dir(a), CHECK_R + 12)))}L${pt(add(CHECK_C, mul(dir(a), CHECK_R + (i % 2 ? 24 : 32))))}`;
+});
+
+/* ---------- включение: вспышка, лучи от лампочки, пятно света на столе, пылинки в луче ---------- */
+export const RAYS = Array.from({ length: 14 }, (_, i) => {
+  const a = (i / 14) * 360;
+  return `M${pt(add(BULB, mul(dir(a), BULB_R + 10)))}L${pt(add(BULB, mul(dir(a), BULB_R + (i % 2 ? 40 : 58))))}`;
+});
+const hitL = hit(FL, rayL)[0], hitR = hit(FR, rayR)[0];
+export const POOL = `M${r1(hitL - 10)} ${BENCH}A${r1((hitR - hitL) / 2 + 10)} 14 0 0 1 ${r1(hitR + 10)} ${BENCH}Z`;
+export const DUST: { x: number; y: number; r: number }[] = (() => {
+  const rnd = rng(7);
+  return Array.from({ length: 16 }, () => {
+    const along = 30 + rnd() * 230, side = (rnd() - 0.5) * (70 + along * 0.55);
+    const p = add(add(SF, mul(SD, along)), mul(SN, side));
+    return { x: r1(p[0]), y: r1(p[1]), r: r1(1.2 + rnd() * 1.6) };
+  });
+})();
 
 /* ---------- блики «полировки» ---------- */
 export const GLINTS = [
@@ -254,13 +277,13 @@ export const LABELS: { x: number; y: number; rot: number; text: string }[] = [
 /* ---------- вопросы и маршрут лупы ---------- */
 // вопросы стоят у деталей: у плеча, над плафоном, у края плафона, у подставки
 export const MARKS: P[] = [[158, 246], [416, 118], [470, 214], [296, 342]];
-// лупа идёт по линиям наброска и проходит над каждым вопросом (точки 0, 3, 5, 6)
-export const LENS_ROUTE: P[] = [[176, 244], [194, 196], [264, 154], [420, 136], [404, 212], [462, 206], [292, 340], [226, 334], [198, 290]];
+// лупа спокойно переходит от вопроса к вопросу и задерживается над каждым (стоянки рядом с вопросами 0, 1, 2, 3)
+export const LENS_STOPS: P[] = [[180, 238], [404, 142], [458, 214], [300, 330]];
 /** где может стоять центр лупы: стекло и ручка не заходят на мягкие края рисунка и не уходят под стол */
 export const LENS = { r: 46, minX: 172, minY: 134, maxY: 350, right: 622 };
 
 /* ---------- шестерня каретки ---------- */
-export function gear(teeth = 14, ro = 29, ri = 25, hole = 21) {
+export function gear(teeth = 14, ro = 29, ri = 25, hole = 0) {
   let d = '';
   const step = 360 / teeth;
   for (let i = 0; i < teeth; i++) {
@@ -272,5 +295,5 @@ export function gear(teeth = 14, ro = 29, ri = 25, hole = 21) {
     const next = [30 + ri * Math.cos((a + step * 0.72) * R), 30 + ri * Math.sin((a + step * 0.72) * R)] as P;
     d += `${i ? 'L' : 'M'}${pt(pts[0])}L${pt(pts[1])}L${pt(pts[2])}L${pt(pts[3])}A${ri} ${ri} 0 0 1 ${pt(next)}`;
   }
-  return `${d}Z${circleD([30, 30], hole)}`;
+  return hole ? `${d}Z${circleD([30, 30], hole)}` : `${d}Z`;
 }

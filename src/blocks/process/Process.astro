@@ -1,7 +1,7 @@
 ---
 import './process.css';
 import { t, type Lang } from '../../i18n';
-import { VB_X, VB_Y, VB_W, VB_H, SHAPES, SKETCH, ORDER, SPRING, CONE, CONE_GRAD, RIM, CHECK_CIRCLE, CHECK_MARK, GLINTS, AXES, DIMS, LABELS, MARKS, LENS, J0, J1, J2, gear } from './lamp';
+import { VB_X, VB_Y, VB_W, VB_H, SHAPES, SKETCH, ORDER, SPRING, CONE, CONE_GRAD, RIM, CHECK_CIRCLE, CHECK_MARK, CHECK_RING, SPARKS, RAYS, POOL, DUST, BULB, GLINTS, AXES, DIMS, LABELS, MARKS, LENS, J0, J1, J2, gear } from './lamp';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const d = t(lang);
@@ -26,10 +26,22 @@ const ui = { ru: { list: 'Шаги работы' }, en: { list: 'Work steps' } }
       <div class="process__draw" style={`--ar: ${VB_W - VB_X} / ${VB_H - VB_Y}`}>
         <svg class="process__svg" viewBox={`${VB_X} ${VB_Y} ${VB_W - VB_X} ${VB_H - VB_Y}`} preserveAspectRatio="xMidYMax meet" focusable="false" data-process-svg>
           <defs>
+            <!-- тёплый свет: на холодном сером фоне видно, что лампа горит -->
             <linearGradient id="process-light" gradientUnits="userSpaceOnUse" x1={CONE_GRAD.x1} y1={CONE_GRAD.y1} x2={CONE_GRAD.x2} y2={CONE_GRAD.y2}>
-              <stop offset="0" stop-color="#fff" stop-opacity=".95" />
-              <stop offset="1" stop-color="#fff" stop-opacity="0" />
+              <stop offset="0" stop-color="#FFE39A" stop-opacity=".95" />
+              <stop offset=".55" stop-color="#FFF1C9" stop-opacity=".55" />
+              <stop offset="1" stop-color="#FFF6DD" stop-opacity="0" />
             </linearGradient>
+            <radialGradient id="process-glow">
+              <stop offset="0" stop-color="#FFF8E2" stop-opacity="1" />
+              <stop offset=".35" stop-color="#FFE39A" stop-opacity=".8" />
+              <stop offset="1" stop-color="#FFE39A" stop-opacity="0" />
+            </radialGradient>
+            <radialGradient id="process-pool" cx=".5" cy="1" r=".75">
+              <stop offset="0" stop-color="#FFE39A" stop-opacity=".9" />
+              <stop offset="1" stop-color="#FFE39A" stop-opacity="0" />
+            </radialGradient>
+            <clipPath id="process-cone-clip"><path d={CONE} /></clipPath>
             <!-- блик полировки: косая светлая полоса едет вдоль градиента, детали залиты им поверх цвета -->
             <linearGradient id="process-shine-g" gradientUnits="userSpaceOnUse" x1="-35" y1="0" x2="35" y2="28" data-process-shine>
               <stop offset="0" stop-color="#fff" stop-opacity="0" />
@@ -79,6 +91,12 @@ const ui = { ru: { list: 'Шаги работы' }, en: { list: 'Work steps' } }
               <g class="pr-pivot" data-process-pivot2>
                 <g class="pr-nod" data-process-nod>
                   <path class="pr-cone" d={CONE} data-process-cone />
+                  <g clip-path="url(#process-cone-clip)">
+                    {DUST.map((p) => <circle class="pr-dust" cx={p.x} cy={p.y} r={p.r} data-process-dust />)}
+                  </g>
+                  <circle class="pr-glow" cx={BULB[0]} cy={BULB[1]} r="78" data-process-glow />
+                  <g class="pr-rays">{RAYS.map((p) => <path d={p} data-process-ray />)}</g>
+                  <circle class="pr-flash" cx={BULB[0]} cy={BULB[1]} r="60" data-process-flash />
                   <g class="pr-part" data-part="bulb"><path class="pr-bulb" d={SHAPES.bulb} data-process-bulb /></g>
                   <g class="pr-part" data-part="shade">
                     <path class="pr-shade" d={SHAPES.shade} />
@@ -96,6 +114,9 @@ const ui = { ru: { list: 'Шаги работы' }, en: { list: 'Work steps' } }
           </g>
 
           <!-- 4. готово -->
+          <path class="pr-pool" d={POOL} data-process-pool />
+          <path class="pr-ring" d={CHECK_RING} data-process-ring />
+          <g class="pr-sparks">{SPARKS.map((p) => <path d={p} data-process-spark />)}</g>
           <g class="pr-check" data-process-check>
             <path class="pr-check-c" d={CHECK_CIRCLE} data-process-check-c />
             <path class="pr-check-m" d={CHECK_MARK} data-process-check-m />
@@ -126,7 +147,7 @@ const ui = { ru: { list: 'Шаги работы' }, en: { list: 'Work steps' } }
 
     <div class="process__line" data-process-rail>
       <span class="process__track" aria-hidden="true"><i class="process__done" data-process-done></i><i class="process__prog" data-process-prog></i></span>
-      <span class="process__cart" aria-hidden="true" data-process-cart><svg viewBox="0 0 60 60" data-process-gear><path d={gear()} fill-rule="evenodd" /></svg></span>
+      <span class="process__cart" aria-hidden="true" data-process-cart><svg viewBox="0 0 60 60" data-process-gear><path d={gear()} /><circle class="process__hub" cx="30" cy="30" r="24" /></svg></span>
       <ol class="process__steps" aria-label={ui.list} data-process-list>
         {steps.map((s, i) => (
           <li class="process__step" class:list={[{ 'is-active': i === 0, 'is-here': i === 0 }]} data-process-step>

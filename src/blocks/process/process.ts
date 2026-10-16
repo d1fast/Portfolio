@@ -3,7 +3,7 @@ import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
 import { MorphSVGPlugin } from 'gsap/MorphSVGPlugin';
 import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
 import { watchBlock } from '../../scripts/block';
-import { J1, J2, BENCH, PLATE, MARKS, LENS, LENS_ROUTE, type P } from './lamp';
+import { J1, J2, BENCH, PLATE, MARKS, LENS, LENS_STOPS, type P } from './lamp';
 
 gsap.registerPlugin(DrawSVGPlugin, MorphSVGPlugin, ScrambleTextPlugin);
 
@@ -11,14 +11,16 @@ gsap.registerPlugin(DrawSVGPlugin, MorphSVGPlugin, ScrambleTextPlugin);
  * Как я работаю: сборочная линия. Лампа в центре проходит четыре поста:
  * 1 набросок с вопросами, лупа ищет ответы; 2 набросок выпрямляется в чертёж, рисуются размеры;
  * 3 детали прилетают и защёлкиваются; 4 лампа загорается, по ней пробегает блик, ставится галочка.
- * Шаги идут сами (переезд MOVE и DWELL секунд стоянки). Наведение, фокус или тап выбирают шаг и ставят на паузу;
+ * Шаги идут сами (переезд MOVE и DWELL[шаг] секунд стоянки). Наведение, фокус или тап выбирают шаг и ставят на паузу;
  * пока мышь двигается над рисунком (лупа и лампа следят за ней), шаги тоже стоят.
  */
-const DWELL = 3.5;
+// на первом шаге лупа обходит все вопросы, на четвёртом лампа включается: им нужно больше времени
+const DWELL = [5.6, 3.6, 3.6, 5.2];
 const MOVE = 0.95;
 const N = 4;
 const ZOOM = 1.3; // увеличение в лупе
-const LAP = 3.4; // круг лупы по наброску, за стоянку она успевает пройти все вопросы
+const HOLD = 0.4; // столько лупа стоит над вопросом
+const WARM = '#FFE7A0';
 const IDLE = 3; // через столько секунд без движения мыши над рисунком шаги идут дальше
 const HANDLE = Math.hypot(68, 68); // длина ручки лупы от центра
 const DEG = Math.PI / 180;
@@ -55,6 +57,14 @@ export function init(root: HTMLElement) {
   const shine = one<SVGLinearGradientElement>('[data-process-shine]');
   const SHINE_OFF = { x1: -35, x2: 35 };
   const spring = one<SVGPathElement>('[data-process-spring]');
+  const bulb = one<SVGPathElement>('[data-process-bulb]');
+  const flash = one<SVGCircleElement>('[data-process-flash]');
+  const glow = one<SVGCircleElement>('[data-process-glow]');
+  const rays = q<SVGPathElement>('[data-process-ray]');
+  const dust = q<SVGCircleElement>('[data-process-dust]');
+  const pool = one<SVGPathElement>('[data-process-pool]');
+  const ring = one<SVGPathElement>('[data-process-ring]');
+  const sparks = q<SVGPathElement>('[data-process-spark]');
   const check = one<SVGGElement>('[data-process-check]');
   const checkC = one<SVGPathElement>('[data-process-check-c]');
   const checkM = one<SVGPathElement>('[data-process-check-m]');
@@ -103,7 +113,9 @@ export function init(root: HTMLElement) {
   gsap.set(nod, { svgOrigin: `${J2[0]} ${J2[1]}` });
   gsap.set(snaps, { transformOrigin: '50% 50%' });
   gsap.set(allMarks, { transformOrigin: '50% 50%' });
-  gsap.set(check, { transformOrigin: '50% 50%' });
+  gsap.set([check, ring], { transformOrigin: '50% 50%' });
+  gsap.set(flash, { transformOrigin: '50% 50%' });
+  gsap.set(lamp, { svgOrigin: `${PLATE.x + PLATE.w / 2} ${BENCH}` });
   gsap.set(['.pr-blue', '.pr-sketch', '.pr-lens', '.pr-check'].map((s) => one(s)), { opacity: 1 });
   // лампа на ленте качается на заднем по ходу углу подставки, а не тонет в линейке: две обёртки, у каждой свой угол
   const tipL = one<SVGGElement>('[data-process-tip="l"]');
@@ -170,25 +182,28 @@ export function init(root: HTMLElement) {
   }
   const unhideMarks = () => marks.forEach((m) => { m.style.fillOpacity = ''; });
 
-  /* лупа: идёт по замкнутому маршруту над линиями наброска, мышь может перехватить её */
-  const L = { t: 0, k: 0, w: 0, mx: 360, my: 220 };
-  const RN = LENS_ROUTE.length;
-  const seg = LENS_ROUTE.map((p, i) => Math.hypot(LENS_ROUTE[(i + 1) % RN][0] - p[0], LENS_ROUTE[(i + 1) % RN][1] - p[1]));
-  const routeLen = seg.reduce((a, b) => a + b, 0);
-  // кривая Катмулла — Рома через точки маршрута; участки по длине, чтобы скорость была ровной
-  const route = (t: number): P => {
-    let f = (((t % 1) + 1) % 1) * routeLen, i = 0;
-    while (i < RN - 1 && f > seg[i]) { f -= seg[i]; i++; }
-    const u = f / seg[i];
-    const pt = (k: number) => LENS_ROUTE[(i + k + RN) % RN];
-    const p0 = pt(-1), p1 = pt(0), p2 = pt(1), p3 = pt(2);
-    const c = (a: number, b: number, c2: number, d: number) => 0.5 * (2 * b + (-a + c2) * u + (2 * a - 5 * b + 4 * c2 - d) * u * u + (-a + 3 * b - 3 * c2 + d) * u * u * u);
-    return [c(p0[0], p1[0], p2[0], p3[0]), c(p0[1], p1[1], p2[1], p3[1])];
+  /* лупа: плавно переходит от вопроса к вопросу по замкнутой кривой и задерживается над каждым; мышь может перехватить её */
+  const L = { s: 0, k: 0, w: 0, mx: 360, my: 220 };
+  const SN = LENS_STOPS.length;
+  // центростремительная кривая Катмулла — Рома через стоянки: без петель и выбросов за поля рисунка
+  const route = (s: number): P => {
+    const n = ((Math.floor(s) % SN) + SN) % SN, u = s - Math.floor(s);
+    const p = (k: number) => LENS_STOPS[(n + k + SN) % SN];
+    const P0 = p(-1), P1 = p(0), P2 = p(1), P3 = p(2);
+    const kn = (a: P, b: P) => Math.sqrt(Math.hypot(b[0] - a[0], b[1] - a[1])) || 1e-3;
+    const t1 = kn(P0, P1), t2 = t1 + kn(P1, P2), t3 = t2 + kn(P2, P3);
+    const t = t1 + (t2 - t1) * u;
+    const lerp = (a: P, b: P, ta: number, tb: number): P => { const w = (t - ta) / (tb - ta); return [a[0] + (b[0] - a[0]) * w, a[1] + (b[1] - a[1]) * w]; };
+    const A1 = lerp(P0, P1, 0, t1), A2 = lerp(P1, P2, t1, t2), A3 = lerp(P2, P3, t2, t3);
+    const B1 = lerp(A1, A2, 0, t2), B2 = lerp(A2, A3, t1, t3);
+    return lerp(B1, B2, t1, t2);
   };
+  // время перехода зависит от расстояния: короткие шаги не дёргаются, длинные не тянутся
+  const SEG = LENS_STOPS.map((p, i) => { const q2 = LENS_STOPS[(i + 1) % SN]; return 0.5 + Math.hypot(q2[0] - p[0], q2[1] - p[1]) / 380; });
   const START: P = [150, -70];
   let lensOn = false;
   function lensRender() {
-    const [rx, ry] = route(L.t);
+    const [rx, ry] = route(L.s);
     let x = START[0] + (rx - START[0]) * L.k, y = START[1] + (ry - START[1]) * L.k;
     x += (L.mx - x) * L.w; y += (L.my - y) * L.w;
     lens.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)})`);
@@ -206,13 +221,15 @@ export function init(root: HTMLElement) {
   const tick = (on: boolean) => { if (on && !ticking) gsap.ticker.add(lensRender); if (!on && ticking) gsap.ticker.remove(lensRender); ticking = on; };
   function lensShow(delay: number) {
     lensOn = true;
-    L.t = 0; L.k = 0;
+    L.s = 0; L.k = 0;
     gsap.set(lens, { opacity: 0 });
     lensRender();
     tick(true);
-    to(lens, { opacity: 1, duration: 0.3, delay });
-    to(L, { k: 1, duration: 0.9, ease: 'power3.out', delay });
-    to(L, { t: 1, duration: LAP, ease: 'none', repeat: -1, delay: delay + 0.35 });
+    to(lens, { opacity: 1, duration: 0.35, delay });
+    to(L, { k: 1, duration: 1.1, ease: 'power2.inOut', delay });
+    // обход: переход с мягким разгоном и торможением, стоянка над вопросом; круг замкнут, повтор без рывка
+    const walk = tl({ delay: delay + 1.1 + HOLD, repeat: -1 });
+    SEG.forEach((d, i) => { walk.to(L, { s: i + 1, duration: d, ease: 'sine.inOut' }); walk.to({}, { duration: HOLD }); });
   }
   function lensHide() {
     lensOn = false;
@@ -284,7 +301,7 @@ export function init(root: HTMLElement) {
   }
   const stowNow = () => {
     KEYS.forEach((k) => gsap.set(parts[k], { ...AWAY[k], opacity: 0 }));
-    gsap.set(lamp, { x: 0, opacity: 1 });
+    gsap.set(lamp, { x: 0, opacity: 1, scaleX: 1, scaleY: 1 });
     gsap.set([tipL, tipR], { rotation: 0 });
   };
   /** деталей на этом шаге нет: если что-то ещё видно (прерванный разлёт или отъезд), гаснет, потом всё на исходные */
@@ -307,33 +324,56 @@ export function init(root: HTMLElement) {
     later(0.78, stowNow);
   }
 
-  /* ---------- 4: свет, блики, галочка ---------- */
+  /* ---------- 4: лампа включается. Моргает, вспыхивает, светит тёплым, в луче плывут пылинки, в свет падает галочка ---------- */
+  const lit = [cone, check, glow, pool, flash, ring, ...glints, ...rays, ...sparks, ...dust];
   function polish(on: boolean, delay = 0) {
     if (!on) {
-      to([cone, check, ...glints], { opacity: 0, duration: 0.3 });
+      to(lit, { opacity: 0, duration: 0.3 });
       to(nod, { rotation: 0, duration: 0.4 });
+      to(bulb, { fill: '#fff', duration: 0.3 });
       gsap.set(shine, { attr: SHINE_OFF });
       return;
     }
-    // лампа моргает и загорается
-    gsap.set(cone, { opacity: 0 });
-    const flick = tl({ delay });
-    [0.85, 0.15, 0.6, 0.1, 1].forEach((o) => flick.to(cone, { opacity: o, duration: 0.14, ease: 'none' }));
-    glints.forEach((g, i) => to(g, { opacity: 0.6, duration: 0.5, delay: delay + 0.3 + i * 0.08 }));
-    // блик проходит по всей лампе, потом повторяется
+    gsap.set(lit, { opacity: 0 });
     gsap.set(shine, { attr: SHINE_OFF });
-    to(shine, { attr: { x1: 525, x2: 595 }, duration: 1.3, ease: 'sine.inOut', delay: delay + 0.55, repeat: -1, repeatDelay: 2 });
-    // галочка в пятне света
-    gsap.set(check, { opacity: 1, scale: 1 });
-    gsap.set(checkC, { fillOpacity: 0, drawSVG: '0%' });
-    gsap.set(checkM, { drawSVG: '0%' });
-    to(checkC, { drawSVG: '100%', duration: 0.5, ease: 'power2.inOut', delay: delay + 0.75 });
-    to(checkC, { fillOpacity: 1, duration: 0.25, delay: delay + 1.15 });
-    to(checkM, { drawSVG: '100%', duration: 0.35, ease: 'power3.out', delay: delay + 1.3 });
-    tl({ delay: delay + 1.3 }).to(check, { scale: 1.18, duration: 0.16, ease: 'power2.out' }).to(check, { scale: 1, duration: 0.3, ease: 'power2.inOut' });
-    // плафон чуть кивает
-    to(nod, { rotation: 0, duration: 0.4 });
-    to(nod, { rotation: -4, duration: 1.6, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: delay + 1.6 });
+    const t = tl({ delay });
+    // щелчок: плафон чуть приседает, лампочка моргает
+    t.to(nod, { rotation: 3, duration: 0.22, ease: 'power2.out' }, 0);
+    [0.55, 0.05, 0.75, 0.1].forEach((o, i) => {
+      t.to(cone, { opacity: o, duration: 0.08, ease: 'none' }, 0.22 + i * 0.11);
+      t.to(bulb, { fill: o > 0.3 ? WARM : '#fff', duration: 0.08, ease: 'none' }, 0.22 + i * 0.11);
+    });
+    // вспышка: свет бьёт кругом, лучи разлетаются, лампа подпрыгивает от толчка
+    const B = 0.7;
+    t.set([cone, glow], { opacity: 1 }, B)
+      .set(bulb, { fill: WARM }, B)
+      .fromTo(flash, { opacity: 1, scale: 0.4 }, { opacity: 0, scale: 4.2, duration: 1.1, ease: 'expo.out' }, B)
+      .fromTo(rays, { opacity: 1, drawSVG: '0% 0%' }, { drawSVG: '0% 100%', duration: 0.3, ease: 'power3.out', stagger: 0.012 }, B)
+      .to(rays, { drawSVG: '100% 100%', duration: 0.45, ease: 'power2.in', stagger: 0.012 }, B + 0.3)
+      .set(rays, { opacity: 0 }, B + 0.95)
+      .to(nod, { rotation: -3, duration: 0.7, ease: 'elastic.out(1, .35)' }, B)
+      .to(lamp, { scaleY: 0.955, scaleX: 1.025, duration: 0.09, ease: 'power2.out' }, B)
+      .to(lamp, { scaleY: 1, scaleX: 1, duration: 0.6, ease: 'elastic.out(1.1, .3)' }, B + 0.09)
+      .fromTo(glow, { scale: 0.6, transformOrigin: '50% 50%' }, { scale: 1, duration: 0.6, ease: 'power3.out' }, B)
+      .to(pool, { opacity: 1, duration: 0.5, ease: 'power2.out' }, B + 0.05);
+    dust.forEach((p, i) => t.to(p, { opacity: 0.55 + (i % 3) * 0.15, duration: 0.6 }, B + 0.25 + i * 0.04));
+    // галочка появляется в свете и отпечатывается: кольцо расходится, искры разлетаются
+    const C = B + 0.5;
+    gsap.set(checkC, { drawSVG: '100%', fillOpacity: 1 });
+    t.fromTo(check, { opacity: 1, scale: 0, rotation: -120 }, { scale: 1, rotation: 0, duration: 0.5, ease: 'back.out(2.2)' }, C)
+      .fromTo(checkM, { drawSVG: '0%' }, { drawSVG: '100%', duration: 0.32, ease: 'power3.out' }, C + 0.36)
+      .fromTo(ring, { opacity: 0.9, scale: 0.9 }, { opacity: 0, scale: 2.1, duration: 0.8, ease: 'power2.out' }, C + 0.42)
+      .fromTo(sparks, { opacity: 1, drawSVG: '0% 0%' }, { drawSVG: '0% 100%', duration: 0.22, ease: 'power3.out' }, C + 0.42)
+      .to(sparks, { drawSVG: '100% 100%', duration: 0.35, ease: 'power2.in' }, C + 0.64)
+      .set(sparks, { opacity: 0 }, C + 1)
+      .to(check, { scale: 1.12, duration: 0.14, ease: 'power2.out' }, C + 0.42)
+      .to(check, { scale: 1, duration: 0.4, ease: 'elastic.out(1, .4)' }, C + 0.56);
+    glints.forEach((g, i) => t.to(g, { opacity: 0.6, duration: 0.5 }, B + 0.3 + i * 0.08));
+    // потом жизнь: блик бежит по лампе, пылинки плывут в луче, свет дышит, плафон покачивается
+    to(shine, { attr: { x1: 525, x2: 595 }, duration: 1.3, ease: 'sine.inOut', delay: delay + B + 0.6, repeat: -1, repeatDelay: 2.2 });
+    dust.forEach((p, i) => to(p, { x: gsap.utils.random(-8, 8), y: -gsap.utils.random(10, 26), duration: gsap.utils.random(2.2, 3.6), ease: 'sine.inOut', yoyo: true, repeat: -1, delay: delay + B + (i % 5) * 0.2 }));
+    to(glow, { opacity: 0.75, duration: 1.4, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: delay + B + 1 });
+    to(nod, { rotation: -6, duration: 1.8, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: delay + B + 1.4 });
   }
 
   /* ---------- лента под лампой едет, собранная лампа качается на заднем углу подставки ---------- */
@@ -413,7 +453,7 @@ export function init(root: HTMLElement) {
   function startTimer(delay: number) {
     timer?.kill();
     progBox(cur);
-    timer = gsap.fromTo(prog, { scaleX: 0 }, { scaleX: 1, duration: DWELL, ease: 'none', delay, paused: holds.size > 0,
+    timer = gsap.fromTo(prog, { scaleX: 0 }, { scaleX: 1, duration: DWELL[cur], ease: 'none', delay, paused: holds.size > 0,
       onComplete: () => { if (isOn()) go(cur + 1); } });
   }
 
@@ -567,7 +607,7 @@ export function init(root: HTMLElement) {
     if (fine.matches && list.matches(':hover')) holds.add('hover');
     tick(false);
     lensOn = false; partsOn = false; sk = 'off'; cur = -1;
-    killEach([...lines, ...allMarks, ...ink, ...partEls, spring, lamp, tipL, tipR, nod, cone, ...glints, shine, check, checkC, checkM, ...snaps, lens, L, beltP, belt, roll, ...says, cart, done, prog]);
+    killEach([...lines, ...allMarks, ...ink, ...partEls, spring, lamp, tipL, tipR, nod, ...lit, bulb, shine, checkC, checkM, ...snaps, lens, L, beltP, belt, roll, ...says, cart, done, prog]);
     gsap.killTweensOf(gear, 'rotation,scale');
     lines.forEach((l) => { l.setAttribute('d', l.dataset.sketch!); clearDash(l); });
     gsap.set(lines, { opacity: 0, stroke: FG, strokeWidth: 2.2 });
@@ -575,7 +615,7 @@ export function init(root: HTMLElement) {
     unhideMarks();
     gsap.set(allMarks, { scale: 0, opacity: 0 });
     gsap.set(lens, { opacity: 0 });
-    Object.assign(L, { t: 0, k: 0, w: 0 });
+    Object.assign(L, { s: 0, k: 0, w: 0 });
     lastXY = [-1, -1];
     restoreLabels();
     gsap.set(dims, { drawSVG: '0%' });
@@ -584,7 +624,9 @@ export function init(root: HTMLElement) {
     clearDash(spring);
     gsap.set(nod, { rotation: 0 });
     makeLook();
-    gsap.set([cone, check, ...glints], { opacity: 0 });
+    gsap.set(lit, { opacity: 0 });
+    gsap.set(dust, { x: 0, y: 0 });
+    gsap.set(bulb, { fill: '#fff' });
     gsap.set(shine, { attr: SHINE_OFF });
     gsap.set(snaps, { opacity: 0 });
     beltP.v = 0; gsap.set(belt, { x: -60 });
