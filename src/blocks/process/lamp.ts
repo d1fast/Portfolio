@@ -57,7 +57,7 @@ const circleD = (c: P, r: number) => `M${pt([c[0] - r, c[1]])}A${r} ${r} 0 1 1 $
 const rrectD = (x: number, y: number, w: number, h: number, r: number) =>
   `M${pt([x + r, y])}H${r1(x + w - r)}A${r} ${r} 0 0 1 ${pt([x + w, y + r])}V${r1(y + h - r)}A${r} ${r} 0 0 1 ${pt([x + w - r, y + h])}H${r1(x + r)}A${r} ${r} 0 0 1 ${pt([x, y + h - r])}V${r1(y + r)}A${r} ${r} 0 0 1 ${pt([x + r, y])}Z`;
 
-const PLATE = { x: 132, y: 388, w: 164, h: 16, r: 8 };
+export const PLATE = { x: 132, y: 388, w: 164, h: 16, r: 8 };
 const DOME_A: P = [158, 388];
 const DOME_B: P = [270, 388];
 const DOME_C1: P = [166, 356];
@@ -252,8 +252,12 @@ export const LABELS: { x: number; y: number; rot: number; text: string }[] = [
 ].map((l) => ({ ...l, x: r1(l.x), y: r1(l.y) }));
 
 /* ---------- вопросы и маршрут лупы ---------- */
-export const MARKS: P[] = [[152, 236], [448, 112], [566, 262], [336, 330]];
-export const LENS_ROUTE: P[] = [[152, 236], [240, 116], [448, 112], [566, 262], [336, 330], [204, 318]];
+// вопросы стоят у деталей: у плеча, над плафоном, у края плафона, у подставки
+export const MARKS: P[] = [[158, 246], [416, 118], [470, 214], [296, 342]];
+// лупа идёт по линиям наброска и проходит над каждым вопросом (точки 0, 3, 5, 6)
+export const LENS_ROUTE: P[] = [[176, 244], [194, 196], [264, 154], [420, 136], [404, 212], [462, 206], [292, 340], [226, 334], [198, 290]];
+/** где может стоять центр лупы: стекло и ручка не заходят на мягкие края рисунка и не уходят под стол */
+export const LENS = { r: 46, minX: 172, minY: 134, maxY: 350, right: 622 };
 
 /* ---------- шестерня каретки ---------- */
 export function gear(teeth = 14, ro = 29, ri = 25, hole = 21) {

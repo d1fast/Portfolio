@@ -10,9 +10,14 @@
   --tt: clamp(40px, min(5vw, 8vh), 84px);
   --rg: clamp(14px, 2.4vh, 28px);
   --caph: 58px;
-  --tick-fs: clamp(18px, 2.2vw, 30px);
-  --tick-h: calc(var(--tick-fs) + 25px);
+  --tick-h: clamp(40px, 6vh, 56px);
   --pb: clamp(14px, 3vh, 32px);
+  /* афиша: подзаголовок и низ (титры, билет); по ним считается, сколько высоты остаётся названию */
+  --tag-fs: clamp(17px, 1.4vw, 22px);
+  --tag-m: clamp(18px, 3.2vh, 34px);
+  --bot-gap: clamp(14px, 2.2vh, 24px);
+  --cred-h: 66px;
+  --tkt-h: 52px;
 }
 /* бегущая строка стоит в потоке под содержимым: если блоку придётся прокручиваться, она ничего не закроет */
 .block.works > .works__inner { min-height: calc(100dvh - var(--tick-h)); }
@@ -104,12 +109,12 @@ html.stage-on .block.works > .works__inner { min-height: calc(100% - var(--tick-
 .works__poster { grid-area: poster; display: flex; flex-direction: column; min-width: 0; container-type: inline-size; }
 .works__name { font: 600 clamp(44px, 25cqi, 168px)/.86 var(--font-cond); letter-spacing: -.005em; text-transform: uppercase; margin-top: -.06em; }
 .works__name .ln { transform-origin: 50% 100%; }
-.works__tag { margin-top: clamp(16px, 2.8vh, 30px); font: 300 clamp(17px, 1.4vw, 22px)/1.3 var(--font-cond); color: var(--muted); max-width: 32ch; text-wrap: pretty; }
-.works__bottom { display: grid; justify-items: start; gap: clamp(14px, 2.2vh, 24px); margin-top: auto; padding-top: clamp(14px, 2.2vh, 24px); }
-.works__credits { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 5px 16px; font: 400 12.5px/1.45 var(--font-mono); }
-.works__credits > div { display: contents; }
-.works__credits dt { font-size: 11px; line-height: 1.65; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
-.works__credits dd { color: var(--fg); }
+/* у узкого названия ножки «Д» свисают ниже строки: отступ подзаголовка это учитывает */
+.works__tag { margin-top: var(--tag-m); font: 300 var(--tag-fs)/1.3 var(--font-cond); color: var(--muted); max-width: 32ch; text-wrap: balance; }
+.works__bottom { display: grid; justify-items: start; align-items: end; gap: var(--bot-gap); margin-top: auto; padding-top: var(--bot-gap); }
+/* титры без подписей «год/роль/стек»: значения говорят сами за себя, подписи остаются для экранного диктора */
+.works__credits { display: grid; gap: 5px; font: 400 12.5px/1.45 var(--font-mono); color: var(--fg); }
+.works__year dd { color: var(--accent); letter-spacing: .08em; }
 
 /* Билет в кино: корешок отделён пунктиром линии отрыва, по краям линии вырезы */
 .works__ticket { display: inline-flex; height: 52px; color: var(--bg); border-radius: 4px; }
@@ -118,49 +123,67 @@ html.stage-on .block.works > .works__inner { min-height: calc(100% - var(--tick-
 .works__ticket-label { display: grid; font: 500 17px/1 var(--font-cond); letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
 .works__ticket-label > * { grid-area: 1 / 1; }
 .works__ticket-ghost { visibility: hidden; }
-.works__ticket-stub { position: relative; display: grid; place-items: center; width: 52px; border-radius: 0 4px 4px 0; transform-origin: 0 100%; transition: transform .5s var(--ease-out);
-  background: radial-gradient(circle at 0 0, var(--bg) 6px, transparent 6.5px), radial-gradient(circle at 0 100%, var(--bg) 6px, transparent 6.5px), var(--accent); }
+.works__ticket-stub { position: relative; display: grid; place-items: center; width: 52px; border-radius: 0 4px 4px 0; transform-origin: 0 100%; transition: transform .5s var(--ease-out); background: var(--accent); }
 .works__ticket-stub::before { content: ''; position: absolute; left: 0; top: 9px; bottom: 9px; border-left: 2px dashed var(--bg); }
+.works__ticket-stub::after { content: ''; position: absolute; inset: 0; pointer-events: none; transition: opacity .3s var(--ease-out);
+  background: radial-gradient(circle at 0 0, var(--bg) 6px, transparent 6.5px), radial-gradient(circle at 0 100%, var(--bg) 6px, transparent 6.5px); }
 .works__ticket-stub svg { width: 18px; height: 18px; transition: transform .45s var(--ease-out); }
 .works__ticket:active .works__ticket-main, .works__ticket:active .works__ticket-stub { filter: brightness(.92); }
 .works__ticket:focus-visible { outline-offset: 4px; }
 @media (hover: hover) and (pointer: fine) {
-  .works__ticket:hover .works__ticket-stub { transform: translate(3px, 1px) rotate(9deg); }
+  /* корешок надрывается: отходит и чуть поворачивается, вырезы остаются на билете */
+  .works__ticket:hover .works__ticket-stub { transform: translate(4px, 1px) rotate(5deg); }
+  .works__ticket:hover .works__ticket-stub::after { opacity: 0; }
   .works__ticket:hover .works__ticket-stub svg { transform: translate(2px, -2px); }
 }
 
-/* ---------- бегущая строка ---------- */
-.works__ticker { position: relative; z-index: 1; height: var(--tick-h); display: flex; align-items: center; border-top: 1px solid var(--line); overflow: clip; pointer-events: none; }
-.works__tickin { width: 100%; }
-.works__track { display: flex; width: max-content; font: 500 var(--tick-fs)/1 var(--font-cond); letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; color: color-mix(in oklab, var(--fg) 34%, var(--bg)); animation: works-ticker var(--tick-dur, 40s) linear infinite; }
-.works__tick-half { display: flex; }
-.works__tick-item { display: inline-flex; align-items: center; }
-.works__tick-item em { font-style: normal; font-weight: 300; }
-.works__mark { width: .62em; height: .42em; margin: 0 .7em; border: 2px solid currentColor; border-radius: .12em; }
+/* ---------- лента внизу: те же кадры бегут контактной плёнкой, текущий кадр светится ---------- */
+.works__ticker { position: relative; z-index: 1; height: var(--tick-h); overflow: clip; pointer-events: none; background: var(--film); }
+.works__tickin { height: 100%; }
+.works__track { display: flex; width: max-content; height: 100%; animation: works-ticker var(--tick-dur, 60s) linear infinite; }
+.works__tick-half { display: flex; height: 100%; }
+/* клетка ленты: кадр и по четыре окошка перфорации сверху и снизу, поэтому лента склеивается без шва */
+.works__cell { --pr: calc(var(--tick-h) * .22); flex: none; display: block; height: 100%; padding: var(--pr) 3px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 10' preserveAspectRatio='none'%3E%3Crect x='6' y='2.5' width='8' height='5' rx='1.4' fill='%23F1F1F1' fill-opacity='.14'/%3E%3C/svg%3E") 0 0 / 25% var(--pr) repeat-x,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 10' preserveAspectRatio='none'%3E%3Crect x='6' y='2.5' width='8' height='5' rx='1.4' fill='%23F1F1F1' fill-opacity='.14'/%3E%3C/svg%3E") 0 100% / 25% var(--pr) repeat-x; }
+.works__cell img { display: block; height: calc(var(--tick-h) - 2 * var(--pr)); width: auto; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 1px; opacity: .3; filter: grayscale(.5); transition: opacity .6s var(--ease-out), filter .6s var(--ease-out); }
+.works__cell.is-cur img { opacity: .85; filter: none; }
 @keyframes works-ticker { to { transform: translate3d(-50%, 0, 0); } }
 .works:not(.is-on) .works__track, .works:not(.is-on) .works__grain, .works:not(.is-on) .works__scratch { animation-play-state: paused; }
 
 /* ---------- раскладки ---------- */
-/* ПК и планшет в альбомной: окно слева, афиша справа. Ширина окна ограничена и шириной, и высотой экрана. */
-@media (min-width: 980px) {
+/* ПК и альбомный планшет: окно слева, афиша справа. Ширина окна ограничена и шириной, и высотой экрана.
+   Афиша не растягивает ряд (container-type: size), её высоту задаёт окно, и название подбирает кегль
+   по ширине и по оставшейся высоте, чтобы на невысоких ноутбуках всё входило в экран. */
+@media (min-width: 980px), (min-width: 761px) and (orientation: landscape) {
+  .block.works > .works__inner { max-width: clamp(1480px, 88vw, 2000px); }
   .works__inner {
     --reserve: calc(var(--header-h) + 24px + var(--tt) * .9 + var(--rg) + 2 * var(--perf) + var(--caph) + var(--pb) + var(--tick-h) + 6px);
-    grid-template-columns: minmax(0, min(60%, max(360px, calc((100dvh - var(--reserve)) * 16 / 9 + 2 * var(--side))))) minmax(0, 1fr);
+    grid-template-columns: minmax(0, min(62%, max(360px, calc((100dvh - var(--reserve)) * 16 / 9 + 2 * var(--side))))) minmax(0, 1fr);
     grid-template-areas: "title title" "reel poster";
     column-gap: clamp(32px, 4vw, 72px);
   }
-  .works__poster { padding-bottom: var(--caph); }
+  .works__poster { container: wposter / size; padding-bottom: var(--caph); }
+  .works__name {
+    --rest: calc(var(--tag-m) + 2.6 * var(--tag-fs) + 2 * var(--bot-gap) + var(--cred-h) + var(--tkt-h) + 6px);
+    font-size: clamp(40px, min(25cqi, (100cqh - var(--rest)) / 1.74), 168px);
+  }
+  /* широкая афиша: титры и билет в один ряд, названию остаётся больше высоты */
+  @container wposter (min-width: 540px) {
+    .works__bottom { grid-auto-flow: column; justify-content: start; column-gap: clamp(28px, 3vw, 48px); }
+    .works__name { --rest: calc(var(--tag-m) + 2.6 * var(--tag-fs) + var(--bot-gap) + max(var(--cred-h), var(--tkt-h)) + 6px); }
+  }
 }
-/* узкий ПК: окно ниже афиши, поэтому афиша занимает высоту окна вместе с подписью */
-@media (min-width: 980px) and (max-width: 1199px) {
+/* узкий ПК и альбомный планшет: окно ниже афиши, поэтому афиша занимает высоту окна вместе с подписью */
+@media (min-width: 980px) and (max-width: 1199px), (min-width: 761px) and (max-width: 979px) and (orientation: landscape) {
   .works__inner { grid-template-columns: minmax(0, min(57%, max(360px, calc((100dvh - var(--reserve)) * 16 / 9 + 2 * var(--side))))) minmax(0, 1fr); }
+  .works { --tag-fs: 17px; }
   .works__poster { padding-bottom: 0; }
-  .works__name { font-size: clamp(44px, 22cqi, 168px); }
-  .works__tag { font-size: 17px; }
+  .works__name { font-size: clamp(40px, min(22cqi, (100cqh - var(--rest)) / 1.74), 168px); }
 }
 
 /* Планшет в портретной: окно во всю ширину, под ним афиша в две колонки */
-@media (min-width: 761px) and (max-width: 979px) {
+@media (min-width: 761px) and (max-width: 979px) and (orientation: portrait) {
   .works { --tt: clamp(48px, 7.5vw, 68px); }
   .works__reel { justify-self: center; width: min(100%, max(420px, calc((100dvh - 560px) * 16 / 9 + 2 * var(--side)))); }
   .works__poster { display: grid; grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr); column-gap: 32px; align-items: start; container-type: normal; }
@@ -177,9 +200,9 @@ html.stage-on .block.works > .works__inner { min-height: calc(100% - var(--tick-
     --tt: clamp(36px, 11vw, 46px);
     --rg: clamp(12px, 1.9vh, 18px);
     --caph: auto;
-    --tick-fs: 17px;
     --tick-h: 40px;
     --pb: 14px;
+    --tag-fs: 17px;
   }
   .works__cap { grid-template-columns: auto 1fr; grid-template-areas: "count seg" "text text"; row-gap: 6px; padding-top: 10px; }
   .works__counter { grid-area: count; }
@@ -188,23 +211,23 @@ html.stage-on .block.works > .works__inner { min-height: calc(100% - var(--tick-
   .works__captions { grid-area: text; }
   .works__caption { font-size: 12px; }
   .works__poster { margin-top: 6px; }
-  .works__name { font-size: clamp(48px, min(22cqi, 9vh), 96px); }
-  .works__tag { font-size: 17px; max-width: none; }
+  .works__name { font-size: clamp(48px, min(22cqi, 8.5vh), 96px); }
+  .works__tag { margin-top: 20px; max-width: none; }
   .works__bottom { gap: 14px; padding-top: 14px; }
-  .works__credits { font-size: 12px; gap: 3px 14px; }
+  .works__credits { font-size: 12px; gap: 3px; }
   .works__ticket { height: 48px; }
   .works__ticket-stub { width: 48px; }
 }
 /* Невысокий телефон (или широкий относительно высоты): всё чуть плотнее, чтобы блок помещался без прокрутки */
 @media (max-width: 760px) and (max-height: 780px), (max-width: 760px) and (min-aspect-ratio: 10/21) {
-  .works { --rg: 10px; --tick-h: 36px; --tick-fs: 16px; --pb: 12px; --tt: clamp(34px, 10vw, 42px); }
+  .works { --rg: 10px; --tick-h: 36px; --pb: 12px; --tt: clamp(34px, 10vw, 42px); --tag-fs: 16px; }
   .works__inner { padding-top: calc(var(--header-h) + 10px); }
   .works__cap { padding-top: 8px; row-gap: 4px; }
   .works__poster { margin-top: 6px; }
   .works__name { font-size: clamp(44px, min(22cqi, 7.6vh), 96px); }
-  .works__tag { margin-top: 12px; font-size: 16px; }
+  .works__tag { margin-top: 16px; }
   .works__bottom { gap: 12px; padding-top: 12px; }
-  .works__credits { gap: 2px 14px; }
+  .works__credits { gap: 2px; }
   .works__ticket { height: 44px; }
   .works__ticket-stub { width: 44px; }
 }
@@ -213,5 +236,39 @@ html.stage-on .block.works > .works__inner { min-height: calc(100% - var(--tick-
   .works__captions { display: none; }
   .works__cap { row-gap: 0; }
   .works__name { font-size: clamp(42px, min(20cqi, 7vh), 96px); }
-  .works__tag { margin-top: 10px; }
+  .works__tag { margin-top: 14px; }
+}
+
+/* Телефон в альбомной и любой очень низкий экран: окно слева во всю высоту, справа заголовок и афиша */
+@media (min-width: 600px) and (max-height: 500px) {
+  .works { --perf: 12px; --side: 5px; --tt: 28px; --rg: 8px; --caph: 34px; --tick-h: 30px; --pb: 10px;
+    --tag-fs: 14px; --tag-m: 11px; --bot-gap: 8px; --cred-h: 52px; --tkt-h: 38px; }
+  .block.works > .works__inner { max-width: none; }
+  .works__inner {
+    --reserve: calc(var(--header-h) + 10px + 2 * var(--perf) + var(--caph) + var(--pb) + var(--tick-h) + 4px);
+    padding-top: calc(var(--header-h) + 10px);
+    grid-template-columns: minmax(0, min(58%, calc((100dvh - var(--reserve)) * 16 / 9 + 2 * var(--side)))) minmax(0, 1fr);
+    /* строка заголовка фиксирована, поэтому вторая строка получает ровно высоту окна, и билет встаёт по его низу */
+    grid-template-rows: calc(var(--tt) * .9) auto;
+    grid-template-areas: "reel title" "reel poster";
+    column-gap: 28px;
+    row-gap: 8px;
+  }
+  .works__reel { grid-row: 1 / span 2; }
+  .works__title { align-self: start; }
+  .works__cap { grid-template-columns: auto 1fr; grid-template-areas: "count seg"; padding-top: 8px; row-gap: 0; }
+  .works__counter { grid-area: count; }
+  .works__seg { grid-area: seg; justify-self: end; margin-top: 0; }
+  .works__seg-btn { width: 30px; height: 22px; }
+  .works__captions { display: none; }
+  .works__poster { display: flex; container: wposter / size; padding-bottom: 0; margin-top: 0; }
+  .works__name { --rest: calc(var(--tag-m) + 2.6 * var(--tag-fs) + 2 * var(--bot-gap) + var(--cred-h) + var(--tkt-h) + 6px);
+    grid-row: auto; font-size: clamp(26px, min(15cqi, (100cqh - var(--rest)) / 1.74), 64px); }
+  .works__tag { max-width: none; }
+  .works__bottom { grid-auto-flow: row; margin-top: auto; }
+  .works__credits { font-size: 11px; gap: 1px; }
+  .works__ticket { height: var(--tkt-h); }
+  .works__ticket-main { padding: 0 16px; }
+  .works__ticket-label { font-size: 15px; }
+  .works__ticket-stub { width: var(--tkt-h); }
 }

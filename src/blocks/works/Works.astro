@@ -16,16 +16,15 @@ const slug = w ? w.id.split('/')[0] : '';
 const href = `${base}${langPrefix(lang)}/work/${slug}/`;
 const nn = (n: number) => String(n).padStart(2, '0');
 
-// Кадры плёнки: горизонтальные скриншоты из media. Если в public/blocks/works/ лежит своя копия кадра
-// (например, без надписи приложения в углу), берётся она. Маленькая версия -800 идёт в srcset, если есть.
+// Кадры плёнки: горизонтальные скриншоты из media. Маленькая версия -800 идёт в srcset, если есть.
 const has = (p: string) => fs.existsSync(path.join(process.cwd(), 'public', p));
-const own = (src: string) => { const p = `/blocks/works/${src.split('/').pop()}`; return has(p) ? p : src; };
 const stills = (w?.data.media ?? []).filter((m) => !m.portrait && m.kind === 'image').map((m) => {
-  const src = own(m.src);
+  const src = m.src;
   const small = src.replace(/\.webp$/, '-800.webp');
   return {
     src: base + src,
     srcset: has(small) ? `${base + small} 800w, ${base + src} 1600w` : undefined,
+    thumb: base + (has(small) ? small : src),
     alt: m.alt,
     caption: m.caption ?? '',
   };
@@ -36,7 +35,6 @@ const ui = {
   ru: { reel: 'Кадры проекта', carousel: 'карусель', frame: 'Кадр', of: 'из', role: 'Роль' },
   en: { reel: 'Project stills', carousel: 'carousel', frame: 'Frame', of: 'of', role: 'Role' },
 }[lang];
-const tick = Array.from({ length: 6 });
 ---
 <section class="block block--works works" id="works" data-theme="works" data-block="works">
   <div class="block__inner container works__inner">
@@ -45,20 +43,20 @@ const tick = Array.from({ length: 6 });
     {w && (
       <div class="works__reel" role="group" aria-roledescription={ui.carousel} aria-label={ui.reel} data-works-reel>
         <i class="works__glow" aria-hidden="true" data-works-glow></i>
-        <div class="works__gate" data-works-gate data-drag>
+        <div class="works__gate" data-works-gate>
           <div class="works__perf" aria-hidden="true"><i data-works-perf></i></div>
-          <a class="works__frame" href={href} tabindex="-1" transition:name={`work-${slug}`} data-works-media>
+          <a class="works__frame" href={href} tabindex="-1" draggable="false" transition:name={`work-${slug}`} data-works-media>
             <span class="works__stills">
               {stills.map((s, i) => (
-                <img class:list={['works__still', { 'is-active': i === 0 }]} src={s.src} srcset={s.srcset} sizes="(min-width: 980px) 58vw, 100vw" alt={s.alt} width="1600" height="900" loading="lazy" decoding="async" aria-hidden={i === 0 ? undefined : 'true'} data-works-still />
+                <img class:list={['works__still', { 'is-active': i === 0 }]} src={s.src} srcset={s.srcset} sizes="(min-width: 980px) 58vw, 100vw" alt={s.alt} width="1600" height="900" loading="lazy" decoding="async" draggable="false" aria-hidden={i === 0 ? undefined : 'true'} data-works-still />
               ))}
             </span>
             <span class="works__fx" aria-hidden="true">
+              <i class="works__flash" data-works-flash></i>
               <i class="works__blade works__blade--t" data-works-blade></i>
               <i class="works__blade works__blade--b" data-works-blade></i>
               <i class="works__bar" data-works-bar></i>
               <i class="works__leak" data-works-leak></i>
-              <i class="works__flash" data-works-flash></i>
               <i class="works__grain"></i>
               <i class="works__scratch"></i>
               <i class="works__vignette"></i>
@@ -93,9 +91,9 @@ const tick = Array.from({ length: 6 });
         <p class="works__tag" data-works-tag>{w.data.subtitle}</p>
         <div class="works__bottom">
           <dl class="works__credits" data-works-credits>
-            <div><dt>{d.works.year}</dt><dd>{w.data.year}</dd></div>
-            <div><dt>{ui.role}</dt><dd>{w.data.role}</dd></div>
-            <div><dt>{d.works.stack}</dt><dd>{w.data.stack.join(', ')}</dd></div>
+            <div class="works__year"><dt class="visually-hidden">{d.works.year}</dt><dd>{w.data.year}</dd></div>
+            <div><dt class="visually-hidden">{ui.role}</dt><dd>{w.data.role}</dd></div>
+            <div><dt class="visually-hidden">{d.works.stack}</dt><dd>{w.data.stack.join(', ')}</dd></div>
           </dl>
           <a class="works__ticket" href={href} data-magnetic="0.18" data-works-open>
             <span class="works__ticket-main" data-works-ticket>
@@ -114,7 +112,7 @@ const tick = Array.from({ length: 6 });
       <div class="works__tickin" data-works-tickin>
         <div class="works__track" data-works-track>
           {[0, 1].map(() => (
-            <span class="works__tick-half">{tick.map(() => <span class="works__tick-item">{w.data.title}<i class="works__mark"></i><em>{w.data.year}</em><i class="works__mark"></i></span>)}</span>
+            <span class="works__tick-half">{stills.map((s, i) => <span class="works__cell" data-works-cell={i}><img src={s.thumb} alt="" width="160" height="90" decoding="async" draggable="false" /></span>)}</span>
           ))}
         </div>
       </div>

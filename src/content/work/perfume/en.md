@@ -14,9 +14,9 @@ media:
   - src: /work/perfume/planet-rose.webp
     alt: The Rose planet up close with its note card
     caption: Tap a planet and the camera flies in while the note card opens.
-  - src: /work/perfume/results.webp
-    alt: The "Similar fragrances" window with match percentages
-    caption: Similar fragrances matched against the chosen notes, with a match percentage.
+  - src: /work/perfume/planet-sandalwood.webp
+    alt: The Sandalwood planet up close with the "Your fragrance" panel
+    caption: Each planet is baked into a texture from a map, noise and the colour of its note.
   - src: /work/perfume/side.webp
     alt: The system seen almost edge-on
     caption: Edge-on view with the asteroid belt, tier labels and the Sun's glow.

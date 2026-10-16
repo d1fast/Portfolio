@@ -1,7 +1,7 @@
 ---
 import './process.css';
 import { t, type Lang } from '../../i18n';
-import { VB_X, VB_Y, VB_W, VB_H, SHAPES, SKETCH, ORDER, SPRING, CONE, CONE_GRAD, RIM, CHECK_CIRCLE, CHECK_MARK, GLINTS, AXES, DIMS, LABELS, MARKS, J0, J1, J2, gear } from './lamp';
+import { VB_X, VB_Y, VB_W, VB_H, SHAPES, SKETCH, ORDER, SPRING, CONE, CONE_GRAD, RIM, CHECK_CIRCLE, CHECK_MARK, GLINTS, AXES, DIMS, LABELS, MARKS, LENS, J0, J1, J2, gear } from './lamp';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const d = t(lang);
@@ -36,7 +36,7 @@ const ui = { ru: { list: 'Шаги работы' }, en: { list: 'Work steps' } }
               <stop offset=".5" stop-color="#fff" stop-opacity=".8" />
               <stop offset="1" stop-color="#fff" stop-opacity="0" />
             </linearGradient>
-            <clipPath id="process-lens-clip"><circle r="46" /></clipPath>
+            <clipPath id="process-lens-clip"><circle r={LENS.r} /></clipPath>
           </defs>
 
           <!-- 2. чертёж: осевые и размеры -->
@@ -47,13 +47,17 @@ const ui = { ru: { list: 'Шаги работы' }, en: { list: 'Work steps' } }
           </g>
 
           <!-- 1–2. набросок, который потом становится чистым контуром -->
-          <g id="process-sk" class="pr-sketch">
-            {ORDER.map((k) => <path class="pr-line" d={SKETCH[k]} data-clean={SHAPES[k]} data-sketch={SKETCH[k]} data-process-line />)}
+          <g class="pr-sketch">
+            <g id="process-sk-lines">
+              {ORDER.map((k) => <path class="pr-line" d={SKETCH[k]} data-clean={SHAPES[k]} data-sketch={SKETCH[k]} data-process-line />)}
+            </g>
             {MARKS.map((m) => <text class="pr-mark" x={m[0]} y={m[1]} data-process-mark>?</text>)}
           </g>
 
           <!-- 3–4. детали лампы -->
           <g class="pr-lamp" data-process-lamp>
+            <!-- лампа качается на ленте: вперёд на левом углу подставки, назад на правом -->
+            <g data-process-tip="l"><g data-process-tip="r">
             <g class="pr-part" data-part="base">
               <path class="pr-solid" d={SHAPES.plate} />
               <path class="pr-solid" d={SHAPES.dome} />
@@ -88,6 +92,7 @@ const ui = { ru: { list: 'Шаги работы' }, en: { list: 'Work steps' } }
               <g class="pr-part pr-joint" data-part="j1"><path d={SHAPES.j1} /><path class="pr-slot" d={`M${J1[0] - 6} ${J1[1]}H${J1[0] + 6}`} /></g>
             </g>
             <g class="pr-part pr-joint" data-part="j0"><path d={SHAPES.j0} /><path class="pr-slot" d={`M${J0[0] - 6} ${J0[1]}H${J0[0] + 6}`} /></g>
+            </g></g>
           </g>
 
           <!-- 4. готово -->
@@ -101,12 +106,17 @@ const ui = { ru: { list: 'Шаги работы' }, en: { list: 'Work steps' } }
             {[J0, J1, J2].map((j) => <g class="pr-snap" transform={`translate(${j[0]} ${j[1]})`}>{[0, 60, 120, 180, 240, 300].map((a) => <path d="M0 -17V-24" transform={`rotate(${a})`} />)}</g>)}
           </g>
 
-          <!-- 1. лупа: внутри увеличенная копия наброска -->
+          <!-- 1. лупа: внутри увеличенная копия наброска и свои копии вопросов -->
           <g class="pr-lens" data-process-lens>
-            <path class="pr-lens-handle" d="M33 33L68 68" />
-            <circle class="pr-lens-glass" r="46" />
-            <g clip-path="url(#process-lens-clip)"><use href="#process-sk" data-process-lens-view /></g>
-            <circle class="pr-lens-rim" r="46" />
+            <path class="pr-lens-handle" d="M33 33L68 68" data-process-lens-handle />
+            <circle class="pr-lens-glass" r={LENS.r} />
+            <g clip-path="url(#process-lens-clip)">
+              <g data-process-lens-view>
+                <use href="#process-sk-lines" />
+                {MARKS.map((m) => <text class="pr-mark" x={m[0]} y={m[1]} data-process-lens-mark>?</text>)}
+              </g>
+            </g>
+            <circle class="pr-lens-rim" r={LENS.r} />
             <path class="pr-lens-glare" d="M-31 -13A34 34 0 0 1 -12 -32" />
           </g>
         </svg>
@@ -119,7 +129,7 @@ const ui = { ru: { list: 'Шаги работы' }, en: { list: 'Work steps' } }
       <span class="process__cart" aria-hidden="true" data-process-cart><svg viewBox="0 0 60 60" data-process-gear><path d={gear()} fill-rule="evenodd" /></svg></span>
       <ol class="process__steps" aria-label={ui.list} data-process-list>
         {steps.map((s, i) => (
-          <li class="process__step" class:list={[{ 'is-active': i === 0 }]} data-process-step>
+          <li class="process__step" class:list={[{ 'is-active': i === 0, 'is-here': i === 0 }]} data-process-step>
             <button class="process__btn" type="button" aria-pressed={i === 0 ? 'true' : 'false'} data-process-btn>
               <span class="process__node" aria-hidden="true" data-process-node>{nn(i + 1)}</span>
               <span class="process__name">{s.title}</span>
