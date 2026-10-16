@@ -12,6 +12,7 @@
   --font-cond: 'Oswald', 'Arial Narrow', sans-serif;         /* работы: афиша, кино */
   --font-tech: 'Sofia Sans Condensed', 'Arial Narrow', sans-serif; /* как я работаю: надписи чертежа */
   --font-letter: 'Lora', Georgia, serif;                     /* контакты: письмо, в пару к почерку */
+  --font-game: 'Tektur', system-ui, sans-serif;              /* что делаю: пункты меню и окно диалога */
 
   --text-base: clamp(16px, 1.05vw, 18px);
   --text-lg: clamp(18px, 1.5vw, 22px);
@@ -36,7 +37,7 @@
   /* Пары цветов блоков */
   --wine: #3F1521;      --powder: #9DB3D3;
   --forest: #013E37;    --butter: #FFEFB3;
-  --cherry: #5C0E2B;    --matcha: #C6DBA2;
+  --cherry: #5C0E2B;    --matcha: #C9DDA6;
   --charcoal: #21262B;  --chalk: #F1F1F1;  --steel: #A9B4C0;  --slate: #5F7389;
   --concrete: #EEF0F2;
 
@@ -55,7 +56,7 @@
 /* Темы. Селектор без :root, чтобы работал и на <html>, и на самом блоке. */
 [data-theme="hero"]     { --bg: var(--wine);     --fg: var(--powder);   --accent: #E7EEF7;        --accent-fg: var(--wine);     --focus: var(--powder);  --error: #FFB4A8; }
 [data-theme="about"]    { --bg: var(--butter);   --fg: var(--forest);   --accent: var(--forest);  --accent-fg: var(--butter);   --focus: var(--forest);  --error: #8A1400; }
-[data-theme="services"] { --bg: var(--cherry);   --fg: var(--matcha);   --accent: #EAF5D6;        --accent-fg: var(--cherry);   --focus: var(--matcha);  --error: #FFB4A8; }
+[data-theme="services"] { --bg: var(--matcha);   --fg: var(--cherry);   --accent: #C8174F;        --accent-fg: var(--matcha);   --focus: var(--cherry);  --error: #8A1400; }
 [data-theme="works"]    { --bg: var(--charcoal); --fg: var(--chalk);    --accent: var(--steel);   --accent-fg: var(--charcoal); --focus: var(--chalk);   --error: #FFB4A8; }
 [data-theme="process"]  { --bg: var(--concrete); --fg: var(--charcoal); --accent: var(--slate);   --accent-fg: var(--concrete); --focus: var(--charcoal);--error: #B3230D; }
 [data-theme="contacts"] { --bg: var(--powder);   --fg: var(--wine);     --accent: var(--wine);    --accent-fg: var(--powder);   --focus: var(--wine);    --error: #8A1400; }
