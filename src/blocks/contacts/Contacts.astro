@@ -107,8 +107,8 @@ const planeKeel = 'M18 0 L-7 1';
           <span class="consent__text">{d.contacts.consent} <a href={policyHref}>{d.contacts.consentLink}</a></span>
         </label>
         <div class="contact-form__actions">
-          <button class="btn btn--primary contact-form__send" type="submit" data-magnetic="0.2">{hasEndpoint ? d.contacts.submit : d.contacts.submitTelegram}</button>
-          {!hasEndpoint && <p class="contact-form__hint">{d.contacts.telegramHint}</p>}
+          <button class="btn btn--primary contact-form__send" type="submit" data-magnetic="0.2" aria-describedby={hasEndpoint ? undefined : 'cf-hint'}>{hasEndpoint ? d.contacts.submit : d.contacts.submitTelegram}</button>
+          {!hasEndpoint && <p class="contact-form__hint visually-hidden" id="cf-hint">{d.contacts.telegramHint}</p>}
         </div>
         <p class="contact-form__status" id="cf-status" data-form-status role="status" aria-live="polite"></p>
         <p class="contact-form__fallback" data-form-fallback hidden>

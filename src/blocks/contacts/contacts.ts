@@ -129,6 +129,7 @@ export function init(root: HTMLElement) {
       ip.push([W + 80, y - a]);
     }
     setRoute(routes.idle, ip);
+    if (flight && cur) trail.setAttribute('d', cur.el.getAttribute('d') || '');
     draw();
   };
   let raf = 0;
@@ -170,7 +171,7 @@ export function init(root: HTMLElement) {
     const s = W < 761 ? 0.85 : 1;
     plane.setAttribute('transform', `translate(${(pt.x + dodge.x).toFixed(1)} ${(pt.y + dodge.y).toFixed(1)}) rotate(${ang.toFixed(1)}) scale(${s} ${(s * (1 - bank)).toFixed(3)})`);
     const from = Math.max(0, at - TAIL) / L * 100, to = fly.p * 100;
-    gsap.set(trail, { drawSVG: `${from}% ${to}%` });
+    gsap.set(trail, { drawSVG: cur === routes.write ? '0% 0%' : `${from}% ${to}%` });
     if (cur === routes.write) inkTitle(at, pt.x);
   };
 
@@ -204,7 +205,7 @@ export function init(root: HTMLElement) {
     gsap.set(plane, { opacity: 1 });
     draw();
     flight = gsap.to(fly, { p: 1, duration, ease, onUpdate: draw, onComplete: () => {
-      gsap.to(trail, { drawSVG: '100% 100%', duration: 0.6, ease: 'power2.in' });
+      if (cur !== routes.write) gsap.to(trail, { drawSVG: '100% 100%', duration: 0.6, ease: 'power2.in' });
       gsap.set(plane, { opacity: 0 });
       done();
     } });
@@ -232,7 +233,7 @@ export function init(root: HTMLElement) {
 
   // ---------- вход ----------
   // росчерк открывается маской слева направо: у линии non-scaling-stroke, drawSVG с ней врёт
-  const hid = 'inset(-20px 100% -20px -20px)', shown = 'inset(-20px -20px -20px -20px)';
+  const hid = 'inset(-20px 100% -20px 0px)', shown = 'inset(-20px -20px -20px -20px)';
   const swashIn = wrap(gsap.timeline({ paused: true })
     .fromTo(swash[0], { clipPath: hid }, { clipPath: shown, duration: 0.55, ease: 'power2.inOut' })
     .fromTo(swash[1], { clipPath: hid }, { clipPath: shown, duration: 0.4, ease: 'power2.out' }, '-=0.1'));
@@ -242,8 +243,8 @@ export function init(root: HTMLElement) {
   const foot = rise(footer, { y: 0, duration: 0.8 });
   const envelope = wrap(gsap.timeline({ paused: true })
     .fromTo(letter, { y: 70, rotation: -3, opacity: 0 }, { y: 0, rotation: 0, opacity: 1, duration: 0.9, ease: 'expo.out' }, 0)
-    .fromTo(flap, { opacity: 1, rotationX: 0, transformPerspective: 1100 }, { rotationX: 172, duration: 0.85, ease: 'power3.inOut' }, 0.55)
-    .to(flap, { opacity: 0, duration: 0.25, ease: 'power1.in' }, 1.12)
+    .fromTo(flap, { opacity: 1, rotationX: 0, transformPerspective: 1100 }, { rotationX: 90, duration: 0.55, ease: 'power2.in' }, 0.55)
+    .to(flap, { opacity: 0, duration: 0.2, ease: 'power1.in' }, 0.85)
     .fromTo(folds, { opacity: 1 }, { opacity: 0, duration: 0.4 }, 0.7)
     .fromTo(items, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'expo.out', stagger: 0.055 }, 0.9)
     .fromTo(postmark, { scale: 1.8, opacity: 0, rotation: -24 }, { scale: 1, opacity: 0.8, rotation: -8, duration: 0.26, ease: 'power4.in' }, 1.45)
@@ -301,6 +302,17 @@ export function init(root: HTMLElement) {
       .fromTo(letter, { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: 'expo.out', immediateRender: false })
       .fromTo(items, { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.04, ease: 'expo.out', clearProps: 'opacity,transform', immediateRender: false }, '<0.2');
   };
+  // ошибка формы снимается, как только её исправили: появился текст или стоит галочка
+  const msgField = form.querySelector<HTMLTextAreaElement>('[name="message"]');
+  const consentBox = form.querySelector<HTMLInputElement>('[name="consent"]');
+  const clearErr = (el: HTMLElement | null, ok: boolean) => {
+    if (!el || !ok || el.getAttribute('aria-invalid') !== 'true') return;
+    el.removeAttribute('aria-invalid'); el.removeAttribute('aria-describedby');
+    if (status.dataset.kind === 'err') { status.textContent = ''; status.dataset.kind = ''; }
+  };
+  msgField?.addEventListener('input', () => clearErr(msgField, msgField.value.trim().length >= 3));
+  consentBox?.addEventListener('change', () => clearErr(consentBox, consentBox.checked));
+
   new MutationObserver(() => {
     const kind = status.dataset.kind;
     if (kind === 'ok' && root.classList.contains('is-on') && !sending) sendOff();
