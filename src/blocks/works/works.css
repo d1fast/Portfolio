@@ -129,7 +129,8 @@
   background: radial-gradient(50% 100% at 50% 0%, rgb(255 214 150 / .25), transparent 75%); }
 
 /* экран */
-.works__screenbox { grid-row: 2; position: relative; z-index: 1; margin-inline: calc(var(--stage-w) * (var(--leg) - .015)); }
+/* экран чуть уже проёма между собранными шторами: края кадра не прячутся под ткань */
+.works__screenbox { grid-row: 2; position: relative; z-index: 1; margin-inline: calc(var(--stage-w) * (var(--leg) + .012)); }
 .works__screen { position: relative; display: block; aspect-ratio: 16 / 9; overflow: hidden; color: var(--fg); touch-action: pan-y;
   background: #0B0C0E; box-shadow: 0 0 0 3px #050607, 0 0 calc(var(--lit) * 60px) calc(var(--lit) * 6px) color-mix(in oklab, var(--amb) 22%, transparent); }
 .works__screen:focus-visible { outline-offset: 4px; }
@@ -212,7 +213,9 @@ html.js .works__fold { transform: translateX(calc(var(--i) * 74.07%)); }
 .works__seg-btn > i > i { position: absolute; inset: 0; background: var(--fg); transform: scaleX(0); transform-origin: 0 50%; }
 .works__seg-btn.is-active > i { height: 4px; }
 .works__seg-btn:focus-visible { outline-offset: 0; }
-.works__subs { display: grid; width: 100%; max-width: 62ch; }
+/* попасть пальцем легче: невидимое поле вокруг полоски */
+.works__seg-btn::before { content: ''; position: absolute; inset: -8px -3px; }
+.works__subs { display: grid; width: 100%; max-width: 62ch; padding-inline: calc(var(--stage-w) * .012 + 12px); }
 .works__sub { grid-area: 1 / 1; text-align: center; font: 400 12.5px/1.4 var(--font-body); color: var(--muted); text-wrap: balance; visibility: hidden; }
 .works__sub.is-active { visibility: visible; }
 @media (hover: hover) and (pointer: fine) {
@@ -432,6 +435,10 @@ html.js .works__fold { transform: translateX(calc(var(--i) * 74.07%)); }
   .works__ticket-stub { width: 40px; }
   .works__ticket-label { font-size: 15px; }
 }
+/* узкое окно боком (половина экрана ноутбука): отступы меньше, иначе низ афиши за экраном */
+@media (max-width: 760px) and (orientation: landscape) and (min-height: 541px) {
+  .works { --mg: 6px; }
+}
 /* высокий телефон: под экраном есть место для субтитров */
 @media (max-width: 760px) and (min-height: 800px) {
   .works { --apron-h: 66px; }
@@ -445,7 +452,7 @@ html.js .works__fold { transform: translateX(calc(var(--i) * 74.07%)); }
 }
 
 /* ---------- телефон в альбомной и любой очень низкий экран: сцена слева, справа вывеска, афиша и сеансы, внизу один ряд ---------- */
-@media (min-width: 600px) and (max-height: 500px) {
+@media (min-width: 600px) and (max-height: 500px), (orientation: landscape) and (max-height: 640px) and (min-width: 600px) and (max-width: 900px) {
   .works {
     --uf: min(100vw / 11, 13dvh);
     --tf: calc(var(--uf) * .45);

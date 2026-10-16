@@ -89,9 +89,9 @@ export function init(root: HTMLElement) {
   /* ---------- экранчик ---------- */
   const fit = () => {
     const w = tube.offsetWidth, h = tube.offsetHeight;
-    // сверху и снизу остаётся полоса под «каналы» в углу, чтобы они не наезжали на сцену
+    // сверху полоса под «каналы» в углу: сцена сдвинута вниз на половину полосы и не наезжает на них
     const res = pipsBox.offsetTop + pipsBox.offsetHeight + 4;
-    if (w && h) tube.style.setProperty('--k', Math.min(w / 360, (h - res * 2) / 170).toFixed(4));
+    if (w && h) { tube.style.setProperty('--k', Math.min(w / 360, (h - res) / 170).toFixed(4)); tube.style.setProperty('--dy', (res / 2).toFixed(1) + 'px'); }
     widgets.forEach((wd) => wd.resize?.());
   };
   const show = (i: number) => {

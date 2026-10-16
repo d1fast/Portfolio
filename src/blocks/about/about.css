@@ -16,7 +16,7 @@
 .about__mg--cube { --s: 76px; bottom: 6vh; left: 34vw; --r: 6deg; }
 .about__mg--code { --s: 64px; top: calc(var(--header-h) + 4vh); left: 3vw; --r: -6deg; }
 .about__mg--loop { --s: 112px; bottom: 9vh; right: 14vw; --r: -4deg; }
-.about__mg--spark { --s: 38px; top: 44%; right: 3.4vw; }
+.about__mg--spark { --s: 38px; top: 44%; right: calc(clamp(10px, 1.6vw, 24px) + 60px); }
 .about__mg--zig { --s: 120px; bottom: 2.4vh; left: 5vw; --r: -3deg; height: 40px; }
 .about__ring-stain { position: absolute; right: -60px; bottom: -70px; width: 260px; height: 260px; rotate: -18deg; overflow: visible; }
 .about__ring-stain circle { fill: none; stroke: rgb(140 96 40 / .16); stroke-width: 7; stroke-dasharray: 160 6 90 14 60 4 120 9; }
@@ -176,7 +176,7 @@
 }
 
 /* ---------- узкие экраны и планшет стоя: всё в колонку, наклейки справа от фото ---------- */
-@media (max-width: 760px), (max-width: 1100px) and (orientation: portrait) {
+@media (max-width: 760px) and (orientation: portrait), (max-width: 599px), (max-width: 1100px) and (orientation: portrait) {
   .about__grid {
     --pw: clamp(150px, min(50vw, calc((100dvh - 530px) * .8), 266px), 266px);
     --sx: clamp(14px, 4.4vw, 56px);
@@ -243,9 +243,11 @@
 }
 @media (max-width: 599px) and (max-height: 700px) {
   .about__grid { --pw: clamp(128px, min(38vw, calc((100dvh - 470px) * .8)), 150px); padding-bottom: 10px; }
+  /* «Москва» правее: не ложится на подсказку «потаскай наклейки» и её стрелку */
+  .about__sticker--scallop { left: calc(100% + var(--sx) * 2.6 + min(56px, 100vw - 304px)); }
 }
 /* телефон боком: всё мельче и ниже шапки ровно на свой отступ, чтобы влезло в один экран */
-@media (orientation: landscape) and (max-height: 540px) and (min-width: 761px) {
+@media (orientation: landscape) and (max-height: 540px) and (min-width: 600px) {
   .about__grid { --pw: calc((100dvh - 92px) * .7); --gap: 40px; padding-top: calc(var(--header-h) + 8px); padding-bottom: 10px; }
   .about__head { --bw: 70px; margin: 0; }
   .about__title { font-size: 40px; }

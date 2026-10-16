@@ -46,6 +46,13 @@ html.js .hero:not(.is-bound) .hero__tag, html.js .hero:not(.is-bound) .hero__cta
   .hero { --indent: clamp(0px, 12vw, 160px); --fs-name: clamp(56px, min(14.4vw, 21vh), 200px); }
   .hero__side { position: static; width: auto; margin-top: clamp(20px, 3.4vh, 40px); }
 }
+/* телефон боком: имя мельче по высоте, подпись и кнопки плотнее */
+@media (orientation: landscape) and (max-height: 540px) {
+  .hero { --fs-name: clamp(40px, min(12vw, 18vh), 120px); padding-bottom: 14px; }
+  .hero__side { margin-top: 12px; gap: 12px; }
+  .hero__tag { font-size: 15px; }
+  .hero .btn { min-height: 44px; }
+}
 /* телефон и планшет стоя: имя в две строки на всю ширину, ниже подпись и кнопки */
 @media (max-width: 760px) {
   .hero { --indent: 0px; --fs-name: clamp(40px, min(17.6vw, 11vh), 110px); align-content: center; padding: calc(var(--header-h) + 16px) 0 clamp(28px, 6vh, 56px); }
@@ -100,10 +107,15 @@ html.js .dim:not(.is-in) b { opacity: 0; }
 .case__fig figcaption { font: 500 12px/1.4 var(--font-mono); opacity: .75; }
 @media (max-width: 900px) { .case__body { grid-template-columns: 1fr; } }
 /* колонка текста липнет, только когда целиком помещается в экран */
-@media (min-width: 901px) and (min-height: 920px) { .case__text { position: sticky; top: calc(var(--header-h) + 24px); } }
+/* текст кейса держится рядом с галереей: на низких экранах прилипает низом, на высоких верхом */
+@media (min-width: 901px) { .case__text { position: sticky; bottom: 24px; align-self: end; } }
+@media (min-width: 901px) and (min-height: 920px) { .case__text { top: calc(var(--header-h) + 24px); bottom: auto; align-self: start; } }
 
 /* 404 и политика */
 body:has(.not-found) main { min-height: calc(100dvh - 72px); display: grid; }
+/* политика: подвал прижат к низу экрана, а не висит посередине */
+body:has(.policy) { display: flex; flex-direction: column; min-height: 100dvh; }
+body:has(.policy) main { flex: 1 0 auto; }
 .not-found { min-height: 80dvh; display: grid; align-content: center; gap: 16px; padding-block: 120px 80px; }
 .not-found__code { font: 900 clamp(96px, 24vw, 320px)/.9 var(--font-display); letter-spacing: -.05em; color: var(--accent); }
 .not-found__title { font: 800 clamp(28px, 4vw, 56px)/1.05 var(--font-display); letter-spacing: -.03em; text-transform: uppercase; }
@@ -113,4 +125,4 @@ body:has(.not-found) main { min-height: calc(100dvh - 72px); display: grid; }
 .policy__title { font: 800 clamp(28px, 4vw, 56px)/1.05 var(--font-display); letter-spacing: -.03em; }
 .policy__date { font: 500 12px/1.4 var(--font-mono); opacity: .7; }
 .policy__body { display: grid; gap: 14px; font-size: var(--text-base); line-height: 1.6; }
-.policy__back { font: 500 13px/1 var(--font-mono); width: max-content; margin-top: 16px; }
+.policy__back { font: 500 13px/1 var(--font-mono); width: max-content; display: inline-flex; align-items: center; min-height: 44px; padding-inline: 4px; margin: 4px 0 0 -4px; }

@@ -216,3 +216,35 @@ html.stage-on .block.contacts > .block__inner { flex: 1 0 auto; min-height: 0; }
   .contacts .btn--ghost:hover { color: var(--fg); border-color: var(--fg); }
   .contacts .contacts__email:hover .contacts__email-action { background: color-mix(in oklab, var(--ink) 12%, transparent); }
 }
+
+/* ноутбук 961-1250: заголовок чуть мельче, последняя «е» не уходит под письмо */
+@media (min-width: 961px) and (max-width: 1250px) {
+  .contacts__title.block__title, .contacts__title + .contacts__swash { --fs: clamp(60px, min(8.2vw, 17cqi), 148px); font-size: clamp(60px, min(8.2vw, 17cqi), 148px); }
+}
+/* узкое окно на компьютере: подпись и письмо снова рядом, иначе низ письма за экраном */
+@media (min-width: 761px) and (max-width: 960px) and (orientation: landscape) {
+  .contacts__grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; row-gap: 40px; }
+  .contacts__title.block__title, .contacts__title + .contacts__swash { font-size: clamp(48px, 7.4vw, 80px); }
+  .contacts__letter { justify-self: end; }
+}
+/* телефон боком: подпись слева, письмо справа, всё плотнее; подвал прячется, ссылка на политику есть у галочки */
+@media (orientation: landscape) and (max-height: 540px) and (min-width: 600px), (orientation: landscape) and (max-height: 640px) and (min-width: 600px) and (max-width: 900px) {
+  html.stage-on .block.contacts > .block__inner, .block.contacts > .block__inner { padding-top: calc(var(--header-h) + 6px); padding-bottom: 8px; }
+  .contacts__grid { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); align-items: center; align-content: center; column-gap: 28px; row-gap: 0; }
+  .contacts__title.block__title, .contacts__title + .contacts__swash { font-size: 44px; }
+  .contacts__head { gap: 10px; }
+  .contacts__lead { font-size: 15px; }
+  .contacts__links .btn { min-height: 42px; }
+  .contacts__letter { justify-self: end; max-width: 440px; margin-right: 0; }
+  .contact-form { gap: 6px; padding: 10px 14px 12px; border-width: 6px; }
+  .contact-form__top { min-height: 0; }
+  .contact-form__title { font-size: 22px; padding-top: 0; }
+  .contacts__stamp { width: 34px; height: 40px; }
+  .contacts__postmark { width: 70px; }
+  .field__label { font-size: 12px; }
+  .field__input { padding: 4px 0 5px; font-size: 15px; }
+  .field__textarea { height: calc(2 * 28px + 2px); }
+  .consent { font-size: 12.5px; }
+  .contact-form__send { min-height: 40px; }
+  .contacts > .site-footer { display: none; }
+}
