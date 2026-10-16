@@ -477,8 +477,17 @@ export function init(root: HTMLElement) {
   const all: Player[] = [title, ring, photoIn, nameW, lead, nickLine, slap, hint, hintArrow, ...notes.flatMap((n) => [n.w, n.doodle]), ...links.map((l) => l.draw)];
   all.forEach((p) => p.reset());
 
+  // пометки на полях: карандаш дорисовывает их по одной, когда основное уже на месте
+  const margins = q<SVGPathElement>('[data-about-mg]');
+  const stain = q<SVGSVGElement>('[data-about-stain]')[0];
+  const marginTl = gsap.timeline({ paused: true })
+    .fromTo(stain, { opacity: 0, scale: 0.9, transformOrigin: '50% 50%' }, { opacity: 1, scale: 1, duration: 1.2, ease: 'power2.out' }, 0)
+    .fromTo(margins, { drawSVG: '0%' }, { drawSVG: '100%', duration: 0.7, ease: 'power1.inOut', stagger: 0.16 }, 0.3);
+  const marginsIn = wrap(marginTl);
+
   watchBlock(root, () => {
     active = true;
+    marginsIn.play(1.1);
     titleDone = false;
     fitRing();
     layoutLinks();
@@ -513,5 +522,6 @@ export function init(root: HTMLElement) {
     tilts.forEach((t) => t.tween.pause());
     chars.forEach((ch) => { delete ch.dataset.hop; });
     all.forEach((p) => p.reset());
+    marginsIn.reset();
   });
 }

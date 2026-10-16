@@ -663,9 +663,14 @@ export function init(root: HTMLElement) {
     .fromTo(names, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: 'expo.out', stagger: 0.06 }, 0.5)
     .fromTo(gear, { y: -46, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: 'bounce.out', immediateRender: false }, 0.8);
 
+  // фон: циркуль ведёт дугу, линии построения тянутся, угольник прочерчивается
+  const bgLines = q<SVGPathElement>('[data-process-bg]');
+  const bgIn = gsap.timeline({ paused: true }).fromTo(bgLines, { drawSVG: '0%' }, { drawSVG: '100%', duration: 1.4, ease: 'power2.inOut', stagger: 0.03 }, 0.2);
+
   let first: gsap.core.Tween | undefined;
   watchBlock(root, () => {
     reset();
+    bgIn.restart();
     gsap.set(nodes, { scale: 0 });
     gsap.set(gear, { y: -46, opacity: 0 });
     intro.restart();
@@ -675,6 +680,7 @@ export function init(root: HTMLElement) {
   }, () => {
     first?.kill();
     intro.pause(0);
+    bgIn.pause(0);
     words.forEach((w, i) => { gsap.killTweensOf(w, 'scrambleText'); w.textContent = titles[i]; });
     reset();
   });

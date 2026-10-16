@@ -28,8 +28,15 @@ const stamp = (() => {
 const planeTop = 'M18 0 L-17 -12 L-7 1 Z';
 const planeLow = 'M18 0 L-7 1 L-12 12 Z';
 const planeKeel = 'M18 0 L-7 1';
+// облака: плоское дно и шапка из нескольких горбов
+const cloudA = 'M8 58 C6 47 16 40 27 44 C29 29 47 22 58 32 C64 20 86 21 90 37 C103 34 114 45 110 58 Z';
+const cloudB = 'M6 58 C5 50 13 45 21 48 C24 37 38 33 46 40 C52 30 66 30 70 40 C78 28 98 30 100 44 C110 43 116 52 113 58 Z';
 ---
 <section class="block block--contacts contacts" id="contacts" data-theme="contacts" data-block="contacts">
+  <!-- фон: облака, вырезанные из бумаги, плывут на разной высоте; ближние крупнее и быстрее -->
+  <div class="contacts__clouds" aria-hidden="true">
+    {[1, 2, 3, 4, 5, 6].map((i) => <svg class={`contacts__cloud contacts__cloud--${i}`} viewBox="0 0 120 64"><path d={i % 2 ? cloudA : cloudB} /></svg>)}
+  </div>
   <svg class="contacts__sky" aria-hidden="true" data-sky>
     <path class="contacts__trail" data-trail />
     <g class="contacts__plane" data-plane>

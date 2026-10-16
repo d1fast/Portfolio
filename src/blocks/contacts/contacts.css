@@ -15,6 +15,25 @@
 html.stage-on .block.contacts > .block__inner { flex: 1 0 auto; min-height: 0; }
 .contacts > .site-footer { position: relative; z-index: 1; }
 
+/* облака из бумаги: жёсткая тень вниз, как у вырезанной аппликации; едут справа налево по кругу */
+.contacts__clouds { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.contacts__cloud { position: absolute; left: 0; width: var(--w); height: calc(var(--w) * .533); overflow: visible; opacity: var(--o, 1);
+  filter: drop-shadow(0 calc(var(--w) * .035) 0 color-mix(in oklab, var(--sky-deep) 55%, transparent));
+  animation: contacts-drift var(--t) linear infinite; animation-delay: var(--d); }
+.contacts__cloud path { fill: color-mix(in oklab, var(--paper) 88%, var(--bg)); }
+@keyframes contacts-drift { from { transform: translateX(calc(100vw + 20px)); } to { transform: translateX(calc(var(--w) * -1.1)); } }
+.contacts__cloud--1 { --w: 150px; top: 13%; --t: 95s; --d: -20s; --o: .9; }
+.contacts__cloud--2 { --w: 110px; top: 31%; --t: 120s; --d: -70s; --o: .7; }
+.contacts__cloud--3 { --w: 230px; top: 64%; --t: 70s; --d: -12s; }
+.contacts__cloud--4 { --w: 90px; top: 47%; --t: 140s; --d: -95s; --o: .6; }
+.contacts__cloud--5 { --w: 190px; top: 82%; --t: 80s; --d: -52s; }
+.contacts__cloud--6 { --w: 120px; top: 22%; --t: 110s; --d: -40s; --o: .8; }
+.contacts:not(.is-on) .contacts__cloud { animation-play-state: paused; }
+@media (max-width: 760px) {
+  .contacts__cloud--1 { --w: 96px; } .contacts__cloud--2 { --w: 70px; } .contacts__cloud--3 { --w: 140px; }
+  .contacts__cloud--4 { --w: 60px; } .contacts__cloud--5 { --w: 120px; } .contacts__cloud--6 { --w: 80px; top: 6%; }
+}
+
 /* небо с самолётиком: под содержимым, самолётик ныряет за письмо */
 .contacts__sky { position: absolute; left: 0; top: 0; z-index: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
 .contacts__trail { fill: none; stroke: var(--ink); stroke-width: 1.4; stroke-linecap: round; opacity: .55; }

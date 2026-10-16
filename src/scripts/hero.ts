@@ -64,9 +64,10 @@ export function initHero(onDone?: (hero: HTMLElement) => void) {
       const c = centerOf();
       f.burst(c.x, c.y, isTouch ? 160 : 240, true);
     });
-    f.assemble({ inward: false, spread: 1, lead: 0.2 });
+    // открыли сразу другой блок (ссылка с якорем): рой не крутится впустую, имя соберётся при входе
+    const stage = document.documentElement.classList.contains('stage-on');
+    if (!stage || hero.classList.contains('is-current')) { f.assemble({ inward: false, spread: 1, lead: 0.2 }); showText(1.25); }
     firstShown = true;
-    showText(1.25);
     onDone?.(hero);
 
     // смена размера: знаки перелетают на новые места

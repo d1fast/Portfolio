@@ -9,8 +9,29 @@ const steps = d.process.steps;
 const nn = (n: number) => String(n).padStart(2, '0');
 const words = d.process.title.split(' ');
 const ui = { ru: { list: 'Шаги работы' }, en: { list: 'Work steps' } }[lang];
+// дуга циркуля на 300 градусов с делениями через 15 градусов, второй круг тоньше
+const arc = (r: number, a0: number, a1: number) => {
+  const p = (a: number) => `${(100 + r * Math.cos((a * Math.PI) / 180)).toFixed(2)},${(100 + r * Math.sin((a * Math.PI) / 180)).toFixed(2)}`;
+  return `M${p(a0)} A${r},${r} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${p(a1)}`;
+};
+const compassArc = arc(86, 100, 400);
+const compassArc2 = arc(62, 160, 330);
+const compassTicks = Array.from({ length: 21 }, (_, i) => {
+  const a = ((100 + i * 15) * Math.PI) / 180, r0 = i % 2 ? 82 : 78, r1 = 90;
+  return `M${(100 + r0 * Math.cos(a)).toFixed(2)},${(100 + r0 * Math.sin(a)).toFixed(2)} L${(100 + r1 * Math.cos(a)).toFixed(2)},${(100 + r1 * Math.sin(a)).toFixed(2)}`;
+});
 ---
 <section class="block block--process process" id="process" data-theme="process" data-block="process">
+  <!-- фон: построение циркулем на чертёжном листе, дуга с делениями уходит за край -->
+  <div class="process__bg" aria-hidden="true">
+    <svg class="process__bg-compass" viewBox="0 0 200 200">
+      <path d={compassArc} data-process-bg />
+      <path d={compassArc2} data-process-bg />
+      {compassTicks.map((d) => <path class="process__bg-tick" d={d} data-process-bg />)}
+      <path d="M100,92 V108 M92,100 H108" data-process-bg />
+      <path class="process__bg-radius" d="M100,100 L161,57" data-process-bg />
+    </svg>
+  </div>
   <div class="block__inner container process__inner">
     <div class="process__side">
       <h2 class="block__title process__title" aria-label={d.process.title} data-process-title><span aria-hidden="true">{words.map((w, i) => <>{i ? ' ' : ''}<span class="process__word" data-process-word>{w}</span></>)}</span></h2>
