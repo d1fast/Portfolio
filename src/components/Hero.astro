@@ -1,35 +1,22 @@
 ---
-// Первый экран. Финальный вид лежит в HTML сразу; вступление идёт поверх скриптом hero.ts.
+// Первый экран. Имя собирают тысячи знаков (hero.ts + glyphs.ts, WebGL). Настоящий заголовок лежит в HTML:
+// по нему считаются места знаков, его читают скринридеры и поисковики, без WebGL он просто виден.
 import { t, type Lang } from '../i18n';
-import { site } from '../config';
-import fs from 'node:fs';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const d = t(lang);
 const [first, last] = d.hero.name.split(' ');
-const dimLabel = lang === 'ru' ? 'ширина заголовка' : 'headline width';
-// Модель из Meshy: положите GLB в public/models/me.glb, и каркасная фигура заменится на неё.
-const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-const modelUrl = fs.existsSync('public/models/me.glb') ? `${base}/models/me.glb` : undefined;
 ---
 <section class="block hero" id="top" data-theme="hero" data-block="hero" data-hero>
-  <button class="hero__skip" type="button" data-skip hidden>{d.hero.skip}</button>
-  <div class="hero__brief brief-box" aria-hidden="true">
-    <div class="hero__brief-title">{d.hero.fileName}</div>
-    <div class="brief-lines" data-lines></div>
-  </div>
-  <div class="container hero__final hero-final">
-    <h1 class="hero__name" data-target="name"><span class="hero__w" data-chars>{first}</span> <span class="hero__w" data-chars>{last}</span></h1>
-    <div class="dim dim--h hero__dim-h" aria-hidden="true" data-dim-h><i></i><b><span data-dim-w>0</span> px</b></div>
-    <div class="dim dim--v hero__dim-v" aria-hidden="true" data-dim-v><i></i><b><span data-dim-hgt>0</span> px</b></div>
-    <p class="hero__tag" data-target="do">{d.hero.tagline}</p>
-    <div class="hero__object" data-hero-object aria-hidden="true">
-      <canvas class="hero__canvas" data-hero-canvas data-model={modelUrl}></canvas>
-    </div>
-    <div class="hero__cta">
-      <a class="btn btn--primary" href="#contacts" data-target="contact" data-magnetic>{d.hero.ctaContact}</a>
-      <a class="btn btn--ghost" href="#works" data-target="main" data-magnetic="0.2">{d.hero.ctaWorks}</a>
+  <canvas class="hero__gl" aria-hidden="true" data-hero-gl></canvas>
+  <div class="container hero__final">
+    <h1 class="hero__name" data-hero-name><span class="hero__line hero__line--1" data-hero-line>{first}</span> <span class="hero__line hero__line--2" data-hero-line>{last}</span></h1>
+    <div class="hero__side">
+      <p class="hero__tag" data-hero-tag>{d.hero.tagline}</p>
+      <div class="hero__cta" data-hero-cta>
+        <a class="btn btn--primary" href="#contacts" data-magnetic>{d.hero.ctaContact}</a>
+        <a class="btn btn--ghost" href="#works" data-magnetic="0.2">{d.hero.ctaWorks}</a>
+      </div>
     </div>
   </div>
-  <script type="application/json" data-brief set:html={JSON.stringify({ brief: d.hero.brief, typo: d.hero.typo, dimLabel })} />
 </section>

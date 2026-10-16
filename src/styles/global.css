@@ -59,7 +59,6 @@ html.js [data-reveal].is-in { opacity: 1; }
 html.js .split-line { display: block; overflow: clip; }
 html.js .split-line > .split-inner { display: block; will-change: transform; }
 /* до запуска скрипта первого экрана финальные элементы скрыты, чтобы не было вспышки перед вступлением */
-html.js.intro-pending .hero:not(.is-done) .hero-final > *, html.js.intro-pending .hero:not(.is-done) .hero__cta > *, html.js.intro-pending .hero:not(.is-done) .hero__scroll, html.js.intro-pending .hero:not(.is-done) .hero__object { opacity: 0; }
 
 /* Навигация по блокам: штрихи справа, активный длиннее и с подписью */
 .dots { position: fixed; right: clamp(10px, 1.6vw, 24px); top: 50%; z-index: 40; transform: translateY(-50%); display: grid; gap: 4px; color: var(--fg); }

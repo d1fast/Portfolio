@@ -1,10 +1,5 @@
 export type Lang = 'ru' | 'en';
 
-export interface BriefLine {
-  id: 'name' | 'do' | 'who' | 'main' | 'contact';
-  text: string;
-}
-
 export interface Dict {
   lang: Lang;
   htmlLang: string;
@@ -13,13 +8,7 @@ export interface Dict {
     about: string; services: string; works: string; process: string; contacts: string;
     langSwitch: string; langSwitchTitle: string; skipToContent: string;
   };
-  hero: {
-    fileName: string;
-    brief: BriefLine[];
-    typo: { line: number; wrong: string; right: string };
-    name: string; nick: string; tagline: string;
-    ctaContact: string; ctaWorks: string; skip: string;
-  };
+  hero: { name: string; nick: string; tagline: string; ctaContact: string; ctaWorks: string };
   /** lead: одно короткое вступление; notes: пометки от руки; stickers: короткие наклейки-факты */
   about: { title: string; photoAlt: string; photoSoon: string; lead: string; notes: string[]; stickers: string[] };
   services: { title: string; items: { title: string; text: string }[] };

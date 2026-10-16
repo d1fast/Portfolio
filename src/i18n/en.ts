@@ -21,21 +21,11 @@ export const en: Dict = {
     skipToContent: 'Skip to content',
   },
   hero: {
-    fileName: 'notes.txt',
-    brief: [
-      { id: 'name', text: 'a site for myself. saveliy lopatin, d1fast' },
-      { id: 'do', text: 'i make websites, 3d, small games, interfaces' },
-      { id: 'who', text: 'for: clients and employers' },
-      { id: 'main', text: 'main thing: show the work' },
-      { id: 'contact', text: 'contact: telegram, i reply fast' },
-    ],
-    typo: { line: 0, wrong: 'a landing page', right: 'a site for myself' },
     name: 'Saveliy Lopatin',
     nick: 'd1fast',
     tagline: 'I make websites, 3D, small games and interfaces. From idea to launch.',
     ctaContact: 'Write to me',
     ctaWorks: 'Work',
-    skip: 'Skip',
   },
   about: {
     title: 'About',

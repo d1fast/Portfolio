@@ -1,7 +1,7 @@
 /* Токены. У каждого блока своя пара цветов. Тема блока задаётся через data-theme на самом блоке,
    а data-theme на <html> повторяет тему текущего блока для шапки, курсора и навигации по точкам. */
 :root {
-  --font-display: 'Unbounded', system-ui, sans-serif;
+  --font-display: 'Geologica', system-ui, sans-serif;
   --font-body: 'Golos Text', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
   /* шрифты настроения блоков */
@@ -38,14 +38,15 @@
   --wine: #3F1521;      --powder: #9DB3D3;
   --forest: #013E37;    --butter: #FFEFB3;
   --cherry: #5C0E2B;    --matcha: #C9DDA6;
+  --cobalt: #1D34C9;    --paper: #F3F0E8;    --flame: #FF6A3D;
   --charcoal: #21262B;  --chalk: #F1F1F1;  --steel: #A9B4C0;  --slate: #5F7389;
   --concrete: #EEF0F2;
 
   /* значения по умолчанию = первый экран */
-  --bg: var(--wine);
-  --fg: var(--powder);
-  --accent: #E7EEF7;
-  --accent-fg: var(--wine);
+  --bg: var(--cobalt);
+  --fg: var(--paper);
+  --accent: var(--flame);
+  --accent-fg: #0B1240;
   --muted: color-mix(in oklab, var(--fg) 70%, var(--bg));
   --line: color-mix(in oklab, var(--fg) 22%, transparent);
   --line-strong: color-mix(in oklab, var(--fg) 55%, transparent);
@@ -54,7 +55,7 @@
 }
 
 /* Темы. Селектор без :root, чтобы работал и на <html>, и на самом блоке. */
-[data-theme="hero"]     { --bg: var(--wine);     --fg: var(--powder);   --accent: #E7EEF7;        --accent-fg: var(--wine);     --focus: var(--powder);  --error: #FFB4A8; }
+[data-theme="hero"]     { --bg: var(--cobalt);   --fg: var(--paper);    --accent: var(--flame);   --accent-fg: #0B1240;         --focus: var(--paper);   --error: #FFC2B3; }
 [data-theme="about"]    { --bg: var(--butter);   --fg: var(--forest);   --accent: var(--forest);  --accent-fg: var(--butter);   --focus: var(--forest);  --error: #8A1400; }
 [data-theme="services"] { --bg: var(--matcha);   --fg: var(--cherry);   --accent: #C8174F;        --accent-fg: var(--matcha);   --focus: var(--cherry);  --error: #8A1400; }
 [data-theme="works"]    { --bg: var(--charcoal); --fg: var(--chalk);    --accent: var(--steel);   --accent-fg: var(--charcoal); --focus: var(--chalk);   --error: #FFB4A8; }

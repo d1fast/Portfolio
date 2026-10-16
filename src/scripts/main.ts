@@ -41,19 +41,8 @@ function initBlocks() {
   }
 }
 
-let sceneStarted = false;
-function startScene() {
-  const canvas = document.querySelector<HTMLCanvasElement>('[data-hero-canvas]');
-  if (!canvas || sceneStarted) return;
-  sceneStarted = true;
-  import('./scene').then((m) => m.initHeroScene(canvas, { modelUrl: canvas.dataset.model || undefined })).catch(() => {});
-}
-
 function init() {
-  sceneStarted = false;
-  const idle = (cb: () => void) => ('requestIdleCallback' in window ? (window as any).requestIdleCallback(cb, { timeout: 2500 }) : setTimeout(cb, 300));
-  initHero(() => idle(startScene));
-  setTimeout(() => idle(startScene), 1800);
+  initHero();
   const hero = document.querySelector<HTMLElement>('[data-hero]');
   hero?.addEventListener('block:enter', (e) => { if (!(e as CustomEvent).detail?.first) heroReenter(hero); });
   initStage({ prepare: (b) => (b.dataset.block === 'hero' ? undefined : ensureBlock(b)) });
