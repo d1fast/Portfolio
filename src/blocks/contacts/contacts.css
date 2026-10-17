@@ -248,3 +248,9 @@ html.stage-on .block.contacts > .block__inner { flex: 1 0 auto; min-height: 0; }
   .contact-form__send { min-height: 40px; }
   .contacts > .site-footer { display: none; }
 }
+
+/* после отправки на невысоком телефоне: строка статуса мельче, поле письма в одну строку, блок по-прежнему влезает */
+@media (max-width: 760px) and (max-height: 700px) {
+  .contact-form__status[data-kind="ok"] { font-size: 17px; line-height: 1.2; margin-top: -2px; }
+  .contact-form:has(.contact-form__status[data-kind="ok"]) .field__textarea { height: calc(28px + 2px); }
+}

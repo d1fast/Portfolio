@@ -67,7 +67,6 @@
     linear-gradient(160deg, #0d5a50, var(--fg) 70%);
 }
 .about__mono { font: italic 700 44cqi/1 var(--font-serif); letter-spacing: -.04em; padding-right: .06em; translate: 0 -4%; }
-.about__ph-note { position: absolute; left: 7cqi; right: 7cqi; bottom: 6cqi; font: 600 clamp(15px, 8.5cqi, 26px)/1 var(--font-hand); text-align: center; }
 .about__dev { position: absolute; inset: 0; background: #0b1714; pointer-events: none; opacity: 0; }
 .about__name { display: block; padding: calc(var(--pw) * .035) 4px calc(var(--pw) * .06) calc(var(--pw) * .03); text-align: left; color: var(--ink); font: 600 clamp(20px, calc(var(--pw) * .085), 40px)/1.05 var(--font-hand); }
 .about__name-t { display: inline-block; rotate: -2deg; }

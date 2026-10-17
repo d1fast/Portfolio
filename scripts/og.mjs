@@ -43,7 +43,7 @@ const og = (lang) => {
     h.font = g.font; h.letterSpacing = g.letterSpacing; h.fillStyle = '#000';
     lines.forEach((t, i) => h.fillText(t, x0 + ind[i], y0 + i * lh));
     const d = h.getImageData(0, 0, 1200, 630).data;
-    const G = '{}<>/=+*#01;()[]&%$@~^3DСЛФЖЯλ▲:'.split('');
+    const G = ('{}<>/=+*#01;()[]&%$@~^3D' + ${JSON.stringify(ru ? 'СЛФЖЯ' : 'SLJRZ')} + 'λ▲:').split('');
     let s = 7; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
     const step = 5.2;
     g.textAlign = 'center'; g.textBaseline = 'middle'; g.letterSpacing = '0px';

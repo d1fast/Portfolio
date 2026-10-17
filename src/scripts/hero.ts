@@ -1,8 +1,5 @@
 import { gsap } from 'gsap';
-import { SplitText } from 'gsap/SplitText';
 import type { Field } from './glyphs';
-
-gsap.registerPlugin(SplitText);
 
 /**
  * Первый экран. Имя собирается из роя знаков (glyphs.ts): на первом входе из облака по всему экрану,
@@ -22,16 +19,10 @@ export function initHero(onDone?: (hero: HTMLElement) => void) {
   let field: Field | null = null;
   let firstShown = false;
 
-  // подпись по строкам из-под маски, кнопки следом
-  let tagTween: gsap.core.Tween | null = null;
-  if (tag) SplitText.create(tag, { type: 'lines', mask: 'lines', linesClass: 'ln', autoSplit: true, aria: 'none', onSplit(self) {
-    tagTween?.kill();
-    tagTween = gsap.fromTo(self.lines, { yPercent: 110 }, { yPercent: 0, duration: 0.9, ease: 'expo.out', stagger: 0.08, paused: true });
-    if (firstShown) tagTween.progress(1);
-    return tagTween;
-  } });
+  // подпись поднимается целиком и проявляется, кнопки следом. Без разбивки на строки: так неразрывные пробелы
+  // («и\u00a0интерфейсы») остаются, и предлог не висит в конце строки
+  const tagTween = tag ? gsap.fromTo(tag, { y: 26, opacity: 0, clipPath: 'inset(0% 0% 100% 0%)' }, { y: 0, opacity: 1, clipPath: 'inset(-10% -2% -20% -2%)', duration: 1, ease: 'expo.out', paused: true }) : null;
   const showText = (delay: number) => {
-    gsap.set(tag, { opacity: 1 });
     tagTween?.delay(delay).restart(true);
     gsap.fromTo(cta, { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: 'expo.out', stagger: 0.08, delay: delay + 0.2, overwrite: true });
   };
@@ -74,7 +65,11 @@ export function initHero(onDone?: (hero: HTMLElement) => void) {
     let rt = 0;
     addEventListener('resize', () => {
       clearTimeout(rt);
-      rt = window.setTimeout(() => { f.resize(); const t2 = targets(); f.retarget(t2.pts, t2.s); f.start(); }, 160);
+      rt = window.setTimeout(() => {
+        f.resize(); const t2 = targets(); f.retarget(t2.pts, t2.s);
+        // рой оживает, только если первый экран сейчас открыт: иначе он крутился бы впустую под другими блоками
+        if (!document.documentElement.classList.contains('stage-on') || hero.classList.contains('is-current')) f.start();
+      }, 160);
     }, { passive: true });
 
     // курсор и палец

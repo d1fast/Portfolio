@@ -9,7 +9,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 // Фото: положить файл в public/photo/me.jpg (или .webp, .png), пропорция 4:5. Пока его нет, стоит заглушка.
 const photo = ['me.webp', 'me.jpg', 'me.png'].find((f) => fs.existsSync(`public/photo/${f}`));
 const ui = {
-  ru: { hint: 'потаскай наклейки', keys: 'Наклейку в фокусе двигают стрелки.' },
+  ru: { hint: 'потаскайте наклейки', keys: 'Наклейку в фокусе двигают стрелки.' },
   en: { hint: 'drag the stickers', keys: 'Arrow keys move the focused sticker.' },
 }[lang];
 
@@ -95,7 +95,7 @@ const doodles = [
             </Fragment>
           ))}
         </h2>
-        <button type="button" class="about__sticker about__sticker--round" data-about-sticker data-drag data-keys aria-describedby="about-hint">
+        <button type="button" class="about__sticker about__sticker--round" data-about-sticker data-drag data-keys aria-label={stReply} aria-describedby="about-hint">
           <span class="about__st-in">
             <span class="about__st-body">
               <svg class="about__st-shape" viewBox="0 0 100 100" aria-hidden="true"><path class="about__st-shadow" d={round} /><path class="about__st-fill" d={round} /><path class="about__st-line" d={roundIn} /></svg>
@@ -132,9 +132,8 @@ const doodles = [
               {photo ? (
                 <img src={`${base}/photo/${photo}`} alt={d.about.photoAlt} width="800" height="1000" loading="lazy" decoding="async" />
               ) : (
-                <div class="about__ph" role="img" aria-label={d.about.photoSoon}>
+                <div class="about__ph" role="img" aria-label={d.hero.name}>
                   <span class="about__mono" aria-hidden="true">{initials}</span>
-                  <span class="about__ph-note" aria-hidden="true">{d.about.photoSoon}</span>
                 </div>
               )}
               <span class="about__dev" data-about-dev aria-hidden="true"></span>
@@ -143,7 +142,7 @@ const doodles = [
           </figure>
         </div>
       </div>
-      <button type="button" class={`about__sticker about__sticker--oval${stRemote.length <= 10 ? ' is-short' : ''}`} data-about-sticker data-drag data-keys aria-describedby="about-hint">
+      <button type="button" class={`about__sticker about__sticker--oval${stRemote.length <= 10 ? ' is-short' : ''}`} data-about-sticker data-drag data-keys aria-label={stRemote} aria-describedby="about-hint">
         <span class="about__st-in">
           <span class="about__st-body">
             <svg class="about__st-shape" viewBox="0 0 100 62" aria-hidden="true"><ellipse class="about__st-shadow" cx="50" cy="31" rx="48" ry="29" /><ellipse class="about__st-fill" cx="50" cy="31" rx="48" ry="29" /><ellipse class="about__st-line" cx="50" cy="31" rx="43" ry="24.5" /></svg>
@@ -151,7 +150,7 @@ const doodles = [
           </span>
         </span>
       </button>
-      <button type="button" class="about__sticker about__sticker--scallop" data-about-sticker data-drag data-keys aria-describedby="about-hint">
+      <button type="button" class="about__sticker about__sticker--scallop" data-about-sticker data-drag data-keys aria-label={stMoscow} aria-describedby="about-hint">
         <span class="about__st-in">
           <span class="about__st-body">
             <svg class="about__st-shape" viewBox="0 0 100 100" aria-hidden="true"><path class="about__st-shadow" d={scallop} /><path class="about__st-fill" d={scallop} /></svg>

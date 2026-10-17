@@ -339,6 +339,8 @@ export function init(root: HTMLElement) {
   }, () => {
     stopFlight();
     sending?.kill(); sending = null; restoreLetter();
+    // при следующем входе письмо снова чистое: строка статуса не держит блок выше экрана
+    if (status.dataset.kind) { status.textContent = ''; status.dataset.kind = ''; }
     gsap.set(plane, { opacity: 0 });
     gsap.set(trail, { drawSVG: '0% 0%' });
     gsap.set(sendTrail, { drawSVG: '0% 0%' });

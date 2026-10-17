@@ -1,6 +1,6 @@
 ---
 title: Perfume shop
-subtitle: A fragrance builder for a perfume shop. Every note becomes a planet
+subtitle: A fragrance builder where every note becomes a planet
 year: 2026
 order: 1
 role: Interface concept, 3D scene, front end
@@ -22,7 +22,7 @@ media:
     caption: Edge-on view with the asteroid belt, tier labels and the Sun's glow.
   - src: /work/perfume/mobile-start.webp
     alt: Start screen on a phone
-    caption: The same scene on a phone, with a tab bar and the fragrance panel above it.
+    caption: The same scene on a phone, with a menu at the bottom and the fragrance panel above it.
     portrait: true
   - src: /work/perfume/mobile-planet-rose.webp
     alt: A note card on a phone
@@ -36,10 +36,10 @@ Build the main screen of a fragrance builder. The user composes a perfume from n
 
 ## What I did
 
-- Every note became a planet. Three orbits around the Sun for top, heart and base notes. A planet can be tapped, dragged to another ring or removed.
-- Each planet's surface is baked once into a texture from a real map, noise and the note's colour. After that it is a plain sphere, which a phone renders easily.
+- Every note became a planet. It can be tapped, dragged to another ring or removed.
+- A planet's surface is drawn once. After that it is a plain sphere, which a phone renders easily.
 - While the loading screen is still up, the scene measures the GPU and picks a quality tier: pixel density and anti-aliasing. If frames start dropping, it lowers the tier by itself.
-- The Sun's glow is a custom five-level bloom pass. Gestures: tap, hold to drag, pinch, double tap to reset the camera.
+- Gestures: tap, hold to drag, pinch, double tap to reset the camera.
 - Similar fragrances are matched against the chosen notes, with a match percentage and a hint about which note to swap for a closer match.
 
 ## Result

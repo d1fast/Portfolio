@@ -500,3 +500,10 @@ html.js .works__fold { transform: translateX(calc(var(--i) * 74.07%)); }
   .works__row--back, .works__row--middle { display: none; }
   .works__row--front { --arc: calc(var(--u) * .3); }
 }
+
+/* три колонки: бра посередине между рамкой сцены и колонкой сеансов, абажур не срезает постер */
+@media (min-width: 1200px) {
+  .works__program { padding-left: clamp(12px, 1vw, 20px); }
+  .works__sconce--r { right: calc(-1 * (18px + var(--cg) + clamp(12px, 1vw, 20px)) / 2); }
+  .works__sconce--l { left: calc(-1 * (18px + var(--cg) + clamp(12px, 1vw, 20px)) / 2); }
+}

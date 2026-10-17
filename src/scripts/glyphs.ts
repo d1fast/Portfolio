@@ -9,7 +9,8 @@ import * as THREE from 'three';
  * Физика считается на процессоре: пружина к месту в имени, поток шума, отталкивание, затухание.
  */
 
-const GLYPHS = '{}<>/=+*#01;()[]&%$@~^3DСЛФЖЯλ▲:'.split('');
+// знаки кода и буквы имени; на английской версии латиница вместо кириллицы, число знаков то же
+const GLYPHS = ('{}<>/=+*#01;()[]&%$@~^3D' + (typeof document !== 'undefined' && document.documentElement.lang.startsWith('en') ? 'SLJRZ' : 'СЛФЖЯ') + 'λ▲:').split('');
 const COLS = 8;
 const CELL = 64;
 
@@ -154,12 +155,15 @@ export function createField(o: FieldOpts) {
         size[i] = glyphSize * (0.85 + Math.random() * 0.4);
         alpha[i] = 1;
       } else {
-        // фон: редкие знаки по всему экрану на разной глубине
+        // фон: редкие знаки по всему экрану на разной глубине. Перспектива стягивает дальние к центру,
+        // поэтому место в мире берётся с поправкой: на экране знаки ложатся от края до края
         const z = 0.6 + Math.random() * 2.6;
-        tgt[i * 3] = Math.random() * W; tgt[i * 3 + 1] = Math.random() * H; tgt[i * 3 + 2] = z;
+        const ps = 1 / (1 + z * uniforms.uPersp.value), cx = uniforms.uCenter.value.x, cy = uniforms.uCenter.value.y;
+        tgt[i * 3] = cx + (Math.random() * W - cx) / ps; tgt[i * 3 + 1] = cy + (Math.random() * (H + 60) - 30 - cy) / ps; tgt[i * 3 + 2] = z;
         pos[i * 3] = tgt[i * 3]; pos[i * 3 + 1] = tgt[i * 3 + 1]; pos[i * 3 + 2] = z;
         size[i] = glyphSize * (1.1 + Math.random() * 1.6);
-        alpha[i] = 0.16 + Math.random() * 0.22;
+        // на телефоне фон заметнее: экран меньше, знаки мельче
+        alpha[i] = W < 600 ? 0.24 + Math.random() * 0.3 : 0.16 + Math.random() * 0.22;
       }
     }
     if (points) { scene.remove(points); geo?.dispose(); }
@@ -180,7 +184,7 @@ export function createField(o: FieldOpts) {
     if (n !== NT || !geo) { const amb = N - NT; build(targets, amb || ambientFor(), step); scatterNow(false); return; }
     for (let i = 0; i < NT; i++) { tgt[i * 3] = targets[i * 2]; tgt[i * 3 + 1] = targets[i * 2 + 1]; }
   }
-  const ambientFor = () => Math.round(Math.min(1400, (W * H) / 900));
+  const ambientFor = () => Math.round(Math.min(2000, (W * H) / (W < 600 ? 450 : 700)));
 
   function resize() {
     const r = o.root.getBoundingClientRect();
@@ -252,8 +256,10 @@ export function createField(o: FieldOpts) {
       } else {
         // фон держится у своей точки и плывёт вверх, как пыль в луче
         ax += (tgt[k] - x) * 0.4; ay += (tgt[k + 1] - y) * 0.4 - 6;
-        tgt[k + 1] -= dt * (4 + z * 3);
-        if (tgt[k + 1] < -30) { tgt[k + 1] = H + 30; y = tgt[k + 1]; tgt[k] = Math.random() * W; x = tgt[k]; }
+        const ps = 1 / (1 + z * uniforms.uPersp.value), cx = uniforms.uCenter.value.x, cy = uniforms.uCenter.value.y;
+        tgt[k + 1] -= (dt * (4 + z * 3)) / ps;
+        // ушёл за верх экрана: появляется снизу, за краем, а не посреди экрана
+        if (tgt[k + 1] < cy - (cy + 30) / ps) { tgt[k + 1] = cy + (H + 30 - cy) / ps; y = tgt[k + 1]; tgt[k] = cx + (Math.random() * W - cx) / ps; x = tgt[k]; }
       }
       // курсор: расталкивает знаки, рядом с ним они нагреваются
       if (pointer.on) {

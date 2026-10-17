@@ -206,6 +206,8 @@ export function initStage(hooks: StageHooks = {}) {
     if (a && a !== document.body && !b.contains(a) && !a.closest('.site-header, .dots')) a.blur();
     const hash = b.dataset.block === 'hero' ? '' : '#' + b.id;
     if (location.hash !== hash) history.replaceState(null, '', location.pathname + location.search + hash);
+    // переключатель языка ведёт в тот же блок другой версии
+    document.querySelectorAll<HTMLAnchorElement>('.site-header__lang').forEach((l) => { l.hash = hash; });
     b.classList.add('is-current');
     hooks.onArrive?.(b);
     b.dispatchEvent(new CustomEvent('block:enter', { detail: { dir, first } }));
@@ -219,8 +221,15 @@ export function initStage(hooks: StageHooks = {}) {
 
   const release = () => { if (performance.now() - lastWheel > 240) busy = false; else setTimeout(release, 80); };
 
-  const goTo = async (b: HTMLElement, dirIn?: Dir) => {
-    if (busy || b === current) return;
+  /** Фокус в начало блока (заголовок): следующий Tab идёт по этому блоку, а не возвращает назад. */
+  const focusBlock = (b: HTMLElement) => {
+    const h = b.querySelector<HTMLElement>('h1, h2') || b;
+    if (!h.hasAttribute('tabindex')) h.setAttribute('tabindex', '-1');
+    h.focus({ preventScroll: true });
+  };
+
+  const goTo = async (b: HTMLElement, dirIn?: Dir, focus = false) => {
+    if (busy || b === current) { if (focus && b === current) focusBlock(b); return; }
     const all = blocks();
     const dir: Dir = dirIn ?? (all.indexOf(b) > all.indexOf(current) ? 1 : -1);
     busy = true;
@@ -234,6 +243,7 @@ export function initStage(hooks: StageHooks = {}) {
     ctx.clearRect(0, 0, W, H);
     draw(ctx, W, H, 1, true, dir, colors, st);
     arrive(b, dir);
+    if (focus) focusBlock(b);
     await run(draw, colors, dir, false, REVEAL, st);
     ctx.clearRect(0, 0, W, H);
     canvas.classList.remove('is-on');
@@ -295,8 +305,9 @@ export function initStage(hooks: StageHooks = {}) {
     if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
     const t = e.target as HTMLElement;
     if (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable) return;
-    if (t.closest?.('[data-keys]')) return;
     const k = e.key;
+    // меню и наклейки забирают себе стрелки и Home/End, PageUp/PageDown всегда листают блоки
+    if (t.closest?.('[data-keys]') && /^(Arrow(Up|Down|Left|Right)|Home|End)$/.test(k)) return;
     if (k === ' ' && t.closest?.('button, a, [role="button"], label, summary')) return;
     const all = blocks();
     if (k === 'Home') { e.preventDefault(); goTo(all[0], -1); return; }
@@ -318,18 +329,29 @@ export function initStage(hooks: StageHooks = {}) {
     const url = new URL(a.href, location.href);
     if (url.origin !== location.origin || url.pathname !== location.pathname) return;
     const id = url.hash.slice(1);
+    // ссылка «К содержимому»: фокус в текущий блок, страница не прыгает
+    if (id === 'main') { e.preventDefault(); focusBlock(current); return; }
     const b = id ? document.getElementById(id)?.closest<HTMLElement>('.block[data-block]') : blocks()[0];
     if (!b) return;
     e.preventDefault();
-    goTo(b);
+    // с клавиатуры (Enter по ссылке) фокус переезжает в блок вместе со сценой
+    goTo(b, undefined, e.detail === 0);
   });
 
   // фокус с клавиатуры ушёл в другой блок: сцена переезжает туда же без перехода
   document.addEventListener('focusin', (e) => {
     if (busy) return;
-    const b = (e.target as HTMLElement).closest?.<HTMLElement>('.block[data-block]');
-    if (b && b !== current) arrive(b, 1);
+    const t = e.target as HTMLElement;
+    const b = t.closest?.<HTMLElement>('.block[data-block]');
+    if (b && b !== current) {
+      arrive(b, 1);
+      // вход блока начинается с прозрачности: элемент в фокусе показывается сразу, вместе с рамкой фокуса
+      requestAnimationFrame(() => { if (document.activeElement === t) { gsap.killTweensOf(t); gsap.set(t, { clearProps: 'opacity,visibility,transform' }); } });
+    }
   });
+
+  // страница не должна стоять между блоками (например, после фокуса на элементе вне блоков)
+  addEventListener('scroll', () => { if (!busy && Math.abs(scrollY - current.offsetTop) > 2) window.scrollTo(0, current.offsetTop); }, { passive: true });
 
   addEventListener('resize', () => { size(); window.scrollTo(0, current.offsetTop); }, { passive: true });
 

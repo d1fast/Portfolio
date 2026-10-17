@@ -14,7 +14,7 @@ const items = [
 <header class="site-header" data-header>
   <a class="site-header__logo" href={home} aria-label="d1fast" data-logo>d1fast</a>
   <nav class="site-header__nav" aria-label={lang === 'ru' ? 'Разделы' : 'Sections'}>
-    {items.map(([id, label]) => <a href={`${home}#${id}`} data-scramble>{label}</a>)}
+    {items.map(([id, label]) => <a href={`${home}#${id}`} data-scramble>{lang === 'en' ? label.toLowerCase().replace(/\bi\b/g, 'I') : label}</a>)}
   </nav>
   <a class="site-header__lang" href={switchHref} hreflang={other} lang={other} title={d.nav.langSwitchTitle} data-magnetic="0.25">{d.nav.langSwitch}</a>
 </header>

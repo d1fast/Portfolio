@@ -95,7 +95,9 @@ export function init(root: HTMLElement) {
   const LEADER: [number, number, number] = [150, 158, 168];
   const tint = (i: number | null, duration = 0.9) => {
     const c = i === null ? LEADER : film().amb[i] ?? [168, 176, 188];
-    gsap.to(root, { '--amb': `rgb(${c[0]}, ${c[1]}, ${c[2]})`, duration, ease: 'power2.out', overwrite: 'auto' });
+    // цвет меняется сразу, под склейкой: плавная смена переменной перекрашивала бы весь зал каждый кадр и тормозила
+    void duration;
+    gsap.set(root, { '--amb': `rgb(${c[0]}, ${c[1]}, ${c[2]})` });
     beam.color(c);
   };
 

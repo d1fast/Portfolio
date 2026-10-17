@@ -16,6 +16,8 @@
 .site-header__logo::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 3px color-mix(in oklab, currentColor 25%, transparent); }
 .site-header__nav { display: flex; gap: 22px; margin-left: auto; }
 .site-header__nav a { position: relative; padding: 6px 0; text-transform: lowercase; }
+/* в английском меню строчные набраны в разметке, местоимение I остаётся заглавным */
+.site-header__nav a:lang(en) { text-transform: none; }
 .site-header__nav a::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: currentColor; transform: scaleX(0); transform-origin: 0 50%; transition: transform .3s var(--ease-out); }
 .site-header__nav a:hover::after, .site-header__nav a:focus-visible::after { transform: scaleX(1); }
 .site-header__lang { display: inline-grid; place-items: center; min-width: 44px; min-height: 36px; border: 1px solid currentColor; padding: 0 10px; border-radius: var(--radius-sm); font-weight: 600; }
